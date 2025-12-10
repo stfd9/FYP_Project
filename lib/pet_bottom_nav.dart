@@ -83,8 +83,8 @@ class PetBottomNavBar extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onScanPressed,
                   child: Container(
-                    width: 70,
-                    height: 70,
+                    width: 69,
+                    height: 69,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color.fromARGB(255, 6, 15, 176),
