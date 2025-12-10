@@ -22,7 +22,6 @@ class _AdminLoginContent extends StatelessWidget {
     final viewModel = context.watch<AdminLoginViewModel>();
 
     return Scaffold(
-      // Same background color for consistency
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -38,15 +37,18 @@ class _AdminLoginContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Distinctive Icon for Admin (Shield or Lock)
               Container(
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.blueGrey.shade50, // Slightly different tone
+                  color: Colors.blueGrey.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.admin_panel_settings, size: 32, color: Colors.blueGrey),
+                child: const Icon(
+                  Icons.admin_panel_settings,
+                  size: 32,
+                  color: Colors.blueGrey,
+                ),
               ),
               const SizedBox(height: 20),
               Container(
@@ -66,8 +68,9 @@ class _AdminLoginContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // --- CHANGED TITLE HERE ---
                     const Text(
-                      'Admin Portal',
+                      'Admin Login',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -83,8 +86,7 @@ class _AdminLoginContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
-                    // Inputs
+
                     TextField(
                       controller: viewModel.emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -108,7 +110,7 @@ class _AdminLoginContent extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     if (viewModel.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -122,13 +124,12 @@ class _AdminLoginContent extends StatelessWidget {
                       ),
                     const SizedBox(height: 8),
 
-                    // Login Button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey.shade900, // Darker color to distinguish admin
+                          backgroundColor: Colors.blueGrey.shade900,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -183,7 +184,7 @@ class _AdminLoginContent extends StatelessWidget {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
-        borderSide: BorderSide(color: Colors.blueGrey, width: 1.5), // Different focus color
+        borderSide: BorderSide(color: Colors.blueGrey, width: 1.5),
       ),
       suffixIcon: suffixIcon,
     );

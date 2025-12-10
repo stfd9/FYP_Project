@@ -33,7 +33,7 @@ class RegisterViewModel extends BaseViewModel {
     }
 
     runAsync(() async {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/login');
     });
   }
 

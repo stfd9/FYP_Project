@@ -66,7 +66,9 @@ class _NotificationsBody extends StatelessWidget {
                   ...todayNotifications.map(
                     (item) => _NotificationCard(
                       item: item,
-                      onTap: () => viewModel.markAsRead(item),
+                      // --- CLEAN CALL TO VIEW MODEL ---
+                      onTap: () =>
+                          viewModel.openNotificationDetail(context, item),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -82,7 +84,9 @@ class _NotificationsBody extends StatelessWidget {
                   ...earlierNotifications.map(
                     (item) => _NotificationCard(
                       item: item,
-                      onTap: () => viewModel.markAsRead(item),
+                      // --- CLEAN CALL TO VIEW MODEL ---
+                      onTap: () =>
+                          viewModel.openNotificationDetail(context, item),
                     ),
                   ),
                 ],
@@ -95,6 +99,7 @@ class _NotificationsBody extends StatelessWidget {
   }
 }
 
+// ... _NotificationCard and _EmptyState remain unchanged ...
 class _NotificationCard extends StatelessWidget {
   final NotificationItem item;
   final VoidCallback onTap;
@@ -165,6 +170,8 @@ class _NotificationCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               item.message,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.8),
               ),

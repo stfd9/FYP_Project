@@ -14,15 +14,39 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    int initialIndex = 0;
+    DateTime? calendarDate;
+
+    // --- SAFE ARGUMENT PARSING ---
+    if (args is int) {
+      // If we just passed a number (e.g. 1)
+      initialIndex = args;
+    } else if (args is Map) {
+      // If we passed complex data (e.g. {'tab': 1, 'date': ...})
+      if (args['tab'] is int) initialIndex = args['tab'];
+      if (args['date'] is DateTime) calendarDate = args['date'];
+    }
+
     return ChangeNotifierProvider(
-      create: (_) => HomeViewModel(),
-      child: const _HomeScaffold(),
+      create: (_) {
+        final viewModel = HomeViewModel();
+        if (initialIndex != 0) {
+          viewModel.setInitialTab(initialIndex);
+        }
+        return viewModel;
+      },
+      // Pass the date down to the Scaffold
+      child: _HomeScaffold(initialCalendarDate: calendarDate),
     );
   }
 }
 
 class _HomeScaffold extends StatelessWidget {
-  const _HomeScaffold();
+  final DateTime? initialCalendarDate;
+
+  const _HomeScaffold({this.initialCalendarDate});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +54,8 @@ class _HomeScaffold extends StatelessWidget {
 
     final pages = [
       const HomeDashboardView(),
-      const CalendarView(),
+      // Pass the date explicitly to CalendarView
+      CalendarView(initialDate: initialCalendarDate),
       const ScanView(),
       const PetProfileView(),
       const ProfileView(),

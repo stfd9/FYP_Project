@@ -5,12 +5,21 @@ import '../calendar_event.dart';
 import '../ViewModel/calendar_view_model.dart';
 
 class CalendarView extends StatelessWidget {
-  const CalendarView({super.key});
+  // Add this variable to receive date from HomeView
+  final DateTime? initialDate;
+
+  // Update constructor
+  const CalendarView({super.key, this.initialDate});
 
   @override
   Widget build(BuildContext context) {
+    // --- DELETE THE MODALROUTE LINE BELOW ---
+    // final initialDate = ModalRoute.of(context)?.settings.arguments as DateTime?;
+    // ----------------------------------------
+
     return ChangeNotifierProvider(
-      create: (_) => CalendarViewModel(),
+      // Use the variable passed from the constructor
+      create: (_) => CalendarViewModel(initialDate: initialDate),
       child: const _CalendarBody(),
     );
   }
@@ -26,7 +35,7 @@ class _CalendarBody extends StatelessWidget {
     final selectedEvent = viewModel.selectedEvent;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
         onPressed: () => viewModel.addSchedule(context),
         backgroundColor: Colors.grey.shade200,

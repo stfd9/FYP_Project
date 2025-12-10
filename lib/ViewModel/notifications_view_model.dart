@@ -6,6 +6,7 @@ class NotificationsViewModel extends ChangeNotifier {
       title: 'Upcoming vaccination',
       message: 'Milo has a vaccination scheduled for today at 4:00 PM.',
       timeLabel: 'Just now',
+      linkedDate: DateTime(2025, 1, 10),
     ),
     NotificationItem(
       title: 'Scan reminder',
@@ -54,6 +55,15 @@ class NotificationsViewModel extends ChangeNotifier {
     item.isUnread = false;
     notifyListeners();
   }
+
+  // --- NEW FUNCTION: Handles Navigation Logic ---
+  void openNotificationDetail(BuildContext context, NotificationItem item) {
+    // 1. Logic: Mark as read immediately
+    markAsRead(item);
+
+    // 2. Logic: Decide where to go (Navigate to Detail Page)
+    Navigator.pushNamed(context, '/notification_detail', arguments: item);
+  }
 }
 
 class NotificationItem {
@@ -61,11 +71,13 @@ class NotificationItem {
   final String message;
   final String timeLabel;
   bool isUnread;
+  final DateTime? linkedDate;
 
   NotificationItem({
     required this.title,
     required this.message,
     required this.timeLabel,
     this.isUnread = true,
+    this.linkedDate,
   });
 }

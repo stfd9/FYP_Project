@@ -4,6 +4,9 @@ import 'View/login_view.dart';
 import 'View/register_view.dart';
 import 'theme/app_theme.dart';
 import 'View/admin_login_view.dart';
+import 'View/admin_dashboard_view.dart';
+import 'View/calendar_view.dart';
+import 'View/notification_detail_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,6 +27,9 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterView(),
         '/home': (context) => const HomeView(),
         '/admin_login': (context) => const AdminLoginView(),
+        '/admin_dashboard': (context) => const AdminDashboardView(),
+        '/calendar': (context) => const CalendarView(),
+        '/notification_detail': (context) => const NotificationDetailView(),
       },
     );
   }

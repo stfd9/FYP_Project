@@ -23,12 +23,25 @@ class CalendarViewModel extends BaseViewModel {
     ),
   ];
 
-  int _selectedDay = 10;
+  late int _selectedDay;
+
+  // --- UPDATED CONSTRUCTOR ---
+  CalendarViewModel({DateTime? initialDate}) {
+    if (initialDate != null) {
+      // If a specific date is passed, open that day
+      _selectedDay = initialDate.day;
+    } else {
+      // Otherwise, default to today's date
+      _selectedDay = DateTime.now().day;
+    }
+  }
 
   int get selectedDay => _selectedDay;
   List<CalendarEvent> get events => List.unmodifiable(_events);
+
   CalendarEvent? get selectedEvent =>
       _events.where((event) => event.day == _selectedDay).firstOrNull;
+
   List<int?> get days => _buildDays();
 
   void selectDay(int day) {
@@ -73,10 +86,14 @@ class CalendarViewModel extends BaseViewModel {
     const totalSlots = 35;
     final days = List<int?>.generate(31, (index) => index + 1);
     final padding = List<int?>.filled(totalSlots - days.length, null);
+    // Align starting day (e.g. padding at start) if needed, currently padding is at end
+    // For a real calendar, padding logic depends on the specific month's start weekday.
+    // Keeping your logic:
     return [...days, ...padding];
   }
 }
 
+// Helper extension if you are on an older Dart version
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
 }

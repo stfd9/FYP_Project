@@ -25,227 +25,251 @@ class _LoginContent extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.pets, size: 32, color: Colors.black),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
+        // Use Stack to place the admin button in the corner freely
+        child: Stack(
+          children: [
+            // 1. The Main Login Content
+            Center(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  horizontal: 24,
+                  vertical: 24,
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Log in',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                    // --- Logo Section ---
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.pets,
+                        size: 32,
                         color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    TextField(
-                      controller: viewModel.emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: _inputDecoration('Email'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: viewModel.passwordController,
-                      obscureText: viewModel.obscurePassword,
-                      decoration: _inputDecoration(
-                        'Password',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            viewModel.obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.grey.shade700,
-                          ),
-                          onPressed: viewModel.togglePasswordVisibility,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (viewModel.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          viewModel.errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    SizedBox(
+
+                    // --- Login Form Card ---
+                    Container(
                       width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
                           ),
-                          elevation: 0,
-                        ),
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () => viewModel.login(context),
-                        child: viewModel.isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Log in',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () => viewModel.forgotPassword(context),
-                        child: Text(
-                          'Forgot your password?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade800,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey.shade300)),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            'or Continue with',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Log in',
                             style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey.shade300)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _SocialCircleButton(
-                          tooltip: 'Continue with Facebook',
-                          icon: Icons.facebook,
-                          onTap: () => viewModel.continueWithProvider(
-                            context,
-                            'Facebook',
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        _SocialCircleButton(
-                          tooltip: 'Continue with Google',
-                          child: const Text(
-                            'G',
-                            style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 24,
                               fontWeight: FontWeight.w700,
                               color: Colors.black,
                             ),
                           ),
-                          onTap: () =>
-                              viewModel.continueWithProvider(context, 'Google'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Don't have an account? ",
-                          style: TextStyle(fontSize: 13, color: Colors.black87),
-                        ),
-                        GestureDetector(
-                          onTap: () => viewModel.goToRegister(context),
-                          child: const Text(
-                            'Sign up',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              color: Colors.black,
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: viewModel.emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: _inputDecoration('Email'),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: viewModel.passwordController,
+                            obscureText: viewModel.obscurePassword,
+                            decoration: _inputDecoration(
+                              'Password',
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  viewModel.obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: Colors.grey.shade700,
+                                ),
+                                onPressed: viewModel.togglePasswordVisibility,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          if (viewModel.errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                viewModel.errorMessage!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: viewModel.isLoading
+                                  ? null
+                                  : () => viewModel.login(context),
+                              child: viewModel.isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Log in',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () =>
+                                  viewModel.forgotPassword(context),
+                              child: Text(
+                                'Forgot your password?',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade800,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(color: Colors.grey.shade300),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(
+                                  'or Continue with',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(color: Colors.grey.shade300),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _SocialCircleButton(
+                                tooltip: 'Continue with Facebook',
+                                icon: Icons.facebook,
+                                onTap: () => viewModel.continueWithProvider(
+                                  context,
+                                  'Facebook',
+                                ),
+                              ),
+                              const SizedBox(width: 24),
+                              _SocialCircleButton(
+                                tooltip: 'Continue with Google',
+                                child: const Text(
+                                  'G',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                onTap: () => viewModel.continueWithProvider(
+                                  context,
+                                  'Google',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Don't have an account? ",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => viewModel.goToRegister(context),
+                                child: const Text(
+                                  'Sign up',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
                   ],
                 ),
               ),
+            ),
 
-              // --- NEW ADMIN BUTTON ADDED HERE ---
-              const SizedBox(height: 30),
-              TextButton(
+            // 2. The Admin Button (Corner Positioned)
+            Positioned(
+              top: 10,
+              right: 16,
+              child: IconButton(
                 onPressed: () => viewModel.goToAdminLogin(context),
-                child: Text(
-                  'Admin Access',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade400, // Very subtle color
-                    fontWeight: FontWeight.w500,
-                  ),
+                tooltip: 'Admin Login',
+                icon: const Icon(
+                  Icons.admin_panel_settings_outlined,
+                  color: Colors.grey, // Subtle color
+                  size: 20,
                 ),
               ),
-
-              // -----------------------------------
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
