@@ -31,6 +31,13 @@ class LoginViewModel extends BaseViewModel {
     Navigator.pushNamed(context, '/register');
   }
 
+  // --- NEW METHOD FOR ADMIN NAV ---
+  void goToAdminLogin(BuildContext context) {
+    // Ensure you have defined '/admin_login' in your main.dart routes
+    Navigator.pushNamed(context, '/admin_login');
+  }
+  // --------------------------------
+
   void forgotPassword(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Password reset flow coming soon.')),

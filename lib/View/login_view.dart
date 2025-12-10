@@ -228,6 +228,22 @@ class _LoginContent extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // --- NEW ADMIN BUTTON ADDED HERE ---
+              const SizedBox(height: 30),
+              TextButton(
+                onPressed: () => viewModel.goToAdminLogin(context),
+                child: Text(
+                  'Admin Access',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade400, // Very subtle color
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+
+              // -----------------------------------
             ],
           ),
         ),
