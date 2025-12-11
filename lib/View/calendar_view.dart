@@ -141,124 +141,280 @@ class _CalendarCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: colorScheme.primary.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(Icons.chevron_left, color: colorScheme.primary),
-                onPressed: viewModel.goToPreviousMonth,
+          // Blue gradient header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primary,
+                  colorScheme.primary.withValues(alpha: 0.85),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              Text(
-                viewModel.monthYearLabel,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
-              IconButton(
-                icon: Icon(Icons.chevron_right, color: colorScheme.primary),
-                onPressed: viewModel.goToNextMonth,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              _WeekdayLabel(label: 'Mon'),
-              _WeekdayLabel(label: 'Tue'),
-              _WeekdayLabel(label: 'Wed'),
-              _WeekdayLabel(label: 'Thu'),
-              _WeekdayLabel(label: 'Fri'),
-              _WeekdayLabel(label: 'Sat'),
-              _WeekdayLabel(label: 'Sun'),
-            ],
-          ),
-          const SizedBox(height: 12),
-          GridView.builder(
-            itemCount: days.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 1,
             ),
-            itemBuilder: (context, index) {
-              final day = days[index];
-              if (day == null) {
-                return const SizedBox.shrink();
-              }
-              final hasEvent = _isEventDay(day);
-              final isSelected = day == viewModel.selectedDay;
-              final now = DateTime.now();
-              final isToday =
-                  day == now.day &&
-                  viewModel.currentMonth == now.month &&
-                  viewModel.currentYear == now.year;
-
-              return InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () => viewModel.selectDay(day),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : isToday
-                        ? colorScheme.primary.withValues(alpha: 0.1)
-                        : null,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Text(
-                        '$day',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : colorScheme.onSurface,
-                        ),
-                      ),
-                      if (hasEvent)
-                        Positioned(
-                          bottom: 4,
-                          child: Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.white
-                                  : colorScheme.error,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: Colors.white),
+                  onPressed: viewModel.goToPreviousMonth,
                 ),
-              );
-            },
+                Row(
+                  children: [
+                    const Icon(Icons.pets, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      viewModel.monthYearLabel,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: Colors.white),
+                  onPressed: viewModel.goToNextMonth,
+                ),
+              ],
+            ),
+          ),
+          // Calendar body
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    _WeekdayLabel(label: 'Mon'),
+                    _WeekdayLabel(label: 'Tue'),
+                    _WeekdayLabel(label: 'Wed'),
+                    _WeekdayLabel(label: 'Thu'),
+                    _WeekdayLabel(label: 'Fri'),
+                    _WeekdayLabel(label: 'Sat'),
+                    _WeekdayLabel(label: 'Sun'),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                GridView.builder(
+                  itemCount: days.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 7,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1,
+                  ),
+                  itemBuilder: (context, index) {
+                    final day = days[index];
+                    if (day == null) {
+                      return const SizedBox.shrink();
+                    }
+                    final hasEvent = _isEventDay(day);
+                    final isSelected = day == viewModel.selectedDay;
+                    final now = DateTime.now();
+                    final isToday =
+                        day == now.day &&
+                        viewModel.currentMonth == now.month &&
+                        viewModel.currentYear == now.year;
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => viewModel.selectDay(day),
+                      child: isSelected
+                          ? _PawSelectedDay(
+                              day: day,
+                              hasEvent: hasEvent,
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                color: isToday
+                                    ? colorScheme.primary.withValues(alpha: 0.1)
+                                    : null,
+                                borderRadius: BorderRadius.circular(12),
+                                border: isToday
+                                    ? Border.all(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        width: 1.5,
+                                      )
+                                    : null,
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Text(
+                                    '$day',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  if (hasEvent)
+                                    Positioned(
+                                      bottom: 4,
+                                      child: Container(
+                                        width: 5,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.error,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+// Paw-shaped selected day widget
+class _PawSelectedDay extends StatelessWidget {
+  final int day;
+  final bool hasEvent;
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
+
+  const _PawSelectedDay({
+    required this.day,
+    required this.hasEvent,
+    required this.colorScheme,
+    required this.textTheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Paw shape background
+        CustomPaint(
+          size: const Size(44, 44),
+          painter: _PawPainter(color: colorScheme.primary),
+        ),
+        // Day number
+        Text(
+          '$day',
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        // Event indicator
+        if (hasEvent)
+          Positioned(
+            bottom: 2,
+            child: Container(
+              width: 5,
+              height: 5,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// Custom painter for paw shape
+class _PawPainter extends CustomPainter {
+  final Color color;
+
+  _PawPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+
+    // Main pad (large rounded shape at bottom)
+    // Using a rounded rect or oval for the main pad
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(cx, h * 0.52),
+        width: w * 0.48,
+        height: h * 0.42,
+      ),
+      paint,
+    );
+
+    // Helper to draw rotated toe pads
+    void drawToe(
+      double x,
+      double y,
+      double width,
+      double height,
+      double angle,
+    ) {
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(angle);
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: width, height: height),
+        paint,
+      );
+      canvas.restore();
+    }
+
+    // Toe dimensions
+    final toeW = w * 0.15;
+    final toeH = h * 0.22;
+
+    // 1. Far Left Toe
+    drawToe(w * 0.20, h * 0.25, toeW, toeH, -0.4);
+
+    // 2. Mid Left Toe
+    drawToe(w * 0.38, h * 0.10, toeW, toeH, -0.15);
+
+    // 3. Mid Right Toe
+    drawToe(w * 0.62, h * 0.10, toeW, toeH, 0.15);
+
+    // 4. Far Right Toe
+    drawToe(w * 0.80, h * 0.25, toeW, toeH, 0.4);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _WeekdayLabel extends StatelessWidget {

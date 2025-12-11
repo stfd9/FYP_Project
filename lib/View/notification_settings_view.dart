@@ -206,10 +206,16 @@ class _NotificationTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: SwitchListTile.adaptive(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        activeColor: colorScheme.primary, // App Theme Primary Color
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return colorScheme.primary.withOpacity(0.3);
+        activeTrackColor: colorScheme.primary.withValues(alpha: 0.3),
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return Colors.grey.shade400;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary.withValues(alpha: 0.3);
           }
           return Colors.grey.shade200;
         }),
@@ -217,7 +223,7 @@ class _NotificationTile extends StatelessWidget {
         secondary: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: iconColor, size: 22),
