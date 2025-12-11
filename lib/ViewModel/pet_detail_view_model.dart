@@ -10,6 +10,10 @@ class PetDetailViewModel extends BaseViewModel {
 
   bool get isDog => pet.species.toLowerCase() == 'dog';
 
+  void onConfirmRemovalPressed(BuildContext context) {
+    confirmRemoval(context);
+  }
+
   Future<void> confirmRemoval(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,

@@ -26,6 +26,10 @@ class NotificationSettingsViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void onShowInfoPressed(BuildContext context) {
+    showInfo(context);
+  }
+
   void showInfo(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

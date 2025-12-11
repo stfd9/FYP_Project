@@ -55,6 +55,10 @@ class CustomCameraViewModel extends BaseViewModel {
     }
   }
 
+  void onCloseCameraPressed(BuildContext context) {
+    closeCamera(context);
+  }
+
   void closeCamera(BuildContext context) {
     Navigator.pop(context);
   }

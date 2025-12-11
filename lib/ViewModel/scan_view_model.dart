@@ -34,6 +34,10 @@ class ScanViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void onHistoryPressed(BuildContext context) {
+    goToHistory(context);
+  }
+
   Future<void> pickFromGallery() async {
     final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
     if (picked == null) {
@@ -60,6 +64,10 @@ class ScanViewModel extends BaseViewModel {
       context,
       MaterialPageRoute(builder: (_) => const ScanHistoryView()),
     );
+  }
+
+  void onAnalysePressed(BuildContext context) {
+    analyse(context);
   }
 
   void analyse(BuildContext context) {

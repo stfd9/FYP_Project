@@ -11,10 +11,18 @@ class ProfileViewModel extends BaseViewModel {
   final String userName = 'User Name';
   final String email = 'user@email.com';
 
+  void onEditProfilePressed(BuildContext context) {
+    editProfile(context);
+  }
+
   void editProfile(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile editing coming soon.')),
     );
+  }
+
+  void onAccountDetailsPressed(BuildContext context) {
+    openAccountDetails(context);
   }
 
   void openAccountDetails(BuildContext context) {
@@ -24,11 +32,19 @@ class ProfileViewModel extends BaseViewModel {
     );
   }
 
+  void onNotificationsPressed(BuildContext context) {
+    openNotifications(context);
+  }
+
   void openNotifications(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotificationSettingsView()),
     );
+  }
+
+  void onPrivacySecurityPressed(BuildContext context) {
+    openPrivacySecurity(context);
   }
 
   void openPrivacySecurity(BuildContext context) {
@@ -38,6 +54,10 @@ class ProfileViewModel extends BaseViewModel {
     );
   }
 
+  void onHelpPressed(BuildContext context) {
+    openHelp(context);
+  }
+
   void openHelp(BuildContext context) {
     Navigator.push(
       context,
@@ -45,11 +65,19 @@ class ProfileViewModel extends BaseViewModel {
     );
   }
 
+  void onFeedbackPressed(BuildContext context) {
+    openFeedback(context);
+  }
+
   void openFeedback(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const FeedbackView()),
     );
+  }
+
+  void onLogoutPressed(BuildContext context) {
+    logout(context);
   }
 
   void logout(BuildContext context) {

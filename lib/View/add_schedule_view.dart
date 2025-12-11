@@ -60,7 +60,7 @@ class _AddScheduleForm extends StatelessWidget {
                   trailing: OutlinedButton.icon(
                     icon: const Icon(Icons.calendar_today_outlined, size: 16),
                     label: const Text('Select'),
-                    onPressed: () => viewModel.pickDateTime(context),
+                    onPressed: () => viewModel.onPickDateTimePressed(context),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -119,7 +119,7 @@ class _AddScheduleForm extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () => viewModel.saveSchedule(context),
+                    onPressed: () => viewModel.onSaveSchedulePressed(context),
                     child: const Text(
                       'Save schedule',
                       style: TextStyle(fontWeight: FontWeight.w600),
