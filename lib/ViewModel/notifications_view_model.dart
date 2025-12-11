@@ -7,11 +7,13 @@ class NotificationsViewModel extends ChangeNotifier {
       message: 'Milo has a vaccination scheduled for today at 4:00 PM.',
       timeLabel: 'Just now',
       linkedDate: DateTime(2025, 1, 10),
+      isUnread: true,
     ),
     NotificationItem(
       title: 'Scan reminder',
       message: 'It’s been a week since Luna’s last skin scan.',
       timeLabel: '10 min ago',
+      isUnread: true,
     ),
   ];
 
@@ -40,6 +42,7 @@ class NotificationsViewModel extends ChangeNotifier {
       _todayNotifications.any((n) => n.isUnread) ||
       _earlierNotifications.any((n) => n.isUnread);
 
+  // --- FUNCTION CALLED BY THE APP BAR BUTTON ---
   void markAllAsRead() {
     for (final item in _todayNotifications) {
       item.isUnread = false;
@@ -56,12 +59,9 @@ class NotificationsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- NEW FUNCTION: Handles Navigation Logic ---
   void openNotificationDetail(BuildContext context, NotificationItem item) {
-    // 1. Logic: Mark as read immediately
     markAsRead(item);
-
-    // 2. Logic: Decide where to go (Navigate to Detail Page)
+    // Assuming '/notification_detail' is configured in main.dart
     Navigator.pushNamed(context, '/notification_detail', arguments: item);
   }
 }

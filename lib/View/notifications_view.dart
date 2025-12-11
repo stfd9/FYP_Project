@@ -34,23 +34,21 @@ class _NotificationsBody extends StatelessWidget {
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        // Style changes for clean appearance
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: const Color(0xFF2D3142),
         actions: [
+          // --- CHANGED TO ICON BUTTON ---
           if (viewModel.hasUnread)
-            TextButton(
-              onPressed: viewModel.markAllAsRead,
-              child: Text(
-                'Mark all as read',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.primary,
-                ),
+            IconButton(
+              icon: Icon(
+                Icons.done_all_rounded, // Icon representing "Mark All As Read"
+                color: colorScheme.primary,
+                size: 24,
               ),
+              onPressed: viewModel.markAllAsRead,
+              tooltip: 'Mark All As Read',
             ),
           const SizedBox(width: 8),
         ],
@@ -111,7 +109,7 @@ class _NotificationsBody extends StatelessWidget {
   }
 }
 
-// --- Redesigned Notification Card Widget ---
+// --- Notification Card Widget (Used in the list) ---
 class _NotificationTileCard extends StatelessWidget {
   final NotificationItem item;
   final VoidCallback onTap;
