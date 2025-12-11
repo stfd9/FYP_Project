@@ -18,8 +18,15 @@ class PetDetailView extends StatelessWidget {
   }
 }
 
-class _PetDetailBody extends StatelessWidget {
+class _PetDetailBody extends StatefulWidget {
   const _PetDetailBody();
+
+  @override
+  State<_PetDetailBody> createState() => _PetDetailBodyState();
+}
+
+class _PetDetailBodyState extends State<_PetDetailBody> {
+  double _sheetExtent = 0.55; // Tracks sheet expansion for parallax
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +48,9 @@ class _PetDetailBody extends StatelessWidget {
 
     // Calculations for the overlapping layout
     final Size size = MediaQuery.of(context).size;
-    final double imageHeight = size.height * 0.45; // Image takes top 45%
-    const double overlap = 40.0; // Amount the white card overlaps the image
+    final double imageHeight = size.height * 0.55; // Visible image area
+    final double imageParallax =
+        -(_sheetExtent - 0.55) * 140; // Move image up as sheet expands
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8E8D4), // Soft peach background
@@ -54,25 +62,28 @@ class _PetDetailBody extends StatelessWidget {
             left: 0,
             right: 0,
             height: imageHeight,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8E8D4),
-                image: petImagePath != null
-                    ? DecorationImage(
-                        image: AssetImage(petImagePath),
-                        fit: BoxFit.cover, // Ensures image fills the area
+            child: Transform.translate(
+              offset: Offset(0, imageParallax),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8E8D4),
+                  image: petImagePath != null
+                      ? DecorationImage(
+                          image: AssetImage(petImagePath),
+                          fit: BoxFit.cover, // Ensures image fills the area
+                        )
+                      : null,
+                ),
+                child: petImagePath == null
+                    ? Center(
+                        child: Icon(
+                          isDog ? Icons.pets : Icons.pets_outlined,
+                          size: 100,
+                          color: colorScheme.primary.withValues(alpha: 0.6),
+                        ),
                       )
                     : null,
               ),
-              child: petImagePath == null
-                  ? Center(
-                      child: Icon(
-                        isDog ? Icons.pets : Icons.pets_outlined,
-                        size: 100,
-                        color: colorScheme.primary.withValues(alpha: 0.6),
-                      ),
-                    )
-                  : null,
             ),
           ),
 
@@ -82,7 +93,7 @@ class _PetDetailBody extends StatelessWidget {
             left: 20,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
@@ -92,158 +103,165 @@ class _PetDetailBody extends StatelessWidget {
             ),
           ),
 
-          // --- 3. Bottom Content Sheet (Overlapping) ---
-          Positioned(
-            top: imageHeight - overlap, // Start overlapping the image
-            left: 0,
-            right: 0,
-            bottom: 0, // Stretch to bottom of screen
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
-              ),
-              // Use ClipRRect if you want content to clip at corners,
-              // but standard Container radius usually suffices.
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                children: [
-                  // --- Name Header ---
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          pet.name,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${pet.species} • ${pet.breed}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+          // --- 3. Bottom Content as Draggable Sheet ---
+          NotificationListener<DraggableScrollableNotification>(
+            onNotification: (notification) {
+              setState(() => _sheetExtent = notification.extent);
+              return false;
+            },
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.55,
+              minChildSize: 0.55,
+              maxChildSize: 0.92,
+              snap: true,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // --- Stats Row (Chips) ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
                     children: [
-                      _StatChip(
-                        icon: Icons.cake,
-                        label: 'Age',
-                        value: pet.age,
-                        color: const Color(0xFFFFE0B2), // Light Orange
-                        iconColor: Colors.orange,
+                      // --- Name Header ---
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              pet.name,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${pet.species} • ${pet.breed}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      _StatChip(
-                        icon: Icons.category,
-                        label: 'Breed',
-                        value: pet.breed,
-                        color: const Color(0xFFE1BEE7), // Light Purple
-                        iconColor: Colors.purple,
+                      const SizedBox(height: 24),
+
+                      // --- Stats Row (Chips) ---
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _StatChip(
+                            icon: Icons.cake,
+                            label: 'Age',
+                            value: pet.age,
+                            color: const Color(0xFFFFE0B2), // Light Orange
+                            iconColor: Colors.orange,
+                          ),
+                          _StatChip(
+                            icon: Icons.category,
+                            label: 'Breed',
+                            value: pet.breed,
+                            color: const Color(0xFFE1BEE7), // Light Purple
+                            iconColor: Colors.purple,
+                          ),
+                          _StatChip(
+                            icon: isDog ? Icons.pets : Icons.pets_outlined,
+                            label: 'Species',
+                            value: pet.species,
+                            color: const Color(0xFFC8E6C9), // Light Green
+                            iconColor: Colors.green,
+                          ),
+                        ],
                       ),
-                      _StatChip(
-                        icon: isDog ? Icons.pets : Icons.pets_outlined,
-                        label: 'Species',
-                        value: pet.species,
-                        color: const Color(0xFFC8E6C9), // Light Green
-                        iconColor: Colors.green,
+                      const SizedBox(height: 32),
+
+                      // --- Health Overview ---
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Health Overview',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            'See all',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+
+                      _InfoTile(
+                        title: 'Last Scan',
+                        subtitle: '3 days ago - Healthy',
+                        icon: Icons.center_focus_strong,
+                        iconBgColor: const Color(0xFFFF9F59), // Orange
+                        isChecked: true,
+                      ),
+                      const SizedBox(height: 12),
+                      _InfoTile(
+                        title: 'Next Vaccination',
+                        subtitle: '20 March 2026',
+                        icon: Icons.medical_services,
+                        iconBgColor: const Color(0xFF7165E3), // Purple
+                        isChecked: false,
+                      ),
+                      const SizedBox(height: 12),
+                      _InfoTile(
+                        title: 'Notes',
+                        subtitle: 'Allergies, food preferences...',
+                        icon: Icons.sticky_note_2,
+                        iconBgColor: colorScheme.secondary, // Aqua
+                        isChecked: false,
+                      ),
+
+                      const SizedBox(height: 40),
+
+                      // --- Remove Button ---
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              viewModel.onConfirmRemovalPressed(context),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.red.shade100),
+                            backgroundColor: Colors.red.shade50,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text(
+                            'Remove Pet',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red.shade600,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Add extra padding at the bottom for scrolling comfort
+                      const SizedBox(height: 30),
                     ],
                   ),
-                  const SizedBox(height: 32),
-
-                  // --- Health Overview ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Health Overview',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                          fontSize: 18,
-                        ),
-                      ),
-                      Text(
-                        'See all',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  _InfoTile(
-                    title: 'Last Scan',
-                    subtitle: '3 days ago - Healthy',
-                    icon: Icons.center_focus_strong,
-                    iconBgColor: const Color(0xFFFF9F59), // Orange
-                    isChecked: true,
-                  ),
-                  const SizedBox(height: 12),
-                  _InfoTile(
-                    title: 'Next Vaccination',
-                    subtitle: '20 March 2026',
-                    icon: Icons.medical_services,
-                    iconBgColor: const Color(0xFF7165E3), // Purple
-                    isChecked: false,
-                  ),
-                  const SizedBox(height: 12),
-                  _InfoTile(
-                    title: 'Notes',
-                    subtitle: 'Allergies, food preferences...',
-                    icon: Icons.sticky_note_2,
-                    iconBgColor: colorScheme.secondary, // Aqua
-                    isChecked: false,
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // --- Remove Button ---
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: OutlinedButton(
-                      onPressed: () =>
-                          viewModel.onConfirmRemovalPressed(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red.shade100),
-                        backgroundColor: Colors.red.shade50,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        'Remove Pet',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red.shade600,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Add extra padding at the bottom for scrolling comfort
-                  const SizedBox(height: 30),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -275,7 +293,7 @@ class _StatChip extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.4),
+          color: color.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -283,7 +301,7 @@ class _StatChip extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 20),
