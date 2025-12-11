@@ -23,7 +23,6 @@ class _PetProfileBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<PetProfileViewModel>();
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD), // Light grey background
@@ -48,6 +47,13 @@ class _PetProfileBody extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
+                      Text(
+                        '${viewModel.pets.length} pets registered',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
                     ],
                   ),
 
@@ -61,7 +67,6 @@ class _PetProfileBody extends StatelessWidget {
                   else
                     Expanded(
                       child: GridView.builder(
-                        // Add bottom padding so the FAB doesn't cover the last items
                         padding: const EdgeInsets.only(bottom: 100),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
@@ -73,14 +78,9 @@ class _PetProfileBody extends StatelessWidget {
                         itemCount: viewModel.pets.length,
                         itemBuilder: (context, index) {
                           final pet = viewModel.pets[index];
-                          // Alternate background colors for visual variety
-                          final bgColor = index % 2 == 0
-                              ? const Color(0xFFE3F2FD) // Soft Blue
-                              : const Color(0xFFF3E5F5); // Soft Purple
 
                           return _PetGridCard(
                             pet: pet,
-                            backgroundColor: bgColor,
                             onTap: () => viewModel.openPetDetail(context, pet),
                           );
                         },
@@ -105,7 +105,7 @@ class _PetProfileBody extends StatelessWidget {
   }
 }
 
-// --- 1. Fixed Floating Add Button (Bigger & Centered Cat) ---
+// --- 1. Fixed Floating Add Button ---
 class _FloatingAddButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -126,9 +126,9 @@ class _FloatingAddButton extends StatelessWidget {
         child: Center(
           child: Image.asset(
             'images/assets/dog_icon.png', // Ensure this file exists
-            width: 38, // Increased size for better visibility
+            width: 38,
             height: 38,
-            color: Colors.white, // Tints the blue icon to white
+            color: Colors.white,
             fit: BoxFit.contain,
           ),
         ),
@@ -137,25 +137,36 @@ class _FloatingAddButton extends StatelessWidget {
   }
 }
 
-// --- 2. The Grid Card Style ---
+// --- 2. REDESIGNED Grid Card (Two-Tone: Color Top, White Bottom) ---
 class _PetGridCard extends StatelessWidget {
   final PetInfo pet;
-  final Color backgroundColor;
   final VoidCallback onTap;
 
-  const _PetGridCard({
-    required this.pet,
-    required this.backgroundColor,
-    required this.onTap,
-  });
+  const _PetGridCard({required this.pet, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isDog = pet.species.toLowerCase() == 'dog';
 
+    // --- Image Logic ---
+    String? petImagePath;
+    if (pet.name == 'Milo') {
+      petImagePath = 'images/assets/shiba.png';
+    } else if (pet.name == 'Luna') {
+      petImagePath = 'images/assets/british_sh.png';
+    } else if (pet.name == 'Coco') {
+      petImagePath = 'images/assets/poodle.png';
+    }
+
+    // --- Color Logic ---
+    final topBackgroundColor = isDog
+        ? const Color(0xFFE3F2FD) // Soft Blue for Dogs
+        : const Color(0xFFF3E5F5); // Soft Pink for Cats
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        // The main card background is WHITE
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -169,32 +180,37 @@ class _PetGridCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // --- Top Half: Image ---
+            // --- Top Half: Image (Colored Background) ---
             Expanded(
               flex: 3,
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: backgroundColor,
+                  color: topBackgroundColor, // Color applied here
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
+                    // No bottom radius so it sits flush with the white part
                   ),
                 ),
                 child: Center(
-                  // Centered Pet Icon
-                  child: Icon(
-                    isDog ? Icons.pets : Icons.pets_outlined,
-                    size: 60,
-                    color: Colors.black.withValues(alpha: 0.1),
-                  ),
+                  child: petImagePath != null
+                      ? Image.asset(
+                          petImagePath,
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.contain,
+                        )
+                      : Icon(
+                          isDog ? Icons.pets : Icons.pets_outlined,
+                          size: 50,
+                          color: Colors.black.withValues(alpha: 0.1),
+                        ),
                 ),
               ),
             ),
 
-            // --- Bottom Half: Details ---
+            // --- Bottom Half: Details (White Background) ---
             Expanded(
               flex: 2,
               child: Padding(
@@ -210,7 +226,7 @@ class _PetGridCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Colors.black87, // Black Text
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -220,29 +236,18 @@ class _PetGridCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Colors.grey.shade600, // Grey Text
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          pet.age,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade800,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        // Heart Icon
-                        const Icon(
-                          Icons.favorite_border_rounded,
-                          size: 20,
-                          color: Colors.black54,
-                        ),
-                      ],
+                    Text(
+                      pet.age,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade800, // Dark Grey Text
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
