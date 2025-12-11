@@ -124,14 +124,22 @@ class CalendarViewModel extends BaseViewModel {
       return;
     }
 
-    final removed = await Navigator.push<bool>(
+    final result = await Navigator.push<Object>(
       context,
       MaterialPageRoute(builder: (_) => ScheduleDetailView(event: event)),
     );
 
-    if (removed == true) {
+    if (result == true) {
+      // Event was deleted or marked completed
       _events.remove(event);
       notifyListeners();
+    } else if (result is CalendarEvent) {
+      // Event was edited - replace old event with updated one
+      final index = _events.indexOf(event);
+      if (index != -1) {
+        _events[index] = result;
+        notifyListeners();
+      }
     }
   }
 
