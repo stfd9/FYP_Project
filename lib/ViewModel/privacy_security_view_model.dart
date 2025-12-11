@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'base_view_model.dart';
 
 class PrivacySecurityViewModel extends BaseViewModel {
-  void changePassword(BuildContext context) {
-    _showSnack(context, 'Change password flow coming soon.');
+  void onChangePasswordPressed(BuildContext context) {
+    Navigator.pushNamed(context, '/change_password');
   }
 
   void manageSessions(BuildContext context) {

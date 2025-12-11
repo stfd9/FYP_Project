@@ -125,7 +125,7 @@ class _PrivacySecurityBody extends StatelessWidget {
                     iconBgColor: const Color(0xFFFFF3E0),
                     title: 'Change Password',
                     subtitle: 'Update your current password',
-                    onTap: () => viewModel.changePassword(context),
+                    onTap: () => viewModel.onChangePasswordPressed(context),
                     showDivider: true,
                   ),
                   _SettingsTile(

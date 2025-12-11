@@ -46,6 +46,7 @@ class MyApp extends StatelessWidget {
         '/analysis_record_detail': (context) =>
             const AnalysisRecordDetailView(),
         '/manage_faq': (context) => const ManageFAQView(),
+        '/change_password': (context) => const ChangePasswordView(),
       },
     );
   }

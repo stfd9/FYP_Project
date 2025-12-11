@@ -20,10 +20,10 @@ class _ManageFAQBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ManageFAQViewModel>();
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text(
           'Manage FAQ',
@@ -31,97 +31,67 @@ class _ManageFAQBody extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black,
+        centerTitle: true,
+        foregroundColor: const Color(0xFF2D3142),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showFAQDialog(context, viewModel, null),
-        label: const Text('Add New FAQ'),
+        label: const Text(
+          'Add FAQ',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         icon: const Icon(Icons.add),
-        backgroundColor: theme.colorScheme.primary,
+        backgroundColor: colorScheme.primary,
         foregroundColor: Colors.white,
+        elevation: 4,
       ),
-      body: viewModel.faqs.isEmpty
-          ? Center(
-              child: Text(
-                'No FAQs added yet.',
-                style: theme.textTheme.bodyLarge,
-              ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: viewModel.faqs.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final faq = viewModel.faqs[index];
-                return Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.category_outlined,
+                  size: 20,
+                  color: Colors.grey.shade600,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Browse by Category',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
                   ),
-                  child: ExpansionTile(
-                    title: Text(
-                      faq.question,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              faq.answer,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Divider(),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton.icon(
-                                  icon: const Icon(Icons.edit, size: 18),
-                                  label: const Text('Edit'),
-                                  onPressed: () =>
-                                      _showFAQDialog(context, viewModel, faq),
-                                ),
-                                const SizedBox(width: 8),
-                                TextButton.icon(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    size: 18,
-                                    color: Colors.red,
-                                  ),
-                                  label: const Text(
-                                    'Delete',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                  onPressed: () => _confirmDelete(
-                                    context,
-                                    viewModel,
-                                    faq.id,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                ),
+              ],
             ),
+          ),
+
+          // --- ITERATE THROUGH DEFINED CATEGORIES ---
+          ...viewModel.categoryDefinitions.map((categoryDef) {
+            // Get items belonging to this category
+            final items = viewModel.getFaqsByCategory(categoryDef.title);
+
+            return _CategoryCard(
+              categoryDef: categoryDef,
+              items: items,
+              viewModel: viewModel,
+              onEditItem: (faq) => _showFAQDialog(context, viewModel, faq),
+            );
+          }),
+        ],
+      ),
     );
   }
 
-  // --- Helper: Show Dialog for Create/Edit ---
+  // --- Dialog Logic ---
   void _showFAQDialog(
     BuildContext context,
     ManageFAQViewModel viewModel,
-    FAQItem? faq,
+    AdminFaqItem? faq,
   ) {
     final isEditing = faq != null;
     final questionController = TextEditingController(
@@ -131,76 +101,343 @@ class _ManageFAQBody extends StatelessWidget {
       text: isEditing ? faq.answer : '',
     );
 
+    // Default to the first category if creating new
+    String selectedCategory = isEditing
+        ? faq.categoryTitle
+        : viewModel.categoryDefinitions.first.title;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Edit FAQ' : 'New FAQ'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: questionController,
-                decoration: const InputDecoration(
-                  labelText: 'Question',
-                  hintText: 'e.g., How to reset password?',
-                ),
-                maxLines: 2,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              isEditing ? 'Edit FAQ' : 'New FAQ',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Category',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedCategory,
+                        isExpanded: true,
+                        icon: const Icon(Icons.arrow_drop_down),
+                        // Create items from the Category Definitions
+                        items: viewModel.categoryDefinitions.map((def) {
+                          return DropdownMenuItem<String>(
+                            value: def.title,
+                            child: Text(def.title),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null)
+                            setState(() => selectedCategory = newValue);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: questionController,
+                    decoration: InputDecoration(
+                      labelText: 'Question',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: answerController,
+                    decoration: InputDecoration(
+                      labelText: 'Answer',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    maxLines: 4,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: answerController,
-                decoration: const InputDecoration(
-                  labelText: 'Answer',
-                  hintText: 'Enter the detailed answer here...',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey),
                 ),
-                maxLines: 4,
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  if (questionController.text.isNotEmpty &&
+                      answerController.text.isNotEmpty) {
+                    if (isEditing) {
+                      viewModel.editFAQ(
+                        faq.id,
+                        questionController.text,
+                        answerController.text,
+                        selectedCategory,
+                      );
+                    } else {
+                      viewModel.addFAQ(
+                        questionController.text,
+                        answerController.text,
+                        selectedCategory,
+                      );
+                    }
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: Text(isEditing ? 'Save' : 'Add'),
               ),
             ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+// --- Category Card Widget ---
+class _CategoryCard extends StatefulWidget {
+  final FaqCategoryDef categoryDef;
+  final List<AdminFaqItem> items;
+  final ManageFAQViewModel viewModel;
+  final Function(AdminFaqItem) onEditItem;
+
+  const _CategoryCard({
+    required this.categoryDef,
+    required this.items,
+    required this.viewModel,
+    required this.onEditItem,
+  });
+
+  @override
+  State<_CategoryCard> createState() => _CategoryCardState();
+}
+
+class _CategoryCardState extends State<_CategoryCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+        ],
+      ),
+      child: Column(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Visuals from Definition
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: widget.categoryDef.bgColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        widget.categoryDef.icon,
+                        color: widget.categoryDef.color,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.categoryDef.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2D3142),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${widget.items.length} questions',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: _isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 20,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (questionController.text.isNotEmpty &&
-                  answerController.text.isNotEmpty) {
-                if (isEditing) {
-                  viewModel.editFAQ(
-                    faq.id,
-                    questionController.text,
-                    answerController.text,
-                  );
-                } else {
-                  viewModel.addFAQ(
-                    questionController.text,
-                    answerController.text,
-                  );
-                }
-                Navigator.pop(ctx);
-              }
-            },
-            child: Text(isEditing ? 'Save Changes' : 'Add FAQ'),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Column(
+              children: [
+                Divider(height: 1, color: Colors.grey.shade100),
+                if (widget.items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'No questions in this category yet.',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ...widget.items.map(
+                  (faq) => _AdminFaqItemTile(
+                    faq: faq,
+                    viewModel: widget.viewModel,
+                    onEdit: () => widget.onEditItem(faq),
+                  ),
+                ),
+              ],
+            ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
           ),
         ],
       ),
     );
   }
+}
 
-  // --- Helper: Confirm Delete ---
-  void _confirmDelete(
-    BuildContext context,
-    ManageFAQViewModel viewModel,
-    String id,
-  ) {
+// --- Item Tile ---
+class _AdminFaqItemTile extends StatelessWidget {
+  final AdminFaqItem faq;
+  final ManageFAQViewModel viewModel;
+  final VoidCallback onEdit;
+
+  const _AdminFaqItemTile({
+    required this.faq,
+    required this.viewModel,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade50, width: 1),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        title: Text(
+          faq.question,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2D3142),
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            faq.answer,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, size: 18, color: Colors.blue.shade300),
+              onPressed: onEdit,
+              visualDensity: VisualDensity.compact,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: Colors.red.shade300,
+              ),
+              onPressed: () => _confirmDelete(context),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete FAQ'),
-        content: const Text('Are you sure you want to remove this FAQ?'),
+        content: const Text('Remove this question permanently?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -209,7 +446,7 @@ class _ManageFAQBody extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              viewModel.deleteFAQ(context, id);
+              viewModel.deleteFAQ(context, faq.id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
