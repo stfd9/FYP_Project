@@ -43,19 +43,34 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class _HomeScaffold extends StatelessWidget {
+class _HomeScaffold extends StatefulWidget {
   final DateTime? initialCalendarDate;
 
   const _HomeScaffold({this.initialCalendarDate});
 
   @override
+  State<_HomeScaffold> createState() => _HomeScaffoldState();
+}
+
+class _HomeScaffoldState extends State<_HomeScaffold> {
+  int _previousIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<HomeViewModel>();
+    final currentIndex = viewModel.selectedIndex;
+    final goingForward = currentIndex >= _previousIndex;
+
+    // Update previous index after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_previousIndex != currentIndex) {
+        _previousIndex = currentIndex;
+      }
+    });
 
     final pages = [
       const HomeDashboardView(),
-      // Pass the date explicitly to CalendarView
-      CalendarView(initialDate: initialCalendarDate),
+      CalendarView(initialDate: widget.initialCalendarDate),
       const ScanView(),
       const PetProfileView(),
       const ProfileView(),
@@ -64,27 +79,32 @@ class _HomeScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 350),
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          );
+          final isEntering = child.key == ValueKey(currentIndex);
+
+          // Slide + Fade transition
+          final slideOffset = isEntering
+              ? (goingForward ? const Offset(0.15, 0) : const Offset(-0.15, 0))
+              : (goingForward ? const Offset(-0.15, 0) : const Offset(0.15, 0));
+
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(1, 0),
+              begin: slideOffset,
               end: Offset.zero,
-            ).animate(curved),
-            child: child,
+            ).animate(animation),
+            child: FadeTransition(opacity: animation, child: child),
           );
         },
         child: KeyedSubtree(
-          key: ValueKey(viewModel.selectedIndex),
-          child: pages[viewModel.selectedIndex],
+          key: ValueKey(currentIndex),
+          child: pages[currentIndex],
         ),
       ),
       bottomNavigationBar: PetBottomNavBar(
-        currentIndex: viewModel.selectedIndex,
+        currentIndex: currentIndex,
         onTabSelected: viewModel.selectTab,
         onScanPressed: viewModel.goToScanTab,
       ),
