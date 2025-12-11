@@ -42,7 +42,7 @@ class _LoginContent extends StatelessWidget {
                   children: [
                     // --- Logo Section ---
                     SizedBox(
-                      height: 180, // Adjust height as needed
+                      height: 110, // Adjust height as needed
                       width: 300, // Give it enough width for the text
                       child: Image.asset(
                         'images/assets/full_logo.png',
@@ -86,7 +86,7 @@ class _LoginContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Welcome back to PetCare',
+                            'Welcome back to PawScope',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurface.withValues(
                                 alpha: 0.6,
