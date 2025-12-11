@@ -44,28 +44,23 @@ class _AddScheduleForm extends StatelessWidget {
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
-                InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Day (January)',
-                    border: OutlineInputBorder(),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Date & time',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: viewModel.selectedDay,
-                      isExpanded: true,
-                      items: List.generate(
-                        31,
-                        (index) => DropdownMenuItem(
-                          value: index + 1,
-                          child: Text('Day ${index + 1}'),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        if (value != null) {
-                          viewModel.selectDay(value);
-                        }
-                      },
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      viewModel.scheduledLabel,
+                      style: const TextStyle(fontSize: 13),
                     ),
+                  ),
+                  trailing: OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_today_outlined, size: 16),
+                    label: const Text('Select'),
+                    onPressed: () => viewModel.pickDateTime(context),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -107,21 +102,6 @@ class _AddScheduleForm extends StatelessWidget {
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter the location';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: viewModel.timeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Time',
-                    hintText: 'e.g. 2:00 p.m.',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter the time';
                     }
                     return null;
                   },

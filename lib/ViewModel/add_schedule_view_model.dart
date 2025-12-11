@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
 import 'base_view_model.dart';
@@ -8,14 +9,44 @@ class AddScheduleViewModel extends BaseViewModel {
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController activityController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
-  final TextEditingController timeController = TextEditingController();
 
-  int _selectedDay = 1;
+  DateTime? _scheduledAt;
 
-  int get selectedDay => _selectedDay;
+  String get scheduledLabel => _scheduledAt == null
+      ? 'Pick date & time'
+      : DateFormat('EEE, d MMM yyyy • h:mm a').format(_scheduledAt!);
 
-  void selectDay(int day) {
-    _selectedDay = day;
+  Future<void> pickDateTime(BuildContext context) async {
+    final now = DateTime.now();
+
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _scheduledAt ?? now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+
+    if (selectedDate == null) return;
+
+    final initialTime = _scheduledAt != null
+        ? TimeOfDay.fromDateTime(_scheduledAt!)
+        : TimeOfDay.fromDateTime(now);
+
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (selectedTime == null) return;
+
+    _scheduledAt = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
     notifyListeners();
   }
 
@@ -25,12 +56,21 @@ class AddScheduleViewModel extends BaseViewModel {
       return;
     }
 
+    if (_scheduledAt == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select date & time')),
+      );
+      return;
+    }
+
+    final timeString = DateFormat('h:mm a').format(_scheduledAt!);
+
     final newEvent = CalendarEvent(
-      day: _selectedDay,
+      day: _scheduledAt!.day,
       petName: petNameController.text.trim(),
       activity: activityController.text.trim(),
       location: locationController.text.trim(),
-      time: timeController.text.trim(),
+      time: timeString,
     );
 
     Navigator.pop(context, newEvent);
@@ -41,7 +81,6 @@ class AddScheduleViewModel extends BaseViewModel {
     petNameController.dispose();
     activityController.dispose();
     locationController.dispose();
-    timeController.dispose();
     super.dispose();
   }
 }
