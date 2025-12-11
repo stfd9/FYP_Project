@@ -13,10 +13,7 @@ class AdminDashboardViewModel extends BaseViewModel {
   }
 
   void navigateToAnalysisRecords(BuildContext context) {
-    // Navigate to Analysis History
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Analysis Records page coming soon.')),
-    );
+    Navigator.pushNamed(context, '/analysis_records');
   }
 
   void navigateToManageFAQ(BuildContext context) {
