@@ -5,20 +5,21 @@ import '../calendar_event.dart';
 import '../ViewModel/calendar_view_model.dart';
 
 class CalendarView extends StatelessWidget {
-  // Add this variable to receive date from HomeView
+  // 1. Receive the date from the parent (HomeView)
   final DateTime? initialDate;
 
-  // Update constructor
+  // 2. Update constructor to accept it
   const CalendarView({super.key, this.initialDate});
 
   @override
   Widget build(BuildContext context) {
-    // --- DELETE THE MODALROUTE LINE BELOW ---
-    // final initialDate = ModalRoute.of(context)?.settings.arguments as DateTime?;
-    // ----------------------------------------
+    // ---------------------------------------------------------
+    // CRITICAL FIX: I DELETED THE MODALROUTE LINE HERE
+    // The CalendarView should NOT read the route arguments itself.
+    // ---------------------------------------------------------
 
     return ChangeNotifierProvider(
-      // Use the variable passed from the constructor
+      // 3. Use the 'initialDate' variable passed from HomeView
       create: (_) => CalendarViewModel(initialDate: initialDate),
       child: const _CalendarBody(),
     );
@@ -37,7 +38,7 @@ class _CalendarBody extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
-        onPressed: () => viewModel.onAddSchedulePressed(context),
+        onPressed: () => viewModel.addSchedule(context),
         backgroundColor: Colors.grey.shade200,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, size: 32),
@@ -56,6 +57,7 @@ class _CalendarBody extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              // Pass the view model to the card
               _CalendarCard(viewModel: viewModel),
               const SizedBox(height: 24),
               Text(
@@ -71,7 +73,7 @@ class _CalendarBody extends StatelessWidget {
               if (selectedEvent != null)
                 _ScheduledEventCard(
                   event: selectedEvent,
-                  onTap: () => viewModel.onOpenSelectedEventPressed(context),
+                  onTap: () => viewModel.openSelectedEvent(context),
                 )
               else
                 Container(
@@ -107,6 +109,8 @@ class _CalendarBody extends StatelessWidget {
   }
 }
 
+// ... Use the same _CalendarCard and _ScheduledEventCard classes as before ...
+// (I have omitted them here to save space, but you must keep them in the file)
 class _CalendarCard extends StatelessWidget {
   const _CalendarCard({required this.viewModel});
 
