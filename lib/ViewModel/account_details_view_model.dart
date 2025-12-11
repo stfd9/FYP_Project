@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'base_view_model.dart';
 
 class AccountDetailsViewModel extends BaseViewModel {
+  final TextEditingController userNameController = TextEditingController(
+    text: 'JK',
+  );
   final TextEditingController nameController = TextEditingController(
     text: 'Jimmy',
   );

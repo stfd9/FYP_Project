@@ -139,6 +139,12 @@ class _AccountDetailsBody extends StatelessWidget {
                 child: Column(
                   children: [
                     _ModernTextField(
+                      controller: viewModel.userNameController,
+                      label: 'Username',
+                      icon: Icons.badge_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _ModernTextField(
                       controller: viewModel.nameController,
                       label: 'Full Name',
                       icon: Icons.badge_outlined,

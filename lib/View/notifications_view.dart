@@ -28,24 +28,33 @@ class _NotificationsBody extends StatelessWidget {
     final earlierNotifications = viewModel.earlierNotifications;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
       appBar: AppBar(
-        title: const Text('Notifications'),
-        centerTitle: true,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        elevation: 0.5,
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        // Style changes for clean appearance
+        centerTitle: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: const Color(0xFF2D3142),
         actions: [
           if (viewModel.hasUnread)
             TextButton(
               onPressed: viewModel.markAllAsRead,
-              child: const Text(
+              child: Text(
                 'Mark all as read',
-                style: TextStyle(fontSize: 12),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
               ),
             ),
+          const SizedBox(width: 8),
         ],
       ),
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -55,36 +64,39 @@ class _NotificationsBody extends StatelessWidget {
               if (todayNotifications.isEmpty && earlierNotifications.isEmpty)
                 _EmptyState(textTheme: textTheme, colorScheme: colorScheme)
               else ...[
+                // --- Today's Notifications ---
                 if (todayNotifications.isNotEmpty) ...[
                   Text(
                     'Today',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   ...todayNotifications.map(
-                    (item) => _NotificationCard(
+                    (item) => _NotificationTileCard(
                       item: item,
-                      // --- CLEAN CALL TO VIEW MODEL ---
                       onTap: () =>
                           viewModel.openNotificationDetail(context, item),
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
+
+                // --- Earlier Notifications ---
                 if (earlierNotifications.isNotEmpty) ...[
                   Text(
                     'Earlier',
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   ...earlierNotifications.map(
-                    (item) => _NotificationCard(
+                    (item) => _NotificationTileCard(
                       item: item,
-                      // --- CLEAN CALL TO VIEW MODEL ---
                       onTap: () =>
                           viewModel.openNotificationDetail(context, item),
                     ),
@@ -99,12 +111,12 @@ class _NotificationsBody extends StatelessWidget {
   }
 }
 
-// ... _NotificationCard and _EmptyState remain unchanged ...
-class _NotificationCard extends StatelessWidget {
+// --- Redesigned Notification Card Widget ---
+class _NotificationTileCard extends StatelessWidget {
   final NotificationItem item;
   final VoidCallback onTap;
 
-  const _NotificationCard({required this.item, required this.onTap});
+  const _NotificationTileCard({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -112,49 +124,56 @@ class _NotificationCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        // Highlight unread items with a slight border and heavier shadow
         border: Border.all(
           color: item.isUnread
-              ? colorScheme.primary.withValues(alpha: 0.5)
-              : colorScheme.outline.withValues(alpha: 0.25),
+              ? colorScheme.primary.withValues(alpha: 0.3)
+              : Colors.transparent,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: item.isUnread ? 0.05 : 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ListTile(
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Stack(
           children: [
+            // Icon Background
             Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorScheme.secondaryContainer,
+                color: colorScheme.secondaryContainer, // Arctic blue background
               ),
               child: Icon(
-                Icons.notifications,
-                color: colorScheme.onSecondaryContainer,
+                Icons.notifications_rounded,
+                color: colorScheme.primary, // Cobalt icon color
+                size: 24,
               ),
             ),
+            // Unread Dot
             if (item.isUnread)
               Positioned(
                 right: 0,
                 top: 0,
                 child: Container(
-                  width: 9,
-                  height: 9,
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: colorScheme.primary,
+                    color: colorScheme.error, // Red dot for unread status
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
                 ),
               ),
@@ -162,35 +181,36 @@ class _NotificationCard extends StatelessWidget {
         ),
         title: Text(
           item.title,
-          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: item.isUnread ? colorScheme.onSurface : Colors.grey.shade700,
+            fontSize: 15,
+          ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               item.message,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 4),
             Text(
               item.timeLabel,
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                color: colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
             ),
           ],
         ),
+        trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
       ),
     );
   }
 }
 
+// --- Empty State Widget ---
 class _EmptyState extends StatelessWidget {
   final TextTheme textTheme;
   final ColorScheme colorScheme;
@@ -206,31 +226,32 @@ class _EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: colorScheme.secondaryContainer,
               ),
               child: Icon(
                 Icons.notifications_off_outlined,
-                color: colorScheme.onSecondaryContainer,
-                size: 28,
+                color: colorScheme.primary,
+                size: 36,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
-              'No notifications yet',
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+              'All Caught Up!',
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              'You’ll see reminders and updates about your pets here.',
+              'No new reminders or updates about your pets.',
               textAlign: TextAlign.center,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              style: textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade500,
               ),
             ),
           ],
