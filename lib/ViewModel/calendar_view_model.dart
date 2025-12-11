@@ -6,6 +6,21 @@ import '../calendar_event.dart';
 import 'base_view_model.dart';
 
 class CalendarViewModel extends BaseViewModel {
+  static const _monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
   final List<CalendarEvent> _events = [
     const CalendarEvent(
       day: 10,
@@ -24,19 +39,27 @@ class CalendarViewModel extends BaseViewModel {
   ];
 
   late int _selectedDay;
+  late int _currentMonth;
+  late int _currentYear;
 
-  // --- UPDATED CONSTRUCTOR ---
   CalendarViewModel({DateTime? initialDate}) {
+    final now = DateTime.now();
     if (initialDate != null) {
-      // If a specific date is passed, open that day
       _selectedDay = initialDate.day;
+      _currentMonth = initialDate.month;
+      _currentYear = initialDate.year;
     } else {
-      // Otherwise, default to today's date
-      _selectedDay = DateTime.now().day;
+      _selectedDay = now.day;
+      _currentMonth = now.month;
+      _currentYear = now.year;
     }
   }
 
   int get selectedDay => _selectedDay;
+  int get currentMonth => _currentMonth;
+  int get currentYear => _currentYear;
+  String get monthYearLabel =>
+      '${_monthNames[_currentMonth - 1]} $_currentYear';
   List<CalendarEvent> get events => List.unmodifiable(_events);
 
   CalendarEvent? get selectedEvent =>
@@ -47,6 +70,28 @@ class CalendarViewModel extends BaseViewModel {
   void selectDay(int day) {
     if (_selectedDay == day) return;
     _selectedDay = day;
+    notifyListeners();
+  }
+
+  void goToPreviousMonth() {
+    if (_currentMonth == 1) {
+      _currentMonth = 12;
+      _currentYear--;
+    } else {
+      _currentMonth--;
+    }
+    _selectedDay = 1;
+    notifyListeners();
+  }
+
+  void goToNextMonth() {
+    if (_currentMonth == 12) {
+      _currentMonth = 1;
+      _currentYear++;
+    } else {
+      _currentMonth++;
+    }
+    _selectedDay = 1;
     notifyListeners();
   }
 
@@ -91,13 +136,22 @@ class CalendarViewModel extends BaseViewModel {
   }
 
   List<int?> _buildDays() {
-    const totalSlots = 35;
-    final days = List<int?>.generate(31, (index) => index + 1);
-    final padding = List<int?>.filled(totalSlots - days.length, null);
-    // Align starting day (e.g. padding at start) if needed, currently padding is at end
-    // For a real calendar, padding logic depends on the specific month's start weekday.
-    // Keeping your logic:
-    return [...days, ...padding];
+    // Get the number of days in the current month
+    final daysInMonth = DateTime(_currentYear, _currentMonth + 1, 0).day;
+    // Get the weekday of the first day (1=Monday, 7=Sunday)
+    final firstWeekday = DateTime(_currentYear, _currentMonth, 1).weekday;
+    // Padding for days before the 1st
+    final leadingPadding = List<int?>.filled(firstWeekday - 1, null);
+    // Actual days
+    final days = List<int?>.generate(daysInMonth, (index) => index + 1);
+    // Combine and add trailing padding to fill grid
+    final allDays = [...leadingPadding, ...days];
+    final totalSlots = ((allDays.length / 7).ceil()) * 7;
+    final trailingPadding = List<int?>.filled(
+      totalSlots - allDays.length,
+      null,
+    );
+    return [...allDays, ...trailingPadding];
   }
 }
 

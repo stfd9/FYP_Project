@@ -13,11 +13,6 @@ class CalendarView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ---------------------------------------------------------
-    // CRITICAL FIX: I DELETED THE MODALROUTE LINE HERE
-    // The CalendarView should NOT read the route arguments itself.
-    // ---------------------------------------------------------
-
     return ChangeNotifierProvider(
       // 3. Use the 'initialDate' variable passed from HomeView
       create: (_) => CalendarViewModel(initialDate: initialDate),
@@ -31,74 +26,93 @@ class _CalendarBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final viewModel = context.watch<CalendarViewModel>();
     final selectedEvent = viewModel.selectedEvent;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F6FA),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => viewModel.addSchedule(context),
-        backgroundColor: Colors.grey.shade200,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add, size: 32),
+        onPressed: () => viewModel.onAddSchedulePressed(context),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        child: const Icon(Icons.add, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Title
               Text(
                 'Calendar',
-                style: theme.textTheme.headlineSmall?.copyWith(
+                style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 16),
-              // Pass the view model to the card
+
+              // Calendar card
               _CalendarCard(viewModel: viewModel),
+
               const SizedBox(height: 24),
+
+              // Scheduled Event section
               Text(
                 'Scheduled Event',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  letterSpacing: 1,
-                  fontSize: 20,
-                  color: Colors.grey.shade900,
-                  fontWeight: FontWeight.w700,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               if (selectedEvent != null)
                 _ScheduledEventCard(
                   event: selectedEvent,
-                  onTap: () => viewModel.openSelectedEvent(context),
+                  onTap: () => viewModel.onOpenSelectedEventPressed(context),
                 )
               else
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.black87, width: 2),
-                    boxShadow: const [
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
-                        offset: Offset(0, 8),
-                        blurRadius: 14,
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: Text(
-                    'No schedule for this day.\nTap + to add a new schedule.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade700,
-                    ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.event_available_outlined,
+                        size: 48,
+                        color: Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No schedule for this day',
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tap + to add a new schedule',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -121,21 +135,21 @@ class _CalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final days = viewModel.days;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.black87, width: 2),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            offset: Offset(0, 6),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -144,17 +158,23 @@ class _CalendarCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.chevron_left, color: Colors.grey.shade800, size: 32),
+              IconButton(
+                icon: Icon(Icons.chevron_left, color: colorScheme.primary),
+                onPressed: viewModel.goToPreviousMonth,
+              ),
               Text(
-                'January',
-                style: theme.textTheme.titleLarge?.copyWith(
+                viewModel.monthYearLabel,
+                style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade800, size: 32),
+              IconButton(
+                icon: Icon(Icons.chevron_right, color: colorScheme.primary),
+                onPressed: viewModel.goToNextMonth,
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -167,59 +187,70 @@ class _CalendarCard extends StatelessWidget {
               _WeekdayLabel(label: 'Sun'),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           GridView.builder(
             itemCount: days.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.8,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1,
             ),
             itemBuilder: (context, index) {
               final day = days[index];
               if (day == null) {
                 return const SizedBox.shrink();
               }
-              final highlight = _isEventDay(day);
+              final hasEvent = _isEventDay(day);
               final isSelected = day == viewModel.selectedDay;
+              final now = DateTime.now();
+              final isToday =
+                  day == now.day &&
+                  viewModel.currentMonth == now.month &&
+                  viewModel.currentYear == now.year;
 
               return InkWell(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => viewModel.selectDay(day),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 32,
-                      width: 32,
-                      alignment: Alignment.center,
-                      decoration: isSelected
-                          ? BoxDecoration(
-                              color: Colors.grey.shade300,
-                              shape: BoxShape.circle,
-                            )
-                          : null,
-                      child: Text(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? colorScheme.primary
+                        : isToday
+                        ? colorScheme.primary.withValues(alpha: 0.1)
+                        : null,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
                         '$day',
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade900,
+                          color: isSelected
+                              ? Colors.white
+                              : colorScheme.onSurface,
                         ),
                       ),
-                    ),
-                    if (highlight)
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+                      if (hasEvent)
+                        Positioned(
+                          bottom: 4,
+                          child: Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.white
+                                  : colorScheme.error,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -237,11 +268,15 @@ class _WeekdayLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: Colors.grey.shade700,
+    return SizedBox(
+      width: 36,
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Colors.grey.shade500,
+        ),
       ),
     );
   }
@@ -253,95 +288,91 @@ class _ScheduledEventCard extends StatelessWidget {
   final CalendarEvent event;
   final VoidCallback? onTap;
 
-  String _ordinalDay(int day) {
-    if (day >= 11 && day <= 13) return '${day}th';
-    switch (day % 10) {
-      case 1:
-        return '${day}st';
-      case 2:
-        return '${day}nd';
-      case 3:
-        return '${day}rd';
-      default:
-        return '${day}th';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.black87, width: 2),
-          boxShadow: const [
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              offset: Offset(0, 8),
-              blurRadius: 14,
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              '${_ordinalDay(event.day)} Jan 2025',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(Icons.pets, color: colorScheme.primary, size: 28),
             ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    shape: BoxShape.circle,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.petName,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  child: const Icon(Icons.pets, size: 24),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 4),
+                  Text(
+                    event.activity,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      Text(
-                        event.petName,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Colors.grey.shade500,
                       ),
-                      const SizedBox(height: 6),
-                      Text(event.activity, style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 4),
                       Text(
                         event.location,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey.shade700,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
                       Text(
                         event.time,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade500,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
       ),
