@@ -100,7 +100,7 @@ class _LoginContent extends StatelessWidget {
                                       : Icons.visibility_outlined,
                                   color: Colors.grey.shade700,
                                 ),
-                                onPressed: viewModel.togglePasswordVisibility,
+                                onPressed: viewModel.onTogglePasswordPressed,
                               ),
                             ),
                           ),
@@ -131,7 +131,7 @@ class _LoginContent extends StatelessWidget {
                               ),
                               onPressed: viewModel.isLoading
                                   ? null
-                                  : () => viewModel.login(context),
+                                  : () => viewModel.onLoginPressed(context),
                               child: viewModel.isLoading
                                   ? const SizedBox(
                                       width: 22,
@@ -160,7 +160,7 @@ class _LoginContent extends StatelessWidget {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () =>
-                                  viewModel.forgotPassword(context),
+                                  viewModel.onForgotPasswordPressed(context),
                               child: Text(
                                 'Forgot your password?',
                                 style: TextStyle(
@@ -199,7 +199,7 @@ class _LoginContent extends StatelessWidget {
                               _SocialCircleButton(
                                 tooltip: 'Continue with Facebook',
                                 icon: Icons.facebook,
-                                onTap: () => viewModel.continueWithProvider(
+                                onTap: () => viewModel.onProviderPressed(
                                   context,
                                   'Facebook',
                                 ),
@@ -215,7 +215,7 @@ class _LoginContent extends StatelessWidget {
                                     color: Colors.black,
                                   ),
                                 ),
-                                onTap: () => viewModel.continueWithProvider(
+                                onTap: () => viewModel.onProviderPressed(
                                   context,
                                   'Google',
                                 ),
@@ -234,7 +234,8 @@ class _LoginContent extends StatelessWidget {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () => viewModel.goToRegister(context),
+                                onTap: () =>
+                                    viewModel.onRegisterPressed(context),
                                 child: const Text(
                                   'Sign up',
                                   style: TextStyle(
@@ -260,7 +261,7 @@ class _LoginContent extends StatelessWidget {
               top: 10,
               right: 16,
               child: IconButton(
-                onPressed: () => viewModel.goToAdminLogin(context),
+                onPressed: () => viewModel.onAdminLoginPressed(context),
                 tooltip: 'Admin Login',
                 icon: const Icon(
                   Icons.admin_panel_settings_outlined,

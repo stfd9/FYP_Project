@@ -50,6 +50,10 @@ class CalendarViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void onAddSchedulePressed(BuildContext context) {
+    addSchedule(context);
+  }
+
   Future<void> addSchedule(BuildContext context) async {
     final newEvent = await Navigator.push<CalendarEvent>(
       context,
@@ -60,6 +64,10 @@ class CalendarViewModel extends BaseViewModel {
     _events.add(newEvent);
     _selectedDay = newEvent.day;
     notifyListeners();
+  }
+
+  void onOpenSelectedEventPressed(BuildContext context) {
+    openSelectedEvent(context);
   }
 
   Future<void> openSelectedEvent(BuildContext context) async {

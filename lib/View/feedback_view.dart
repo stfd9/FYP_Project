@@ -207,7 +207,8 @@ class _FeedbackBody extends StatelessWidget {
                           ),
                           elevation: 0,
                         ),
-                        onPressed: () => viewModel.submitFeedback(context),
+                        onPressed: () =>
+                            viewModel.onSubmitFeedbackPressed(context),
                         child: const Text(
                           'Submit feedback',
                           style: TextStyle(

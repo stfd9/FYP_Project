@@ -43,7 +43,7 @@ class _DashboardContent extends StatelessWidget {
               Icons.logout,
               color: colorScheme.error,
             ), // Red for logout action
-            onPressed: () => viewModel.logout(context),
+            onPressed: () => viewModel.onLogoutPressed(context),
             tooltip: 'Logout',
           ),
         ],
@@ -73,6 +73,7 @@ class _DashboardContent extends StatelessWidget {
               children: [
                 _AdminActionCard(
                   title: 'Manage Accounts',
+                  subtitle: 'View and edit users',
                   icon: Icons.people_alt_outlined,
                   // Use Primary (Cobalt)
                   iconColor: colorScheme.primary,
@@ -83,6 +84,7 @@ class _DashboardContent extends StatelessWidget {
                 ),
                 _AdminActionCard(
                   title: 'Analysis Records',
+                  subtitle: 'Review scan history',
                   icon: Icons.analytics_outlined,
                   // Use Tertiary (Deep Sea)
                   iconColor: colorScheme.tertiary,
@@ -93,6 +95,7 @@ class _DashboardContent extends StatelessWidget {
                 ),
                 _AdminActionCard(
                   title: 'User Feedback',
+                  subtitle: 'Read customer feedback',
                   icon: Icons.rate_review_outlined,
                   // Use Secondary (Aqua) - Darkened slightly for text visibility if needed
                   iconColor: const Color(
@@ -105,6 +108,7 @@ class _DashboardContent extends StatelessWidget {
                 ),
                 _AdminActionCard(
                   title: 'Manage FAQ',
+                  subtitle: 'Edit help content',
                   icon: Icons.quiz_outlined,
                   // Use Midnight (OnSurface)
                   iconColor: colorScheme.onSurface,

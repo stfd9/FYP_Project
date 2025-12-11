@@ -73,7 +73,7 @@ class _NotificationSettingsBody extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextButton.icon(
-              onPressed: () => viewModel.showInfo(context),
+              onPressed: () => viewModel.onShowInfoPressed(context),
               icon: const Icon(Icons.info_outline, size: 16),
               label: const Text('Learn more about notifications'),
               style: TextButton.styleFrom(

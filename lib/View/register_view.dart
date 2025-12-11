@@ -28,7 +28,7 @@ class _RegisterContent extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: Colors.black,
-          onPressed: () => viewModel.goToLogin(context),
+          onPressed: () => viewModel.onGoToLoginPressed(context),
         ),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
@@ -102,7 +102,7 @@ class _RegisterContent extends StatelessWidget {
                                 : Icons.visibility_outlined,
                             color: Colors.grey.shade700,
                           ),
-                          onPressed: viewModel.togglePasswordVisibility,
+                          onPressed: viewModel.onTogglePasswordPressed,
                         ),
                       ),
                     ),
@@ -119,7 +119,7 @@ class _RegisterContent extends StatelessWidget {
                                 : Icons.visibility_outlined,
                             color: Colors.grey.shade700,
                           ),
-                          onPressed: viewModel.toggleConfirmVisibility,
+                          onPressed: viewModel.onToggleConfirmPressed,
                         ),
                       ),
                     ),
@@ -150,7 +150,7 @@ class _RegisterContent extends StatelessWidget {
                         ),
                         onPressed: viewModel.isLoading
                             ? null
-                            : () => viewModel.register(context),
+                            : () => viewModel.onRegisterPressed(context),
                         child: viewModel.isLoading
                             ? const SizedBox(
                                 width: 22,
@@ -178,7 +178,7 @@ class _RegisterContent extends StatelessWidget {
                           style: TextStyle(fontSize: 13, color: Colors.black87),
                         ),
                         GestureDetector(
-                          onTap: () => viewModel.goToLogin(context),
+                          onTap: () => viewModel.onGoToLoginPressed(context),
                           child: const Text(
                             'Log in',
                             style: TextStyle(

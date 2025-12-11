@@ -86,7 +86,7 @@ class _AccountDetailsBody extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: () => viewModel.saveChanges(context),
+                  onPressed: () => viewModel.onSaveChangesPressed(context),
                   child: const Text(
                     'Save changes',
                     style: TextStyle(fontWeight: FontWeight.w600),

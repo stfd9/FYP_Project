@@ -67,7 +67,7 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => viewModel.editProfile(context),
+                  onPressed: () => viewModel.onEditProfilePressed(context),
                   child: const Text(
                     'Edit',
                     style: TextStyle(
@@ -91,19 +91,19 @@ class _ProfileBody extends StatelessWidget {
               icon: Icons.person_outline,
               title: 'Account details',
               subtitle: 'Name, email and login',
-              onTap: () => viewModel.openAccountDetails(context),
+              onTap: () => viewModel.onAccountDetailsPressed(context),
             ),
             _ProfileCard(
               icon: Icons.notifications_none,
               title: 'Notifications',
               subtitle: 'Reminder & alert settings',
-              onTap: () => viewModel.openNotifications(context),
+              onTap: () => viewModel.onNotificationsPressed(context),
             ),
             _ProfileCard(
               icon: Icons.lock_outline,
               title: 'Privacy & Security',
               subtitle: 'Password and permissions',
-              onTap: () => viewModel.openPrivacySecurity(context),
+              onTap: () => viewModel.onPrivacySecurityPressed(context),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -115,13 +115,13 @@ class _ProfileBody extends StatelessWidget {
               icon: Icons.help_outline,
               title: 'Help & FAQ',
               subtitle: 'Get help using the app',
-              onTap: () => viewModel.openHelp(context),
+              onTap: () => viewModel.onHelpPressed(context),
             ),
             _ProfileCard(
               icon: Icons.feedback_outlined,
               title: 'Send feedback',
               subtitle: 'Tell us what to improve',
-              onTap: () => viewModel.openFeedback(context),
+              onTap: () => viewModel.onFeedbackPressed(context),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -134,7 +134,7 @@ class _ProfileBody extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () => viewModel.logout(context),
+                onPressed: () => viewModel.onLogoutPressed(context),
                 child: const Text(
                   'Log out',
                   style: TextStyle(

@@ -15,14 +15,26 @@ class RegisterViewModel extends BaseViewModel {
   bool get obscurePassword => _obscurePassword;
   bool get obscureConfirmPassword => _obscureConfirmPassword;
 
+  void onTogglePasswordPressed() {
+    togglePasswordVisibility();
+  }
+
   void togglePasswordVisibility() {
     _obscurePassword = !_obscurePassword;
     notifyListeners();
   }
 
+  void onToggleConfirmPressed() {
+    toggleConfirmVisibility();
+  }
+
   void toggleConfirmVisibility() {
     _obscureConfirmPassword = !_obscureConfirmPassword;
     notifyListeners();
+  }
+
+  Future<void> onRegisterPressed(BuildContext context) async {
+    await register(context);
   }
 
   Future<void> register(BuildContext context) async {
@@ -35,6 +47,10 @@ class RegisterViewModel extends BaseViewModel {
     runAsync(() async {
       Navigator.pushReplacementNamed(context, '/login');
     });
+  }
+
+  void onGoToLoginPressed(BuildContext context) {
+    goToLogin(context);
   }
 
   void goToLogin(BuildContext context) {

@@ -10,6 +10,10 @@ class AccountDetailsViewModel extends BaseViewModel {
     text: 'user@email.com',
   );
 
+  void onSaveChangesPressed(BuildContext context) {
+    saveChanges(context);
+  }
+
   void saveChanges(BuildContext context) {
     ScaffoldMessenger.of(
       context,

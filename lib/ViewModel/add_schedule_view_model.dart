@@ -16,6 +16,10 @@ class AddScheduleViewModel extends BaseViewModel {
       ? 'Pick date & time'
       : DateFormat('EEE, d MMM yyyy • h:mm a').format(_scheduledAt!);
 
+  void onPickDateTimePressed(BuildContext context) {
+    pickDateTime(context);
+  }
+
   Future<void> pickDateTime(BuildContext context) async {
     final now = DateTime.now();
 
@@ -48,6 +52,10 @@ class AddScheduleViewModel extends BaseViewModel {
     );
 
     notifyListeners();
+  }
+
+  void onSaveSchedulePressed(BuildContext context) {
+    saveSchedule(context);
   }
 
   void saveSchedule(BuildContext context) {

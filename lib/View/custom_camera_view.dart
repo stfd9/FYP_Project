@@ -45,7 +45,8 @@ class _CustomCameraBody extends StatelessWidget {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.close, color: Colors.white),
-                            onPressed: () => viewModel.closeCamera(context),
+                            onPressed: () =>
+                                viewModel.onCloseCameraPressed(context),
                           ),
                         ],
                       ),

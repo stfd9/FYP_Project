@@ -22,6 +22,10 @@ class FeedbackViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void onSubmitFeedbackPressed(BuildContext context) {
+    submitFeedback(context);
+  }
+
   void submitFeedback(BuildContext context) {
     final subject = subjectController.text.trim();
     final message = messageController.text.trim();

@@ -10,12 +10,12 @@ class LoginViewModel extends BaseViewModel {
 
   bool get obscurePassword => _obscurePassword;
 
-  void togglePasswordVisibility() {
+  void onTogglePasswordPressed() {
     _obscurePassword = !_obscurePassword;
     notifyListeners();
   }
 
-  Future<void> login(BuildContext context) async {
+  Future<void> onLoginPressed(BuildContext context) async {
     final validationError = _validateInputs();
     if (validationError != null) {
       setError(validationError);
@@ -27,24 +27,21 @@ class LoginViewModel extends BaseViewModel {
     });
   }
 
-  void goToRegister(BuildContext context) {
+  void onRegisterPressed(BuildContext context) {
     Navigator.pushNamed(context, '/register');
   }
 
-  // --- NEW METHOD FOR ADMIN NAV ---
-  void goToAdminLogin(BuildContext context) {
-    // Ensure you have defined '/admin_login' in your main.dart routes
+  void onAdminLoginPressed(BuildContext context) {
     Navigator.pushNamed(context, '/admin_login');
   }
-  // --------------------------------
 
-  void forgotPassword(BuildContext context) {
+  void onForgotPasswordPressed(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Password reset flow coming soon.')),
     );
   }
 
-  void continueWithProvider(BuildContext context, String providerName) {
+  void onProviderPressed(BuildContext context, String providerName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$providerName sign-in coming soon.')),
     );

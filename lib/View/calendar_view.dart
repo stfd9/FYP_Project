@@ -37,7 +37,7 @@ class _CalendarBody extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
-        onPressed: () => viewModel.addSchedule(context),
+        onPressed: () => viewModel.onAddSchedulePressed(context),
         backgroundColor: Colors.grey.shade200,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, size: 32),
@@ -71,7 +71,7 @@ class _CalendarBody extends StatelessWidget {
               if (selectedEvent != null)
                 _ScheduledEventCard(
                   event: selectedEvent,
-                  onTap: () => viewModel.openSelectedEvent(context),
+                  onTap: () => viewModel.onOpenSelectedEventPressed(context),
                 )
               else
                 Container(

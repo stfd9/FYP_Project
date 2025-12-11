@@ -74,7 +74,7 @@ class _ScanBody extends StatelessWidget {
                     minimumSize: const Size(0, 0),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => viewModel.goToHistory(context),
+                  onPressed: () => viewModel.onHistoryPressed(context),
                   icon: Icon(
                     Icons.history,
                     size: 18,
@@ -239,7 +239,7 @@ class _ScanBody extends StatelessWidget {
                   width: double.infinity,
                   height: 46,
                   child: ElevatedButton(
-                    onPressed: () => viewModel.analyse(context),
+                    onPressed: () => viewModel.onAnalysePressed(context),
                     child: const Text('Analyse'),
                   ),
                 ),

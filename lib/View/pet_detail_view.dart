@@ -210,7 +210,7 @@ class _PetDetailBody extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  onPressed: () => viewModel.confirmRemoval(context),
+                  onPressed: () => viewModel.onConfirmRemovalPressed(context),
                 ),
               ),
             ],
