@@ -24,226 +24,378 @@ class _ScanBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final viewModel = context.watch<ScanViewModel>();
     final File? selectedImage = viewModel.selectedImage;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.secondaryContainer,
-                ),
-                child: Icon(
-                  Icons.center_focus_strong,
-                  size: 32,
-                  color: colorScheme.onSecondaryContainer,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Scan your pet',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Choose how you want to upload your pet’s skin image.',
-                textAlign: TextAlign.center,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(0, 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => viewModel.onHistoryPressed(context),
-                  icon: Icon(
-                    Icons.history,
-                    size: 18,
-                    color: colorScheme.onSurface,
-                  ),
-                  label: Text(
-                    'History',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurface,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+              // --- Gradient Header ---
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 18,
-                ),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                 decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.25),
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.shadow.withValues(alpha: 0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    _ScanOptionTile(
-                      icon: Icons.photo_camera_outlined,
-                      title: 'Take a photo',
-                      subtitle: 'Use camera to capture a new image',
-                      onTap: () => viewModel.pickFromCamera(context),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'AI Scanner',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => viewModel.onHistoryPressed(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.history,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'History',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    const SizedBox(height: 8),
-                    _ScanOptionTile(
-                      icon: Icons.photo_library_outlined,
-                      title: 'Upload from gallery',
-                      subtitle: 'Choose an existing photo',
-                      onTap: () => viewModel.pickFromGallery(),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.pets,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Analyze your pet\'s health',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Upload or capture a photo to get started',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                height: 220,
-                decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: selectedImage == null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.image_outlined,
-                            size: 40,
-                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Choose upload method',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _UploadOptionCard(
+                            icon: Icons.camera_alt_rounded,
+                            title: 'Camera',
+                            subtitle: 'Take a photo',
+                            gradient: const [
+                              Color(0xFF667EEA),
+                              Color(0xFF764BA2),
+                            ],
+                            onTap: () => viewModel.pickFromCamera(context),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No image selected',
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 13,
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.75,
-                              ),
-                            ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _UploadOptionCard(
+                            icon: Icons.photo_library_rounded,
+                            title: 'Gallery',
+                            subtitle: 'Upload photo',
+                            gradient: const [
+                              Color(0xFF11998E),
+                              Color(0xFF38EF7D),
+                            ],
+                            onTap: () => viewModel.pickFromGallery(),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Captured or uploaded image will appear here.',
-                            style: textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                              color: colorScheme.onSurface.withValues(
-                                alpha: 0.6,
-                              ),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      )
-                    : Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.file(
-                              selectedImage,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: viewModel.clearSelectedImage,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.scrim.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: colorScheme.onPrimary,
-                                ),
-                              ),
-                            ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Image Preview',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: selectedImage == null
+                            ? Border.all(color: Colors.grey.shade300, width: 2)
+                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-              ),
-              if (selectedImage != null) ...[
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Analysis type',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
+                      child: selectedImage == null
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    size: 40,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No image selected',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Your photo will appear here',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.file(
+                                    selectedImage,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: GestureDetector(
+                                    onTap: viewModel.clearSelectedImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 18,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 12,
+                                  left: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.shade600,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Image ready',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
-                  ),
+                    if (selectedImage != null) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Select analysis type',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _AnalysisTypeCard(
+                        isSelected: viewModel.scanType == ScanType.skinDisease,
+                        icon: Icons.healing_rounded,
+                        title: 'Skin Disease Detection',
+                        subtitle: 'Identify potential skin conditions',
+                        color: const Color(0xFFFF6B6B),
+                        onTap: () =>
+                            viewModel.selectScanType(ScanType.skinDisease),
+                      ),
+                      const SizedBox(height: 12),
+                      _AnalysisTypeCard(
+                        isSelected: viewModel.scanType == ScanType.breed,
+                        icon: Icons.pets_rounded,
+                        title: 'Breed Identification',
+                        subtitle: 'Discover your pet\'s breed',
+                        color: const Color(0xFF4ECDC4),
+                        onTap: () => viewModel.selectScanType(ScanType.breed),
+                      ),
+                      const SizedBox(height: 28),
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primary.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () => viewModel.onAnalysePressed(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.auto_awesome, color: Colors.white),
+                              SizedBox(width: 10),
+                              Text(
+                                'Start Analysis',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                _AnalysisTypeTile(
-                  isSelected: viewModel.scanType == ScanType.skinDisease,
-                  title: 'Skin disease',
-                  subtitle: 'Check for possible skin conditions',
-                  onTap: () => viewModel.selectScanType(ScanType.skinDisease),
-                ),
-                const SizedBox(height: 8),
-                _AnalysisTypeTile(
-                  isSelected: viewModel.scanType == ScanType.breed,
-                  title: 'Breed',
-                  subtitle: 'Identify the likely breed of your pet',
-                  onTap: () => viewModel.selectScanType(ScanType.breed),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: ElevatedButton(
-                    onPressed: () => viewModel.onAnalysePressed(context),
-                    child: const Text('Analyse'),
-                  ),
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -252,71 +404,68 @@ class _ScanBody extends StatelessWidget {
   }
 }
 
-class _ScanOptionTile extends StatelessWidget {
-  const _ScanOptionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
+class _UploadOptionCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final List<Color> gradient;
   final VoidCallback onTap;
+
+  const _UploadOptionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.gradient,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withValues(alpha: 0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
                 shape: BoxShape.circle,
-                color: colorScheme.secondaryContainer,
               ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: colorScheme.onSecondaryContainer,
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
-                      color: colorScheme.onSurface.withValues(alpha: 0.65),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.85),
               ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -325,69 +474,102 @@ class _ScanOptionTile extends StatelessWidget {
   }
 }
 
-class _AnalysisTypeTile extends StatelessWidget {
-  const _AnalysisTypeTile({
+class _AnalysisTypeCard extends StatelessWidget {
+  final bool isSelected;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _AnalysisTypeCard({
     required this.isSelected,
+    required this.icon,
     required this.title,
     required this.subtitle,
+    required this.color,
     required this.onTap,
   });
 
-  final bool isSelected;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    final Color borderColor = isSelected
-        ? colorScheme.primary
-        : colorScheme.outline.withValues(alpha: 0.4);
-
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1.2),
-          color: colorScheme.surface,
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.onSurface.withValues(alpha: 0.6),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? color : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : Colors.grey.shade600,
+                size: 24,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? color : const Color(0xFF1A1A1A),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
-                      color: colorScheme.onSurface.withValues(alpha: 0.65),
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                   ),
                 ],
               ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isSelected ? color : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : const SizedBox(width: 14, height: 14),
             ),
           ],
         ),

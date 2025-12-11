@@ -10,8 +10,8 @@ class HomeDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Access HomeViewModel here BEFORE creating the inner provider
-    final homeViewModel = context.read<HomeViewModel>();
+    // Try to access HomeViewModel - it may not exist if accessed directly
+    final homeViewModel = context.read<HomeViewModel?>();
 
     return ChangeNotifierProvider(
       create: (_) => HomeDashboardViewModel(),
@@ -21,9 +21,9 @@ class HomeDashboardView extends StatelessWidget {
 }
 
 class _HomeDashboardContent extends StatelessWidget {
-  const _HomeDashboardContent({required this.homeViewModel});
+  const _HomeDashboardContent({this.homeViewModel});
 
-  final HomeViewModel homeViewModel;
+  final HomeViewModel? homeViewModel;
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +224,7 @@ class _HomeDashboardContent extends StatelessWidget {
                               Color(0xFF667EEA),
                               Color(0xFF764BA2),
                             ],
-                            onTap: homeViewModel.goToScanTab,
+                            onTap: () => homeViewModel?.goToScanTab(),
                           ),
                           _QuickActionButton(
                             icon: Icons.pets,
@@ -242,7 +242,7 @@ class _HomeDashboardContent extends StatelessWidget {
                               Color(0xFFFF8008),
                               Color(0xFFFFC837),
                             ],
-                            onTap: homeViewModel.goToCalendarTab,
+                            onTap: () => homeViewModel?.goToCalendarTab(),
                           ),
                           _QuickActionButton(
                             icon: Icons.history,

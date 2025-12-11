@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../View/add_pet_view.dart';
 import 'base_view_model.dart';
 
 class HomeDashboardViewModel extends BaseViewModel {
@@ -36,7 +37,10 @@ class HomeDashboardViewModel extends BaseViewModel {
   }
 
   void addPet(BuildContext context) {
-    _showSnack(context, 'Add Pet flow coming soon.');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddPetView()),
+    );
   }
 
   void openPetsList(BuildContext context) {
