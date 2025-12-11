@@ -20,80 +20,270 @@ class _FeedbackListBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminFeedbackViewModel>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'User Feedback',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: viewModel.feedbackList.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final item = viewModel.feedbackList[index];
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              title: Text(
-                item.title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
                 ),
+              ],
+            ),
+            child: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'User Feedback',
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Stats summary
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
               ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        item.category,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w500,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.feedback_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${viewModel.feedbackList.length}',
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      item.date,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
+                      Text(
+                        'Total Feedback',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Colors.grey,
-              ),
-              onTap: () => viewModel.openFeedbackDetail(context, item),
             ),
-          );
-        },
+          ),
+
+          // List header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'All Feedback',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Feedback list
+          Expanded(
+            child: viewModel.feedbackList.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inbox_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No feedback yet',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    itemCount: viewModel.feedbackList.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = viewModel.feedbackList[index];
+                      return _FeedbackCard(
+                        item: item,
+                        onTap: () =>
+                            viewModel.openFeedbackDetail(context, item),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedbackCard extends StatelessWidget {
+  final FeedbackItem item;
+  final VoidCallback onTap;
+
+  const _FeedbackCard({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.message_outlined,
+                color: colorScheme.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          item.category,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.person_outline,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          item.sender,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Date & Arrow
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  item.date,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade500,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade400,
+                  size: 20,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

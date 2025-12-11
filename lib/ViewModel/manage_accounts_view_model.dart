@@ -6,20 +6,20 @@ class ManageAccountsViewModel extends BaseViewModel {
   final List<UserAccount> _users = [
     UserAccount(
       id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
+      name: 'Ahmad Faiz bin Abdullah',
+      email: 'ahmad.faiz@gmail.com',
       joinDate: '2024-12-01',
     ),
     UserAccount(
       id: '2',
-      name: 'Jane Smith',
-      email: 'jane@test.com',
+      name: 'Nurul Aisyah binti Razak',
+      email: 'nurul.aisyah@yahoo.com',
       joinDate: '2025-01-15',
     ),
     UserAccount(
       id: '3',
-      name: 'Mike Ross',
-      email: 'mike.ross@law.com',
+      name: 'Tan Wei Ming',
+      email: 'weiming.tan@hotmail.com',
       joinDate: '2025-01-20',
     ),
   ];

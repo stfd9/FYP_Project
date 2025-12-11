@@ -20,71 +20,372 @@ class _ManageAccountsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ManageAccountsViewModel>();
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'Manage Accounts',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black,
+        leading: IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Manage Accounts',
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
       ),
-      body: viewModel.users.isEmpty
-          ? Center(
-              child: Text('No users found.', style: theme.textTheme.bodyLarge),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: viewModel.users.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final user = viewModel.users[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Stats Summary Card
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.people_outline,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${viewModel.users.length}',
+                        style: textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Registered Users',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
                     ],
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    leading: CircleAvatar(
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.greenAccent,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                    ),
-                    title: Text(
-                      user.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(user.email),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () =>
-                          viewModel.confirmDeleteUser(context, user),
-                      tooltip: 'Remove User',
+                        const SizedBox(width: 6),
+                        Text(
+                          '${viewModel.users.length} Active',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
+          ),
+
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search users...',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // List Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              'All Users',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // User List
+          Expanded(
+            child: viewModel.users.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No users found',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    itemCount: viewModel.users.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final user = viewModel.users[index];
+                      return _UserCard(
+                        user: user,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/admin/account-detail',
+                            arguments: user,
+                          );
+                        },
+                        onDelete: () =>
+                            viewModel.confirmDeleteUser(context, user),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserCard extends StatelessWidget {
+  final dynamic user;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _UserCard({
+    required this.user,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.primary.withValues(alpha: 0.8),
+                    colorScheme.primary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(
+                child: Text(
+                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                  style: textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // User Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.email_outlined,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          user.email,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Active',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Joined ${user.joinDate}',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Actions
+            Column(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                  onPressed: onTap,
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 8),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red.shade400,
+                    size: 20,
+                  ),
+                  onPressed: onDelete,
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Delete User',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
