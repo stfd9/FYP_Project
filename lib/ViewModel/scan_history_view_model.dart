@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../View/scan_history_detail_view.dart';
 import '../scan_type.dart';
 import 'base_view_model.dart';
 
@@ -46,9 +47,10 @@ class ScanHistoryViewModel extends BaseViewModel {
   bool get hasHistory => _history.isNotEmpty;
 
   void openHistoryItem(BuildContext context, ScanHistoryItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Detailed results for ${item.topLabel} coming soon.'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScanHistoryDetailView(item: item),
       ),
     );
   }
