@@ -10,22 +10,26 @@ class HomeDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Access HomeViewModel here BEFORE creating the inner provider
+    final homeViewModel = context.read<HomeViewModel>();
+
     return ChangeNotifierProvider(
       create: (_) => HomeDashboardViewModel(),
-      child: const _HomeDashboardContent(),
+      child: _HomeDashboardContent(homeViewModel: homeViewModel),
     );
   }
 }
 
 class _HomeDashboardContent extends StatelessWidget {
-  const _HomeDashboardContent();
+  const _HomeDashboardContent({required this.homeViewModel});
+
+  final HomeViewModel homeViewModel;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final dashboardViewModel = context.watch<HomeDashboardViewModel>();
-    final homeViewModel = context.read<HomeViewModel>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -95,13 +99,17 @@ class _HomeDashboardContent extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.5),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         width: 2,
                                       ),
                                     ),
                                     child: CircleAvatar(
                                       radius: 22,
-                                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                      backgroundColor: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
                                       child: const Icon(
                                         Icons.person,
                                         color: Colors.white,
@@ -111,13 +119,16 @@ class _HomeDashboardContent extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 14),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         'Welcome back,',
                                         style: textTheme.bodySmall?.copyWith(
-                                          color: Colors.white.withValues(alpha: 0.85),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.85,
+                                          ),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -144,7 +155,8 @@ class _HomeDashboardContent extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const NotificationsView(),
+                                        builder: (_) =>
+                                            const NotificationsView(),
                                       ),
                                     );
                                   },
@@ -164,7 +176,10 @@ class _HomeDashboardContent extends StatelessWidget {
                                           decoration: BoxDecoration(
                                             color: Colors.redAccent,
                                             shape: BoxShape.circle,
-                                            border: Border.all(color: Colors.white, width: 1.5),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 1.5,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -184,7 +199,10 @@ class _HomeDashboardContent extends StatelessWidget {
                     right: 20,
                     bottom: -55,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -202,25 +220,37 @@ class _HomeDashboardContent extends StatelessWidget {
                           _QuickActionButton(
                             icon: Icons.center_focus_strong,
                             label: 'Scan',
-                            gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+                            gradient: const [
+                              Color(0xFF667EEA),
+                              Color(0xFF764BA2),
+                            ],
                             onTap: homeViewModel.goToScanTab,
                           ),
                           _QuickActionButton(
                             icon: Icons.pets,
                             label: 'Add Pet',
-                            gradient: const [Color(0xFF11998E), Color(0xFF38EF7D)],
+                            gradient: const [
+                              Color(0xFF11998E),
+                              Color(0xFF38EF7D),
+                            ],
                             onTap: () => dashboardViewModel.addPet(context),
                           ),
                           _QuickActionButton(
                             icon: Icons.calendar_month,
                             label: 'Calendar',
-                            gradient: const [Color(0xFFFF8008), Color(0xFFFFC837)],
+                            gradient: const [
+                              Color(0xFFFF8008),
+                              Color(0xFFFFC837),
+                            ],
                             onTap: homeViewModel.goToCalendarTab,
                           ),
                           _QuickActionButton(
                             icon: Icons.history,
                             label: 'History',
-                            gradient: const [Color(0xFFEB3349), Color(0xFFF45C43)],
+                            gradient: const [
+                              Color(0xFFEB3349),
+                              Color(0xFFF45C43),
+                            ],
                             onTap: () {},
                           ),
                         ],
@@ -268,7 +298,9 @@ class _HomeDashboardContent extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorScheme.primary.withValues(alpha: 0.15),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -291,7 +323,9 @@ class _HomeDashboardContent extends StatelessWidget {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -402,7 +436,8 @@ class _HomeDashboardContent extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             TextButton(
-                              onPressed: () => dashboardViewModel.addPet(context),
+                              onPressed: () =>
+                                  dashboardViewModel.addPet(context),
                               child: const Text('Add your first pet'),
                             ),
                           ],
@@ -425,7 +460,10 @@ class _HomeDashboardContent extends StatelessWidget {
                     const SizedBox(height: 28),
 
                     // --- Health Tips ---
-                    _SectionHeader(title: 'Pet Care Tips', icon: Icons.lightbulb_outline),
+                    _SectionHeader(
+                      title: 'Pet Care Tips',
+                      icon: Icons.lightbulb_outline,
+                    ),
                     const SizedBox(height: 12),
                     Container(
                       width: double.infinity,
@@ -437,7 +475,9 @@ class _HomeDashboardContent extends StatelessWidget {
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -646,7 +686,10 @@ class _PetHomeCard extends StatelessWidget {
             height: 65,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [colors.first.withValues(alpha: 0.8), colors.last.withValues(alpha: 0.6)],
+                colors: [
+                  colors.first.withValues(alpha: 0.8),
+                  colors.last.withValues(alpha: 0.6),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -662,11 +705,7 @@ class _PetHomeCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.25),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.pets,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: const Icon(Icons.pets, color: Colors.white, size: 28),
               ),
             ),
           ),
@@ -688,7 +727,10 @@ class _PetHomeCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.first.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -726,7 +768,8 @@ class _RecentScanTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHealthy = scan.result.toLowerCase().contains('healthy') ||
+    final isHealthy =
+        scan.result.toLowerCase().contains('healthy') ||
         scan.result.toLowerCase().contains('normal');
 
     return Container(

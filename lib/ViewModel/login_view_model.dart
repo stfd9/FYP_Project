@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Import your page views here
-import '../View/home_dashboard_view.dart';
+import '../View/home_view.dart';
 import '../View/register_view.dart';
 import '../View/admin_login_view.dart';
 import '../View/forgot_password_view.dart'; // <--- Import this
@@ -45,7 +45,7 @@ class LoginViewModel extends ChangeNotifier {
     if (context.mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeDashboardView()),
+        MaterialPageRoute(builder: (_) => const HomeView()),
       );
     }
   }
