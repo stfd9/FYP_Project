@@ -12,14 +12,29 @@ class PetProfileViewModel extends BaseViewModel {
       species: 'Dog',
       breed: 'Shiba Inu',
       age: '2 years',
+      galleryImages: [
+        'images/assets/shiba.jpeg',
+        'images/assets/dog_icon.png',
+        'images/assets/shiba.jpeg',
+      ],
     ),
     const PetInfo(
       name: 'Luna',
       species: 'Cat',
       breed: 'British Shorthair',
       age: '3 years',
+      galleryImages: [
+        'images/assets/british_sh.jpeg',
+        'images/assets/british_sh.jpeg',
+      ],
     ),
-    const PetInfo(name: 'Coco', species: 'Dog', breed: 'Poodle', age: '1 year'),
+    const PetInfo(
+      name: 'Coco',
+      species: 'Dog',
+      breed: 'Poodle',
+      age: '1 year',
+      galleryImages: ['images/assets/poodle.jpeg'],
+    ),
   ];
 
   List<PetInfo> get pets => List.unmodifiable(_pets);

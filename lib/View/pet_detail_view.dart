@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../ViewModel/pet_detail_view_model.dart';
 import '../models/pet_info.dart';
+import 'pet_gallery_view.dart';
 
 class PetDetailView extends StatelessWidget {
   const PetDetailView({super.key, required this.pet});
@@ -185,6 +186,74 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                         ],
                       ),
                       const SizedBox(height: 32),
+
+                      // --- Photo Gallery ---
+                      if (pet.galleryImages.isNotEmpty) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Photo Gallery',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                                fontSize: 18,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PetGalleryView(pet: pet),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'See all',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: pet.galleryImages.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 12),
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  image: DecorationImage(
+                                    image: AssetImage(pet.galleryImages[index]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
 
                       // --- Health Overview ---
                       Row(
