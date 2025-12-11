@@ -64,25 +64,29 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
             height: imageHeight,
             child: Transform.translate(
               offset: Offset(0, imageParallax),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8E8D4),
-                  image: petImagePath != null
-                      ? DecorationImage(
-                          image: AssetImage(petImagePath),
-                          fit: BoxFit.cover, // Ensures image fills the area
+              child: Hero(
+                tag: 'pet_${pet.name}',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8E8D4),
+                    image: petImagePath != null
+                        ? DecorationImage(
+                            image: AssetImage(petImagePath),
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                          )
+                        : null,
+                  ),
+                  child: petImagePath == null
+                      ? Center(
+                          child: Icon(
+                            isDog ? Icons.pets : Icons.pets_outlined,
+                            size: 100,
+                            color: colorScheme.primary.withValues(alpha: 0.6),
+                          ),
                         )
                       : null,
                 ),
-                child: petImagePath == null
-                    ? Center(
-                        child: Icon(
-                          isDog ? Icons.pets : Icons.pets_outlined,
-                          size: 100,
-                          color: colorScheme.primary.withValues(alpha: 0.6),
-                        ),
-                      )
-                    : null,
               ),
             ),
           ),
