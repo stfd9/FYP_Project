@@ -30,7 +30,8 @@ class _RegisterContent extends StatelessWidget {
         child: Stack(
           children: [
             // 1. Main Content
-            Center(
+            Align(
+              alignment: const Alignment(0.0, -0.25),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,

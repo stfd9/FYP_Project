@@ -42,22 +42,21 @@ class _LoginContent extends StatelessWidget {
                   children: [
                     // --- Logo Section ---
                     SizedBox(
-                      height: 110, // Adjust height as needed
-                      width: 300, // Give it enough width for the text
+                      height: 85,
+                      width: 300, // Wide enough for the text
                       child: Image.asset(
-                        'images/assets/full_logo.png',
+                        'images/assets/full_logo.png', // Ensure path matches your folder structure
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          // Fallback to the old icon if the file isn't found yet
-                          return const Icon(
+                          return Icon(
                             Icons.pets,
                             size: 60,
-                            color: Colors.blue,
+                            color: colorScheme.primary,
                           );
                         },
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     // --- Login Form Card ---
                     Container(
@@ -81,12 +80,12 @@ class _LoginContent extends StatelessWidget {
                             'Log in',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
+                              color: colorScheme.onSurface, // Midnight Blue
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Welcome back to PawScope',
+                            'Welcome back to PetCare',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurface.withValues(
                                 alpha: 0.6,
@@ -142,8 +141,9 @@ class _LoginContent extends StatelessWidget {
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary,
-                                foregroundColor: colorScheme.onPrimary,
+                                backgroundColor:
+                                    colorScheme.primary, // Cobalt Blue
+                                foregroundColor: colorScheme.onPrimary, // White
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -182,7 +182,7 @@ class _LoginContent extends StatelessWidget {
                                 'Forgot your password?',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: colorScheme.secondary,
+                                  color: colorScheme.secondary, // Aqua/Blue
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -222,7 +222,7 @@ class _LoginContent extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Facebook Button (Icon)
+                              // Facebook Button
                               _SocialCircleButton(
                                 tooltip: 'Continue with Facebook',
                                 icon: Icons.facebook,
@@ -236,26 +236,25 @@ class _LoginContent extends StatelessWidget {
                               ),
                               const SizedBox(width: 20),
 
-                              // Google Button (Image Asset)
+                              // Google Button
                               _SocialCircleButton(
                                 tooltip: 'Continue with Google',
-                                onTap: () => viewModel.onProviderPressed(
-                                  context,
-                                  'Google',
-                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(12.0),
                                   child: Image.asset(
-                                    'images/assets/google_logo.png',
+                                    'images/assets/google_logo.png', // Ensure path matches
                                     fit: BoxFit.contain,
-                                    // If the image fails, show a broken image icon instead of crashing
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.broken_image,
-                                        color: Colors.red,
-                                      );
-                                    },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.broken_image,
+                                              color: Colors.red,
+                                            ),
                                   ),
+                                ),
+                                onTap: () => viewModel.onProviderPressed(
+                                  context,
+                                  'Google',
                                 ),
                               ),
                             ],
@@ -283,7 +282,7 @@ class _LoginContent extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                    color: colorScheme.primary, // Cobalt Link
                                   ),
                                 ),
                               ),
@@ -297,7 +296,7 @@ class _LoginContent extends StatelessWidget {
               ),
             ),
 
-            // 2. Admin Button
+            // 2. Admin Button (Corner Positioned) - UPDATED COLOR
             Positioned(
               top: 10,
               right: 16,
@@ -305,9 +304,10 @@ class _LoginContent extends StatelessWidget {
                 onPressed: () => viewModel.onAdminLoginPressed(context),
                 tooltip: 'Admin Login',
                 icon: Icon(
-                  Icons.admin_panel_settings_outlined,
-                  color: Colors.grey.shade400,
-                  size: 24,
+                  Icons.manage_accounts_outlined, // Better icon for "Admin"
+                  // --- CHANGED COLOR TO THEME PRIMARY (Cobalt) ---
+                  color: colorScheme.primary,
+                  size: 28,
                 ),
               ),
             ),
@@ -350,6 +350,7 @@ class _LoginContent extends StatelessWidget {
   }
 }
 
+// ... _SocialCircleButton remains the same ...
 class _SocialCircleButton extends StatelessWidget {
   final Widget? child;
   final IconData? icon;
@@ -387,7 +388,6 @@ class _SocialCircleButton extends StatelessWidget {
               ),
             ],
           ),
-          // Renders 'child' (Image) if provided, otherwise renders 'icon'
           child: Center(
             child:
                 child ?? Icon(icon, color: iconColor ?? Colors.black, size: 26),

@@ -27,259 +27,333 @@ class _HomeDashboardContent extends StatelessWidget {
     final dashboardViewModel = context.watch<HomeDashboardViewModel>();
     final homeViewModel = context.read<HomeViewModel>();
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back,',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'PetCare AI',
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationsView(),
-                      ),
-                    );
-                  },
-                  icon: Icon(
-                    Icons.notifications_none,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.25),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+    return Scaffold(
+      backgroundColor: const Color(
+        0xFFF5F6FA,
+      ), // Light grey background like TNG
+      body: Stack(
+        children: [
+          // 1. Blue Background Header (Curved)
+          Container(
+            height: 220,
+            decoration: BoxDecoration(
+              color: colorScheme.primary, // Cobalt Blue
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
-              child: Row(
+            ),
+          ),
+
+          // 2. Main Content (Scrollable)
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorScheme.secondaryContainer,
-                    ),
-                    child: Icon(
-                      Icons.calendar_today_outlined,
-                      size: 22,
-                      color: colorScheme.onSecondaryContainer,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Today's schedule",
-                          style: textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
+                  // --- Top Bar (Greetings & Notification) ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                            ),
                           ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back,',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                              const Text(
+                                'PetOwner', // You can replace with User Name
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsView(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          dashboardViewModel.upcomingItem,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.8),
-                          ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- Floating "Quick Actions" Card (TNG Style) ---
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _DashboardMenuIcon(
+                          icon: Icons.center_focus_strong,
+                          label: 'Scan',
+                          color: colorScheme.primary,
+                          onTap: homeViewModel.goToScanTab,
+                        ),
+                        _DashboardMenuIcon(
+                          icon: Icons.pets,
+                          label: 'Add Pet',
+                          color: colorScheme.secondary,
+                          onTap: () => dashboardViewModel.addPet(context),
+                        ),
+                        _DashboardMenuIcon(
+                          icon: Icons.calendar_month,
+                          label: 'Calendar',
+                          color: Colors.orange,
+                          onTap: homeViewModel.goToCalendarTab,
+                        ),
+                        _DashboardMenuIcon(
+                          icon: Icons.article_outlined,
+                          label: 'Records',
+                          color: Colors.purple,
+                          onTap: () {
+                            // Navigate to records if you have a tab
+                          },
                         ),
                       ],
                     ),
                   ),
-                  TextButton(
-                    onPressed: homeViewModel.goToCalendarTab,
-                    child: Text(
-                      'View',
-                      style: TextStyle(
-                        fontSize: 12,
-                        decoration: TextDecoration.underline,
-                        color: colorScheme.primary,
+
+                  const SizedBox(height: 24),
+
+                  // --- "Today's Schedule" (Highlighted Card) ---
+                  Text(
+                    'Upcoming',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFFE3F2FD), // Light Blue
+                          Colors.white,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.calendar_today,
+                            color: colorScheme.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Today's Focus",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                dashboardViewModel.upcomingItem,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // --- Your Pets (Horizontal List) ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Your Pets',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => dashboardViewModel.openPetsList(context),
+                        child: Text(
+                          'View all',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (dashboardViewModel.pets.isEmpty)
+                    const Text('No pets added yet.')
+                  else
+                    SizedBox(
+                      height: 140,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: dashboardViewModel.pets.length,
+                        itemBuilder: (context, index) {
+                          final pet = dashboardViewModel.pets[index];
+                          return _PetHomeCard(pet: pet);
+                        },
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // --- Recent Scans (Vertical List) ---
+                  Text(
+                    'Recent Scans',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...dashboardViewModel.recentScans.map(
+                    (scan) => _RecentScanTile(
+                      scan: scan,
+                      onTap: () =>
+                          dashboardViewModel.openScanDetail(context, scan),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Quick actions',
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.center_focus_strong,
-                    label: 'Scan now',
-                    onTap: homeViewModel.goToScanTab,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.pets_outlined,
-                    label: 'Add pet',
-                    onTap: () => dashboardViewModel.addPet(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Your pets',
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => dashboardViewModel.openPetsList(context),
-                  child: Text(
-                    'View all',
-                    style: textTheme.bodySmall?.copyWith(
-                      decoration: TextDecoration.underline,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (dashboardViewModel.pets.isEmpty)
-              Text(
-                'No pets added yet. Add a pet to get started.',
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              )
-            else
-              SizedBox(
-                height: 130,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: dashboardViewModel.pets.length,
-                  itemBuilder: (context, index) {
-                    final pet = dashboardViewModel.pets[index];
-                    return _PetHomeCard(pet: pet);
-                  },
-                ),
-              ),
-            const SizedBox(height: 24),
-            Text(
-              'Recent scans',
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ...dashboardViewModel.recentScans.map(
-              (scan) => _RecentScanTile(
-                scan: scan,
-                onTap: () => dashboardViewModel.openScanDetail(context, scan),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
+// --- NEW WIDGET: Dashboard Menu Icon (Like TNG) ---
+class _DashboardMenuIcon extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color color;
   final VoidCallback onTap;
 
-  const _QuickActionButton({
+  const _DashboardMenuIcon({
     required this.icon,
     required this.label,
+    required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: colorScheme.onSurface),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
+// --- EXISTING WIDGET: Pet Card (Styled) ---
 class _PetHomeCard extends StatelessWidget {
   final PetHomeInfo pet;
 
@@ -287,69 +361,39 @@ class _PetHomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 10),
+      width: 120,
+      margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.25)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.secondaryContainer,
-                ),
-                child: Icon(
-                  Icons.pets,
-                  size: 18,
-                  color: colorScheme.onSecondaryContainer,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                pet.name,
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                pet.species,
-                style: textTheme.bodySmall?.copyWith(
-                  fontSize: 11,
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.grey.shade100,
+            child: Icon(Icons.pets, color: Colors.grey.shade400),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            'Last scan: ${pet.lastScan}',
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: 10,
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
+            pet.name,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            pet.species,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
         ],
       ),
@@ -357,6 +401,7 @@ class _PetHomeCard extends StatelessWidget {
   }
 }
 
+// --- EXISTING WIDGET: Recent Scan Tile (Styled) ---
 class _RecentScanTile extends StatelessWidget {
   final RecentScanInfo scan;
   final VoidCallback onTap;
@@ -365,52 +410,42 @@ class _RecentScanTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
-          width: 40,
-          height: 40,
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
+            color: Colors.blue.shade50,
             shape: BoxShape.circle,
-            color: colorScheme.secondaryContainer,
           ),
-          child: Icon(Icons.pets, color: colorScheme.onSecondaryContainer),
+          child: Icon(
+            Icons.center_focus_strong,
+            color: Colors.blue.shade700,
+            size: 20,
+          ),
         ),
         title: Text(
           scan.petName,
-          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              scan.result,
-              style: textTheme.bodySmall?.copyWith(fontSize: 11),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              scan.time,
-              style: textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                color: colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
+        subtitle: Text(
+          '${scan.result} • ${scan.time}',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          size: 20,
-          color: colorScheme.onSurface.withValues(alpha: 0.7),
-        ),
+        trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
         onTap: onTap,
       ),
     );
