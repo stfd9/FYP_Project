@@ -388,14 +388,6 @@ class AdminAccountDetailView extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.lock_reset_outlined),
-              title: const Text('Reset Password'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement reset password
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.history),
               title: const Text('View Activity Log'),
               onTap: () {

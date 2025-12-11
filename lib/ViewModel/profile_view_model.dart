@@ -8,8 +8,8 @@ import '../View/privacy_security_view.dart';
 import 'base_view_model.dart';
 
 class ProfileViewModel extends BaseViewModel {
-  final String userName = 'User Name';
-  final String email = 'user@email.com';
+  final String userName = 'Jimmy';
+  final String email = 'jimmy@gmail.com';
 
   void onEditProfilePressed(BuildContext context) {
     editProfile(context);

@@ -20,144 +20,179 @@ class _AdminLoginContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminLoginViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings,
-                  size: 32,
-                  color: Colors.blueGrey,
+              const SizedBox(height: 20),
+
+              // --- 1. Header Section (Centered) ---
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.admin_panel_settings_rounded,
+                    size: 40,
+                    color: colorScheme.primary,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+              const SizedBox(height: 24),
+              Center(
+                child: Text(
+                  'Admin Access',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1A1A1A),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- CHANGED TITLE HERE ---
-                    const Text(
-                      'Admin Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Please enter your credentials.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Log in to manage the application dashboard.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
+                ),
+              ),
 
-                    TextField(
-                      controller: viewModel.emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: _inputDecoration('Admin ID / Email'),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: viewModel.passwordController,
-                      obscureText: viewModel.obscurePassword,
-                      decoration: _inputDecoration(
-                        'Password',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            viewModel.obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.grey.shade700,
-                          ),
-                          onPressed: viewModel.togglePasswordVisibility,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+              const SizedBox(height: 40),
 
-                    if (viewModel.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
+              // --- 2. Input Fields ---
+              _buildLabel('Admin ID / Email'),
+              const SizedBox(height: 8),
+              TextField(
+                controller: viewModel.emailController,
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+                decoration: _inputDecoration(
+                  hint: 'Enter admin ID',
+                  icon: Icons.person_outline_rounded,
+                  colorScheme: colorScheme,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _buildLabel('Password'),
+              const SizedBox(height: 8),
+              TextField(
+                controller: viewModel.passwordController,
+                obscureText: viewModel.obscurePassword,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+                decoration: _inputDecoration(
+                  hint: 'Enter password',
+                  icon: Icons.lock_outline_rounded,
+                  colorScheme: colorScheme,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      viewModel.obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: Colors.grey.shade500,
+                    ),
+                    onPressed: viewModel.togglePasswordVisibility,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // --- Error Message ---
+              if (viewModel.errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.shade100),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Colors.red.shade400,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
                         child: Text(
                           viewModel.errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
+                          style: TextStyle(
+                            color: Colors.red.shade700,
                             fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                    const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
 
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey.shade900,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () => viewModel.loginAdmin(context),
-                        child: viewModel.isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Access Dashboard',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                      ),
+              const SizedBox(height: 40),
+
+              // --- Action Button ---
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary, // Cobalt Blue
+                    foregroundColor: Colors.white,
+                    elevation: 8,
+                    shadowColor: colorScheme.primary.withOpacity(0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ],
+                  ),
+                  onPressed: viewModel.isLoading
+                      ? null
+                      : () => viewModel.loginAdmin(context),
+                  child: viewModel.isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Access Dashboard',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -167,26 +202,44 @@ class _AdminLoginContent extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration(String label, {Widget? suffixIcon}) {
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1A1A1A),
+      ),
+    );
+  }
+
+  // --- Fixed Method: Removed duplicate 'enabledBorder' ---
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+    required ColorScheme colorScheme,
+    Widget? suffixIcon,
+  }) {
     return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 22),
+      suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
       ),
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-        borderSide: BorderSide(color: Colors.blueGrey, width: 1.5),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
-      suffixIcon: suffixIcon,
     );
   }
 }
