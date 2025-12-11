@@ -7,6 +7,9 @@ import 'View/admin_login_view.dart';
 import 'View/admin_dashboard_view.dart';
 import 'View/calendar_view.dart';
 import 'View/notification_detail_view.dart';
+import 'View/manage_accounts_view.dart';
+import 'View/admin_feedback_list_view.dart';
+import 'View/admin_feedback_detail_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +33,9 @@ class MyApp extends StatelessWidget {
         '/admin_dashboard': (context) => const AdminDashboardView(),
         '/calendar': (context) => const CalendarView(),
         '/notification_detail': (context) => const NotificationDetailView(),
+        '/manage_accounts': (context) => const ManageAccountsView(),
+        '/admin_feedback_list': (context) => const AdminFeedbackListView(),
+        '/admin_feedback_detail': (context) => const AdminFeedbackDetailView(),
       },
     );
   }

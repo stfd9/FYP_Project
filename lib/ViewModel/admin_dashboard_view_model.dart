@@ -5,23 +5,17 @@ class AdminDashboardViewModel extends BaseViewModel {
   // -- Navigation Methods --
 
   void navigateToManageAccounts(BuildContext context) {
-    // Navigate to User List Page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Manage Accounts page coming soon.')),
-    );
+    Navigator.pushNamed(context, '/manage_accounts');
+  }
+
+  void navigateToUserFeedback(BuildContext context) {
+    Navigator.pushNamed(context, '/admin_feedback_list');
   }
 
   void navigateToAnalysisRecords(BuildContext context) {
     // Navigate to Analysis History
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Analysis Records page coming soon.')),
-    );
-  }
-
-  void navigateToUserFeedback(BuildContext context) {
-    // Navigate to Feedback Review
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('User Feedback page coming soon.')),
     );
   }
 
