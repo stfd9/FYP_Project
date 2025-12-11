@@ -33,10 +33,7 @@ class AdminDashboardViewModel extends BaseViewModel {
   }
 
   void navigateToManageFAQ(BuildContext context) {
-    // Navigate to FAQ Editor
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('FAQ Management page coming soon.')),
-    );
+    Navigator.pushNamed(context, '/manage_faq');
   }
 
   void onLogoutPressed(BuildContext context) {

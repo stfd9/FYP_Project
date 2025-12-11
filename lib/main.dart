@@ -12,6 +12,7 @@ import 'View/admin_feedback_list_view.dart';
 import 'View/admin_feedback_detail_view.dart';
 import 'View/analysis_record_list_view.dart';
 import 'View/analysis_record_detail_view.dart';
+import 'View/manage_faq_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,7 +40,9 @@ class MyApp extends StatelessWidget {
         '/admin_feedback_list': (context) => const AdminFeedbackListView(),
         '/admin_feedback_detail': (context) => const AdminFeedbackDetailView(),
         '/analysis_records': (context) => const AnalysisRecordListView(),
-        '/analysis_record_detail': (context) => const AnalysisRecordDetailView(),
+        '/analysis_record_detail': (context) =>
+            const AnalysisRecordDetailView(),
+        '/manage_faq': (context) => const ManageFAQView(),
       },
     );
   }
