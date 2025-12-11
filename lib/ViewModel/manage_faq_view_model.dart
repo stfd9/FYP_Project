@@ -146,3 +146,4 @@ class ManageFAQViewModel extends BaseViewModel {
     ).showSnackBar(const SnackBar(content: Text('FAQ deleted successfully')));
   }
 }
+  

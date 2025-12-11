@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
-import 'base_view_model.dart';
+// Import your page views here
+import '../View/home_dashboard_view.dart';
+import '../View/register_view.dart';
+import '../View/admin_login_view.dart';
+import '../View/forgot_password_view.dart'; // <--- Import this
 
-class LoginViewModel extends BaseViewModel {
+class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   bool get obscurePassword => _obscurePassword;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   void onTogglePasswordPressed() {
     _obscurePassword = !_obscurePassword;
@@ -16,28 +24,51 @@ class LoginViewModel extends BaseViewModel {
   }
 
   Future<void> onLoginPressed(BuildContext context) async {
-    final validationError = _validateInputs();
-    if (validationError != null) {
-      setError(validationError);
+    _errorMessage = null;
+    notifyListeners();
+
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      _errorMessage = 'Please provide both email and password.';
+      notifyListeners();
       return;
     }
 
-    runAsync(() async {
-      Navigator.pushReplacementNamed(context, '/home');
-    });
+    _isLoading = true;
+    notifyListeners();
+
+    // Simulate API delay
+    await Future.delayed(const Duration(seconds: 2));
+
+    _isLoading = false;
+    notifyListeners();
+
+    if (context.mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeDashboardView()),
+      );
+    }
   }
 
   void onRegisterPressed(BuildContext context) {
-    Navigator.pushNamed(context, '/register');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterView()),
+    );
   }
 
   void onAdminLoginPressed(BuildContext context) {
-    Navigator.pushNamed(context, '/admin_login');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminLoginView()),
+    );
   }
 
+  // --- UPDATED: Navigate to Forgot Password Page ---
   void onForgotPasswordPressed(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset flow coming soon.')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ForgotPasswordView()),
     );
   }
 
@@ -45,13 +76,6 @@ class LoginViewModel extends BaseViewModel {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$providerName sign-in coming soon.')),
     );
-  }
-
-  String? _validateInputs() {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      return 'Please provide both email and password.';
-    }
-    return null;
   }
 
   @override

@@ -24,39 +24,34 @@ class _DashboardContent extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      // 1. App Theme Background
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Dashboard',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A1A),
-                ),
+        centerTitle: true,
+        title: Column(
+          children: [
+            Text(
+              'Admin Panel',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF1A1A1A),
               ),
-              Text(
-                'Welcome back, Admin',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
+            ),
+            Text(
+              'System Overview',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         actions: [
-          // Styled Logout Button
+          // Logout Button
           Container(
-            margin: const EdgeInsets.only(right: 24),
+            margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -64,15 +59,15 @@ class _DashboardContent extends StatelessWidget {
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.logout_rounded,
-                color: Colors.redAccent,
-                size: 22,
+                color: colorScheme.error,
+                size: 20,
               ),
               onPressed: () => viewModel.onLogoutPressed(context),
               tooltip: 'Logout',
@@ -85,14 +80,28 @@ class _DashboardContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 2. Stats Section
+            // --- 1. Welcome Banner ---
+            _AdminWelcomeBanner(colorScheme: colorScheme),
+
+            const SizedBox(height: 32),
+
+            // --- 2. Key Statistics ---
+            Text(
+              'Statistics',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1A1A1A),
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 16),
             const _DashboardStatsRow(),
 
             const SizedBox(height: 32),
 
-            // 3. Management Grid
+            // --- 3. Management Grid ---
             Text(
-              'Management',
+              'Manage',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF1A1A1A),
@@ -106,20 +115,19 @@ class _DashboardContent extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 1.0, // Square cards look cleaner
+              childAspectRatio: 1.1,
               children: [
                 _AdminActionCard(
                   title: 'Accounts',
-                  subtitle: 'Manage Users',
+                  subtitle: 'Users & Admins',
                   icon: Icons.people_alt_rounded,
                   iconColor: Colors.white,
-                  // Using gradients or solid colors for icons looks modern
-                  iconBgColor: const Color(0xFF6C63FF), // Soft Purple
+                  iconBgColor: colorScheme.primary, // Cobalt
                   onTap: () => viewModel.onManageAccountsPressed(context),
                 ),
                 _AdminActionCard(
                   title: 'Records',
-                  subtitle: 'Analysis Logs',
+                  subtitle: 'AI Analysis Logs',
                   icon: Icons.analytics_rounded,
                   iconColor: Colors.white,
                   iconBgColor: const Color(0xFF29B6F6), // Light Blue
@@ -135,7 +143,7 @@ class _DashboardContent extends StatelessWidget {
                 ),
                 _AdminActionCard(
                   title: 'FAQ',
-                  subtitle: 'Help Center',
+                  subtitle: 'Help Content',
                   icon: Icons.live_help_rounded,
                   iconColor: Colors.white,
                   iconBgColor: const Color(0xFF66BB6A), // Green
@@ -146,12 +154,12 @@ class _DashboardContent extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // 4. System Activity Section
+            // --- 4. System Activity ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'System Activity',
+                  'Activity Log',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF1A1A1A),
@@ -178,6 +186,78 @@ class _DashboardContent extends StatelessWidget {
   }
 }
 
+// --- WIDGET: Welcome Banner ---
+class _AdminWelcomeBanner extends StatelessWidget {
+  final ColorScheme colorScheme;
+
+  const _AdminWelcomeBanner({required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primary,
+            colorScheme.primary.withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Good Morning, Admin',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'System status is normal. There are 5 pending user reports to review.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.9),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // --- WIDGET: Stats Row ---
 class _DashboardStatsRow extends StatelessWidget {
   const _DashboardStatsRow();
@@ -194,7 +274,7 @@ class _DashboardStatsRow extends StatelessWidget {
             color: Color(0xFF6C63FF),
           ),
         ),
-        SizedBox(width: 16),
+        SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             label: 'Scans',
@@ -203,7 +283,7 @@ class _DashboardStatsRow extends StatelessWidget {
             color: Color(0xFF29B6F6),
           ),
         ),
-        SizedBox(width: 16),
+        SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             label: 'Issues',
@@ -233,15 +313,15 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24), // Consistent rounded corners
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -249,18 +329,18 @@ class _StatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20, color: color),
+            child: Icon(icon, size: 18, color: color),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1A1A1A),
             ),
@@ -269,7 +349,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w600,
             ),
@@ -280,7 +360,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// --- WIDGET: Admin Action Card (Grid Item) ---
+// --- WIDGET: Admin Action Card ---
 class _AdminActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -303,44 +383,42 @@ class _AdminActionCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Icon
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: iconBgColor,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: iconBgColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: Icon(icon, color: iconColor, size: 26),
+                  child: Icon(icon, color: iconColor, size: 24),
                 ),
-                // Text
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -356,7 +434,7 @@ class _AdminActionCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey.shade500,
                         fontWeight: FontWeight.w500,
                       ),
@@ -381,12 +459,12 @@ class _RecentActivityList extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -439,26 +517,16 @@ class _ActivityItem extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF333333),
               ),
@@ -466,11 +534,7 @@ class _ActivityItem extends StatelessWidget {
           ),
           Text(
             time,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade400,
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
           ),
         ],
       ),

@@ -43,9 +43,9 @@ class _LoginContent extends StatelessWidget {
                     // --- Logo Section ---
                     SizedBox(
                       height: 85,
-                      width: 300, // Wide enough for the text
+                      width: 300,
                       child: Image.asset(
-                        'images/assets/full_logo.png', // Ensure path matches your folder structure
+                        'images/assets/full_logo.png',
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return Icon(
@@ -80,7 +80,7 @@ class _LoginContent extends StatelessWidget {
                             'Log in',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface, // Midnight Blue
+                              color: colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -141,9 +141,8 @@ class _LoginContent extends StatelessWidget {
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    colorScheme.primary, // Cobalt Blue
-                                foregroundColor: colorScheme.onPrimary, // White
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -172,7 +171,7 @@ class _LoginContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Forgot Password
+                          // Forgot Password (UPDATED ACTION)
                           Align(
                             alignment: Alignment.center,
                             child: TextButton(
@@ -182,7 +181,7 @@ class _LoginContent extends StatelessWidget {
                                 'Forgot your password?',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: colorScheme.secondary, // Aqua/Blue
+                                  color: colorScheme.secondary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -222,27 +221,22 @@ class _LoginContent extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Facebook Button
                               _SocialCircleButton(
                                 tooltip: 'Continue with Facebook',
                                 icon: Icons.facebook,
-                                iconColor: const Color(
-                                  0xFF1877F2,
-                                ), // Facebook Blue
+                                iconColor: const Color(0xFF1877F2),
                                 onTap: () => viewModel.onProviderPressed(
                                   context,
                                   'Facebook',
                                 ),
                               ),
                               const SizedBox(width: 20),
-
-                              // Google Button
                               _SocialCircleButton(
                                 tooltip: 'Continue with Google',
                                 child: Padding(
                                   padding: const EdgeInsets.all(12.0),
                                   child: Image.asset(
-                                    'images/assets/google_logo.png', // Ensure path matches
+                                    'images/assets/google_logo.png',
                                     fit: BoxFit.contain,
                                     errorBuilder:
                                         (context, error, stackTrace) =>
@@ -282,7 +276,7 @@ class _LoginContent extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary, // Cobalt Link
+                                    color: colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -296,7 +290,7 @@ class _LoginContent extends StatelessWidget {
               ),
             ),
 
-            // 2. Admin Button (Corner Positioned) - UPDATED COLOR
+            // 2. Admin Button (Top Right Corner)
             Positioned(
               top: 10,
               right: 16,
@@ -304,8 +298,7 @@ class _LoginContent extends StatelessWidget {
                 onPressed: () => viewModel.onAdminLoginPressed(context),
                 tooltip: 'Admin Login',
                 icon: Icon(
-                  Icons.manage_accounts_outlined, // Better icon for "Admin"
-                  // --- CHANGED COLOR TO THEME PRIMARY (Cobalt) ---
+                  Icons.manage_accounts_outlined,
                   color: colorScheme.primary,
                   size: 28,
                 ),
@@ -350,7 +343,6 @@ class _LoginContent extends StatelessWidget {
   }
 }
 
-// ... _SocialCircleButton remains the same ...
 class _SocialCircleButton extends StatelessWidget {
   final Widget? child;
   final IconData? icon;
