@@ -49,9 +49,7 @@ class ScanHistoryViewModel extends BaseViewModel {
   void openHistoryItem(BuildContext context, ScanHistoryItem item) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => ScanHistoryDetailView(item: item),
-      ),
+      MaterialPageRoute(builder: (_) => ScanHistoryDetailView(item: item)),
     );
   }
 }

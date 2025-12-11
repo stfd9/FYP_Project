@@ -11,11 +11,15 @@ class ScanHistoryDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final bool isDisease = item.isDisease;
-    final Color accentColor =
-        isDisease ? const Color(0xFFFF6B6B) : const Color(0xFF4ECDC4);
-    final IconData typeIcon =
-        isDisease ? Icons.healing_rounded : Icons.pets_rounded;
-    final String typeLabel = isDisease ? 'Skin Disease Scan' : 'Breed Identification';
+    final Color accentColor = isDisease
+        ? const Color(0xFFFF6B6B)
+        : const Color(0xFF4ECDC4);
+    final IconData typeIcon = isDisease
+        ? Icons.healing_rounded
+        : Icons.pets_rounded;
+    final String typeLabel = isDisease
+        ? 'Skin Disease Scan'
+        : 'Breed Identification';
     final double confidence = item.confidence * 100;
 
     return Scaffold(
@@ -33,10 +37,7 @@ class ScanHistoryDetailView extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  accentColor,
-                  accentColor.withValues(alpha: 0.75),
-                ],
+                colors: [accentColor, accentColor.withValues(alpha: 0.75)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -109,7 +110,10 @@ class ScanHistoryDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -146,7 +150,11 @@ class ScanHistoryDetailView extends StatelessWidget {
                                 color: accentColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(Icons.analytics_outlined, color: accentColor, size: 22),
+                              child: Icon(
+                                Icons.analytics_outlined,
+                                color: accentColor,
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             const Text(
@@ -174,7 +182,9 @@ class ScanHistoryDetailView extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: item.confidence,
                             backgroundColor: Colors.grey.shade200,
-                            valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              accentColor,
+                            ),
                             minHeight: 10,
                           ),
                         ),
@@ -201,7 +211,11 @@ class ScanHistoryDetailView extends StatelessWidget {
                             color: colorScheme.primary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(Icons.access_time_rounded, color: colorScheme.primary, size: 22),
+                          child: Icon(
+                            Icons.access_time_rounded,
+                            color: colorScheme.primary,
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Column(
@@ -209,7 +223,10 @@ class ScanHistoryDetailView extends StatelessWidget {
                           children: [
                             const Text(
                               'Scanned On',
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -239,7 +256,11 @@ class ScanHistoryDetailView extends StatelessWidget {
                                 color: accentColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(Icons.description_outlined, color: accentColor, size: 22),
+                              child: Icon(
+                                Icons.description_outlined,
+                                color: accentColor,
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             const Text(
@@ -279,7 +300,11 @@ class ScanHistoryDetailView extends StatelessWidget {
                                   color: Colors.amber.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 22),
+                                child: const Icon(
+                                  Icons.lightbulb_outline,
+                                  color: Colors.amber,
+                                  size: 22,
+                                ),
                               ),
                               const SizedBox(width: 14),
                               const Text(
@@ -295,12 +320,14 @@ class ScanHistoryDetailView extends StatelessWidget {
                           const SizedBox(height: 16),
                           const _RecommendationItem(
                             icon: Icons.medical_services_outlined,
-                            text: 'Consult a veterinarian for professional diagnosis',
+                            text:
+                                'Consult a veterinarian for professional diagnosis',
                           ),
                           const SizedBox(height: 10),
                           const _RecommendationItem(
                             icon: Icons.monitor_heart_outlined,
-                            text: 'Monitor for any changes in the affected area',
+                            text:
+                                'Monitor for any changes in the affected area',
                           ),
                           const SizedBox(height: 10),
                           const _RecommendationItem(
