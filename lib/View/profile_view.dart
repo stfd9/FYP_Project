@@ -25,22 +25,21 @@ class _ProfileBody extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD), // Very light cool grey
-      // --- Removed AppBar ---
+      backgroundColor: const Color(0xFFF8F9FD),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20), // Added top spacing
-              // --- Profile Header (Clean Style) ---
+              const SizedBox(height: 20),
+
+              // --- Profile Header ---
               Center(
                 child: Column(
                   children: [
                     Stack(
                       children: [
-                        // Avatar Container
                         Container(
                           width: 110,
                           height: 110,
@@ -63,11 +62,10 @@ class _ProfileBody extends StatelessWidget {
                             child: Icon(
                               Icons.person,
                               size: 55,
-                              color: colorScheme.primary, // Cobalt Accent
+                              color: colorScheme.primary,
                             ),
                           ),
                         ),
-                        // Edit Button (Floating)
                         Positioned(
                           bottom: 4,
                           right: 4,
@@ -77,7 +75,7 @@ class _ProfileBody extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: colorScheme.secondary, // Aqua Accent
+                                color: colorScheme.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: Colors.white,
@@ -85,7 +83,7 @@ class _ProfileBody extends StatelessWidget {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colorScheme.secondary.withValues(
+                                    color: colorScheme.primary.withValues(
                                       alpha: 0.3,
                                     ),
                                     blurRadius: 8,
@@ -124,7 +122,7 @@ class _ProfileBody extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // --- Menu Sections ---
+              // --- Account Settings ---
               _SectionHeader(title: 'Account Settings'),
               const SizedBox(height: 12),
               _ProfileCard(
@@ -145,6 +143,7 @@ class _ProfileBody extends StatelessWidget {
 
               const SizedBox(height: 32),
 
+              // --- Support & Logout ---
               _SectionHeader(title: 'Support'),
               const SizedBox(height: 12),
               _ProfileCard(
@@ -158,29 +157,17 @@ class _ProfileBody extends StatelessWidget {
                 onTap: () => viewModel.onFeedbackPressed(context),
               ),
 
-              const SizedBox(height: 40),
-
-              // --- Logout Button (Minimalist) ---
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red.shade600,
-                    backgroundColor: Colors.red.shade50,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: () => viewModel.onLogoutPressed(context),
-                  icon: const Icon(Icons.logout),
-                  label: const Text(
-                    'Log Out',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                  ),
-                ),
+              // --- Log Out Card (Without Arrow) ---
+              _ProfileCard(
+                icon: Icons.logout,
+                title: 'Log Out',
+                textColor: Colors.red,
+                iconColor: Colors.red,
+                showTrailing: false, // <-- Set this to false
+                onTap: () => viewModel.onLogoutPressed(context),
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -196,13 +183,16 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey.shade500,
-        letterSpacing: 0.5,
+    return Padding(
+      padding: const EdgeInsets.only(left: 4.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey.shade500,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -214,11 +204,17 @@ class _ProfileCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    this.textColor,
+    this.iconColor,
+    this.showTrailing = true, // Default is true
   });
 
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final Color? textColor;
+  final Color? iconColor;
+  final bool showTrailing; // New property to toggle arrow
 
   @override
   Widget build(BuildContext context) {
@@ -242,25 +238,20 @@ class _ProfileCard extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: colorScheme.primary, size: 22),
+          child: Icon(icon, color: iconColor ?? colorScheme.primary, size: 22),
         ),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
+            color: textColor ?? colorScheme.onSurface,
           ),
         ),
-        trailing: Icon(
-          Icons.chevron_right,
-          size: 20,
-          color: Colors.grey.shade400,
-        ),
+        // Only show the arrow if showTrailing is true
+        trailing: showTrailing
+            ? Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade400)
+            : null,
       ),
     );
   }
