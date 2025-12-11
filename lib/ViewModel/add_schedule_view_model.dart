@@ -30,7 +30,7 @@ class AddScheduleViewModel extends BaseViewModel {
       lastDate: now.add(const Duration(days: 365)),
     );
 
-    if (selectedDate == null) return;
+    if (selectedDate == null || !context.mounted) return;
 
     final initialTime = _scheduledAt != null
         ? TimeOfDay.fromDateTime(_scheduledAt!)
@@ -41,7 +41,7 @@ class AddScheduleViewModel extends BaseViewModel {
       initialTime: initialTime,
     );
 
-    if (selectedTime == null) return;
+    if (selectedTime == null || !context.mounted) return;
 
     _scheduledAt = DateTime(
       selectedDate.year,
