@@ -24,25 +24,19 @@ class _DashboardContent extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      // Uses AppColors.pageBackground from your theme
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Admin Dashboard',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            // Using Midnight Blue for high contrast on light background
             color: colorScheme.onSurface,
           ),
         ),
-        // Theme default is transparent/light, so we don't need to force colors here
         centerTitle: false,
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.logout,
-              color: colorScheme.error,
-            ), // Red for logout action
+            icon: Icon(Icons.logout, color: colorScheme.error),
             onPressed: () => viewModel.onLogoutPressed(context),
             tooltip: 'Logout',
           ),
@@ -57,12 +51,11 @@ class _DashboardContent extends StatelessWidget {
               'Overview',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: colorScheme.primary, // Cobalt Blue
+                color: colorScheme.primary,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Grid Layout
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -75,45 +68,39 @@ class _DashboardContent extends StatelessWidget {
                   title: 'Manage Accounts',
                   subtitle: 'View and edit users',
                   icon: Icons.people_alt_outlined,
-                  // Use Primary (Cobalt)
                   iconColor: colorScheme.primary,
                   backgroundColor: colorScheme.primaryContainer.withValues(
                     alpha: 0.1,
                   ),
-                  onTap: () => viewModel.navigateToManageAccounts(context),
+                  onTap: () => viewModel.onManageAccountsPressed(context),
                 ),
                 _AdminActionCard(
                   title: 'Analysis Records',
                   subtitle: 'Review scan history',
                   icon: Icons.analytics_outlined,
-                  // Use Tertiary (Deep Sea)
                   iconColor: colorScheme.tertiary,
                   backgroundColor: colorScheme.tertiaryContainer.withValues(
                     alpha: 0.1,
                   ),
-                  onTap: () => viewModel.navigateToAnalysisRecords(context),
+                  onTap: () => viewModel.onAnalysisRecordsPressed(context),
                 ),
                 _AdminActionCard(
                   title: 'User Feedback',
                   subtitle: 'Read customer feedback',
                   icon: Icons.rate_review_outlined,
-                  // Use Secondary (Aqua) - Darkened slightly for text visibility if needed
-                  iconColor: const Color(
-                    0xFF2F6FD6,
-                  ), // Using Cobalt for consistency or Scheme Secondary
+                  iconColor: const Color(0xFF2F6FD6),
                   backgroundColor: colorScheme.secondaryContainer.withValues(
                     alpha: 0.5,
                   ),
-                  onTap: () => viewModel.navigateToUserFeedback(context),
+                  onTap: () => viewModel.onUserFeedbackPressed(context),
                 ),
                 _AdminActionCard(
                   title: 'Manage FAQ',
                   subtitle: 'Edit help content',
                   icon: Icons.quiz_outlined,
-                  // Use Midnight (OnSurface)
                   iconColor: colorScheme.onSurface,
                   backgroundColor: colorScheme.surfaceVariant,
-                  onTap: () => viewModel.navigateToManageFAQ(context),
+                  onTap: () => viewModel.onManageFaqPressed(context),
                 ),
               ],
             ),
@@ -147,7 +134,7 @@ class _AdminActionCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardTheme.color, // Uses Surface (White)
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -169,23 +156,20 @@ class _AdminActionCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Circle
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color:
-                        backgroundColor, // Soft background based on brand color
+                    color: backgroundColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: iconColor, size: 28),
                 ),
                 const Spacer(),
-                // Title
                 Text(
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface, // Midnight Blue
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 if (subtitle != null) ...[
