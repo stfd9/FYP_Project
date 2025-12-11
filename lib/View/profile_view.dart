@@ -38,68 +38,32 @@ class _ProfileBody extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(
-                              color: colorScheme.primary.withValues(alpha: 0.1),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.06),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.person,
-                              size: 55,
-                              color: colorScheme.primary,
-                            ),
-                          ),
+                    // Avatar Image (No Edit Button)
+                    Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          width: 1,
                         ),
-                        Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () =>
-                                viewModel.onEditProfilePressed(context),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
                           ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 55,
+                          color: colorScheme.primary,
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -163,7 +127,7 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Log Out',
                 textColor: Colors.red,
                 iconColor: Colors.red,
-                showTrailing: false, // <-- Set this to false
+                showTrailing: false,
                 onTap: () => viewModel.onLogoutPressed(context),
               ),
 
@@ -206,7 +170,7 @@ class _ProfileCard extends StatelessWidget {
     required this.onTap,
     this.textColor,
     this.iconColor,
-    this.showTrailing = true, // Default is true
+    this.showTrailing = true,
   });
 
   final IconData icon;
@@ -214,7 +178,7 @@ class _ProfileCard extends StatelessWidget {
   final VoidCallback onTap;
   final Color? textColor;
   final Color? iconColor;
-  final bool showTrailing; // New property to toggle arrow
+  final bool showTrailing;
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +202,10 @@ class _ProfileCard extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: Container(
           padding: const EdgeInsets.all(10),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F6FA), // Light grey icon background
+            shape: BoxShape.circle,
+          ),
           child: Icon(icon, color: iconColor ?? colorScheme.primary, size: 22),
         ),
         title: Text(
@@ -248,7 +216,6 @@ class _ProfileCard extends StatelessWidget {
             color: textColor ?? colorScheme.onSurface,
           ),
         ),
-        // Only show the arrow if showTrailing is true
         trailing: showTrailing
             ? Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade400)
             : null,

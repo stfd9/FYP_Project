@@ -31,7 +31,8 @@ class _RegisterContent extends StatelessWidget {
           children: [
             // 1. Main Content
             Align(
-              alignment: const Alignment(0.0, -0.25),
+              // --- CHANGED: Adjusted alignment slightly down ---
+              alignment: const Alignment(0.0, 0.1),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -57,7 +58,9 @@ class _RegisterContent extends StatelessWidget {
                         },
                       ),
                     ),
-                    const SizedBox(height: 32),
+
+                    // --- CHANGED: Increased spacing to push form lower ---
+                    const SizedBox(height: 48),
 
                     // --- Register Form Card ---
                     Container(
@@ -94,6 +97,13 @@ class _RegisterContent extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
+
+                          TextField(
+                            controller: viewModel.nameController,
+                            keyboardType: TextInputType.name,
+                            decoration: _inputDecoration(context, 'Username'),
+                          ),
+                          const SizedBox(height: 16),
 
                           // Full Name
                           TextField(

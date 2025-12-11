@@ -21,69 +21,225 @@ class _NotificationSettingsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<NotificationSettingsViewModel>();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
       appBar: AppBar(
-        title: const Text('Notifications'),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0.5,
-        foregroundColor: Colors.black,
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          children: [
-            const Text(
-              'Reminders',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Medication reminders'),
-              subtitle: const Text(
-                'Notify you when it’s time for your pet’s medicine',
-              ),
-              value: viewModel.medicationReminders,
-              onChanged: viewModel.toggleMedication,
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Vaccination reminders'),
-              subtitle: const Text(
-                'Upcoming vaccination and booster reminders',
-              ),
-              value: viewModel.vaccinationReminders,
-              onChanged: viewModel.toggleVaccination,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Other',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('General updates'),
-              subtitle: const Text('News and tips about pet health'),
-              value: viewModel.generalUpdates,
-              onChanged: viewModel.toggleGeneralUpdates,
-            ),
-            const SizedBox(height: 16),
-            TextButton.icon(
-              onPressed: () => viewModel.onShowInfoPressed(context),
-              icon: const Icon(Icons.info_outline, size: 16),
-              label: const Text('Learn more about notifications'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black87,
-                padding: EdgeInsets.zero,
-                alignment: Alignment.centerLeft,
-              ),
-            ),
-          ],
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- 1. Reminders Section ---
+              const _SectionHeader(title: 'Health Reminders'),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _NotificationTile(
+                      title: 'Medication',
+                      subtitle: 'Daily pill & medicine alerts',
+                      icon: Icons.medication_liquid_rounded,
+                      iconColor: Colors.orange,
+                      value: viewModel.medicationReminders,
+                      onChanged: viewModel.toggleMedication,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Divider(height: 1, color: Colors.grey.shade100),
+                    ),
+                    _NotificationTile(
+                      title: 'Vaccinations',
+                      subtitle: 'Upcoming booster shots',
+                      icon: Icons.vaccines_rounded,
+                      iconColor: colorScheme.primary, // Cobalt Blue
+                      value: viewModel.vaccinationReminders,
+                      onChanged: viewModel.toggleVaccination,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // --- 2. Other Updates Section ---
+              const _SectionHeader(title: 'App Updates'),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: _NotificationTile(
+                  title: 'General News',
+                  subtitle: 'Tips, trends & pet health news',
+                  icon: Icons.newspaper_rounded,
+                  iconColor: colorScheme.tertiary, // Usually Teal/Green
+                  value: viewModel.generalUpdates,
+                  onChanged: viewModel.toggleGeneralUpdates,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // --- 3. Info Link ---
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => viewModel.onShowInfoPressed(context),
+                  icon: Icon(
+                    Icons.info_outline_rounded,
+                    size: 18,
+                    color: Colors.grey.shade600,
+                  ),
+                  label: Text(
+                    'How notifications work',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// --- Helper: Section Header ---
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey.shade500,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// --- Helper: Notification Tile with Switch ---
+class _NotificationTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _NotificationTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SwitchListTile.adaptive(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        activeColor: colorScheme.primary, // App Theme Primary Color
+        trackColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return colorScheme.primary.withOpacity(0.3);
+          }
+          return Colors.grey.shade200;
+        }),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        secondary: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey.shade500,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fyp_project/View/change_password_view.dart';
 import 'View/home_view.dart';
 import 'View/login_view.dart';
 import 'View/register_view.dart';

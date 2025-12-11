@@ -4,10 +4,10 @@ import 'base_view_model.dart';
 
 class AccountDetailsViewModel extends BaseViewModel {
   final TextEditingController nameController = TextEditingController(
-    text: 'User Name',
+    text: 'Jimmy',
   );
   final TextEditingController emailController = TextEditingController(
-    text: 'user@email.com',
+    text: 'jimmy@email.com',
   );
 
   void onSaveChangesPressed(BuildContext context) {
@@ -19,12 +19,6 @@ class AccountDetailsViewModel extends BaseViewModel {
       context,
     ).showSnackBar(const SnackBar(content: Text('Changes saved.')));
     Navigator.pop(context);
-  }
-
-  void goToChangePassword(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Change password coming soon.')),
-    );
   }
 
   @override
