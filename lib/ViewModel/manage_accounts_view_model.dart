@@ -67,11 +67,17 @@ class UserAccount {
   final String name;
   final String email;
   final String joinDate;
+  final String phone;
+  final String status;
+  final int petsCount;
 
   UserAccount({
     required this.id,
     required this.name,
     required this.email,
     required this.joinDate,
+    this.phone = '',
+    this.status = 'Active',
+    this.petsCount = 0,
   });
 }

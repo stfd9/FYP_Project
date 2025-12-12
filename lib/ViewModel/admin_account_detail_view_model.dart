@@ -53,6 +53,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
               _isAccountLocked = !_isAccountLocked;
               _accountStatus = _isAccountLocked ? 'Suspended' : 'Active';
               _user = UserAccount(
+                id: _user!.id,
                 name: _user!.name,
                 email: _user!.email,
                 phone: _user!.phone,
