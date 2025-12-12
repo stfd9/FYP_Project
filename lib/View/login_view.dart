@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart'; // REQUIRED for TapGestureRecognizer
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -121,7 +122,7 @@ class _LoginContent extends StatelessWidget {
                             ),
                           ),
 
-                          // --- Terms & Conditions Checkbox (NEW) ---
+                          // --- UPDATED: Terms & Conditions Checkbox ---
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -139,30 +140,31 @@ class _LoginContent extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: GestureDetector(
-                                  onTap: () => viewModel.toggleTerms(
-                                    !viewModel.isTermsAccepted,
-                                  ),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      text: 'I agree to the ',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: 'Terms & Conditions',
-                                          style: TextStyle(
-                                            color: colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
-                                          // Add recognizer here if you want to open a Terms page
-                                        ),
-                                      ],
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: 'I agree to the ',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                      fontFamily: theme
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.fontFamily, // Ensure font matches app
                                     ),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Terms & Conditions',
+                                        style: TextStyle(
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        // Open Pop-up when clicked
+                                        recognizer: TapGestureRecognizer()
+                                          ..onTap = () => viewModel
+                                              .openTermsAndConditions(context),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -184,7 +186,7 @@ class _LoginContent extends StatelessWidget {
                               ),
                             ),
 
-                          // Login Button (Disabled if Terms not accepted)
+                          // Login Button
                           SizedBox(
                             width: double.infinity,
                             height: 50,
@@ -192,6 +194,7 @@ class _LoginContent extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,
                                 foregroundColor: colorScheme.onPrimary,
+                                // Dim button if terms not accepted
                                 disabledBackgroundColor: colorScheme.onSurface
                                     .withOpacity(0.12),
                                 disabledForegroundColor: colorScheme.onSurface
@@ -201,7 +204,6 @@ class _LoginContent extends StatelessWidget {
                                 ),
                                 elevation: 0,
                               ),
-                              // Button is disabled if terms are not accepted OR if loading
                               onPressed:
                                   (viewModel.isLoading ||
                                       !viewModel.isTermsAccepted)
