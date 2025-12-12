@@ -67,6 +67,27 @@ class CalendarViewModel extends BaseViewModel {
 
   List<int?> get days => _buildDays();
 
+  // Month statistics
+  int get totalEventsThisMonth {
+    return _events.length;
+  }
+
+  int get upcomingEvents {
+    final today = DateTime.now().day;
+    return _events.where((event) => event.day >= today).length;
+  }
+
+  int get petsWithEvents {
+    return _events.map((event) => event.petName).toSet().length;
+  }
+
+  List<CalendarEvent> get upcomingEventsList {
+    final today = DateTime.now().day;
+    final upcoming = _events.where((event) => event.day >= today).toList();
+    upcoming.sort((a, b) => a.day.compareTo(b.day));
+    return List.unmodifiable(upcoming);
+  }
+
   void selectDay(int day) {
     if (_selectedDay == day) return;
     _selectedDay = day;

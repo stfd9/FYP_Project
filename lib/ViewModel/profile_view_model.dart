@@ -10,6 +10,9 @@ import 'base_view_model.dart';
 class ProfileViewModel extends BaseViewModel {
   final String userName = 'Jimmy';
   final String email = 'jimmy@gmail.com';
+  final int totalPets = 3;
+  final int totalScans = 24;
+  final int daysActive = 45;
 
   void onEditProfilePressed(BuildContext context) {
     editProfile(context);

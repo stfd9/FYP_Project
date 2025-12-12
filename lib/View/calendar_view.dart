@@ -59,14 +59,76 @@ class _CalendarBody extends StatelessWidget {
               // Calendar card
               _CalendarCard(viewModel: viewModel),
 
+              const SizedBox(height: 20),
+
+              // Monthly Overview Title
+              Text(
+                'Monthly Overview',
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Month Stats Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary.withValues(alpha: 0.1),
+                      colorScheme.primary.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _MonthStat(
+                      icon: Icons.event,
+                      value: '${viewModel.totalEventsThisMonth}',
+                      label: 'Events',
+                      color: colorScheme.primary,
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                    ),
+                    _MonthStat(
+                      icon: Icons.upcoming,
+                      value: '${viewModel.upcomingEvents}',
+                      label: 'Upcoming',
+                      color: const Color(0xFF4ECDC4),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                    ),
+                    _MonthStat(
+                      icon: Icons.pets,
+                      value: '${viewModel.petsWithEvents}',
+                      label: 'Pets',
+                      color: const Color(0xFFFF6B6B),
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 24),
 
               // Scheduled Event section
               Text(
                 'Scheduled Event',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
                 ),
               ),
               const SizedBox(height: 12),
@@ -119,6 +181,43 @@ class _CalendarBody extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Month Stat Widget
+class _MonthStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _MonthStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 }
@@ -372,8 +471,8 @@ class _PawPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(cx, h * 0.52),
-        width: w * 0.48,
-        height: h * 0.42,
+        width: w * 0.52,
+        height: h * 0.48,
       ),
       paint,
     );
@@ -437,6 +536,8 @@ class _WeekdayLabel extends StatelessWidget {
     );
   }
 }
+
+// Upcoming Event Card Widget
 
 class _ScheduledEventCard extends StatelessWidget {
   const _ScheduledEventCard({required this.event, this.onTap});

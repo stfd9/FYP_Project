@@ -86,6 +86,61 @@ class _ProfileBody extends StatelessWidget {
 
               const SizedBox(height: 40),
 
+              // --- Profile Stats ---
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _StatItem(
+                      icon: Icons.pets,
+                      value: '${viewModel.totalPets}',
+                      label: 'Pets',
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                    _StatItem(
+                      icon: Icons.qr_code_scanner,
+                      value: '${viewModel.totalScans}',
+                      label: 'Scans',
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                    _StatItem(
+                      icon: Icons.calendar_today,
+                      value: '${viewModel.daysActive}',
+                      label: 'Days',
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
               // --- Account Settings ---
               _SectionHeader(title: 'Account Settings'),
               const SizedBox(height: 12),
@@ -220,6 +275,45 @@ class _ProfileCard extends StatelessWidget {
             ? Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade400)
             : null,
       ),
+    );
+  }
+}
+
+// --- Helper: Stat Item ---
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _StatItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ),
+      ],
     );
   }
 }
