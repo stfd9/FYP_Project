@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'base_view_model.dart';
+// --- FIX: Import the View here ---
+import '../View/privacy_policy_view.dart';
 
 class PrivacySecurityViewModel extends BaseViewModel {
   void onChangePasswordPressed(BuildContext context) {
@@ -12,7 +14,11 @@ class PrivacySecurityViewModel extends BaseViewModel {
   }
 
   void openPrivacyPolicy(BuildContext context) {
-    _showSnack(context, 'Privacy policy will open here.');
+    // --- Now this works because we imported the class above ---
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PrivacyPolicyView()),
+    );
   }
 
   void deleteAccount(BuildContext context) {

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../View/home_view.dart';
 import '../View/register_view.dart';
 import '../View/admin_login_view.dart';
-import '../View/forgot_password_view.dart'; // <--- Import this
+import '../View/forgot_password_view.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -12,10 +12,18 @@ class LoginViewModel extends ChangeNotifier {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+
+  // --- NEW: Terms & Conditions State ---
+  bool _isTermsAccepted = false;
+
   String? _errorMessage;
 
   bool get obscurePassword => _obscurePassword;
   bool get isLoading => _isLoading;
+
+  // --- NEW: Getter for Terms State ---
+  bool get isTermsAccepted => _isTermsAccepted;
+
   String? get errorMessage => _errorMessage;
 
   void onTogglePasswordPressed() {
@@ -23,12 +31,26 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- NEW: Toggle Terms Logic ---
+  void toggleTerms(bool? value) {
+    _isTermsAccepted = value ?? false;
+    notifyListeners();
+  }
+
   Future<void> onLoginPressed(BuildContext context) async {
     _errorMessage = null;
     notifyListeners();
 
+    // 1. Input Validation
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       _errorMessage = 'Please provide both email and password.';
+      notifyListeners();
+      return;
+    }
+
+    // 2. Terms Validation (NEW)
+    if (!_isTermsAccepted) {
+      _errorMessage = 'Please agree to the Terms and Conditions.';
       notifyListeners();
       return;
     }
@@ -64,7 +86,6 @@ class LoginViewModel extends ChangeNotifier {
     );
   }
 
-  // --- UPDATED: Navigate to Forgot Password Page ---
   void onForgotPasswordPressed(BuildContext context) {
     Navigator.push(
       context,

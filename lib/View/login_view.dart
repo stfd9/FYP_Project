@@ -37,8 +37,8 @@ class _LoginContent extends StatelessWidget {
                   vertical: 24,
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // --- Logo Section ---
                     SizedBox(
@@ -120,6 +120,55 @@ class _LoginContent extends StatelessWidget {
                               ),
                             ),
                           ),
+
+                          // --- Terms & Conditions Checkbox (NEW) ---
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: Checkbox(
+                                  value: viewModel.isTermsAccepted,
+                                  onChanged: viewModel.toggleTerms,
+                                  activeColor: colorScheme.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => viewModel.toggleTerms(
+                                    !viewModel.isTermsAccepted,
+                                  ),
+                                  child: RichText(
+                                    text: TextSpan(
+                                      text: 'I agree to the ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: 'Terms & Conditions',
+                                          style: TextStyle(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                          // Add recognizer here if you want to open a Terms page
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
                           const SizedBox(height: 16),
 
                           if (viewModel.errorMessage != null)
@@ -135,7 +184,7 @@ class _LoginContent extends StatelessWidget {
                               ),
                             ),
 
-                          // Login Button
+                          // Login Button (Disabled if Terms not accepted)
                           SizedBox(
                             width: double.infinity,
                             height: 50,
@@ -143,12 +192,19 @@ class _LoginContent extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,
                                 foregroundColor: colorScheme.onPrimary,
+                                disabledBackgroundColor: colorScheme.onSurface
+                                    .withOpacity(0.12),
+                                disabledForegroundColor: colorScheme.onSurface
+                                    .withOpacity(0.38),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 elevation: 0,
                               ),
-                              onPressed: viewModel.isLoading
+                              // Button is disabled if terms are not accepted OR if loading
+                              onPressed:
+                                  (viewModel.isLoading ||
+                                      !viewModel.isTermsAccepted)
                                   ? null
                                   : () => viewModel.onLoginPressed(context),
                               child: viewModel.isLoading
@@ -171,7 +227,7 @@ class _LoginContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
 
-                          // Forgot Password (UPDATED ACTION)
+                          // Forgot Password
                           Align(
                             alignment: Alignment.center,
                             child: TextButton(
@@ -290,7 +346,7 @@ class _LoginContent extends StatelessWidget {
               ),
             ),
 
-            // 2. Admin Button (Top Right Corner)
+            // 2. Admin Button
             Positioned(
               top: 10,
               right: 16,
