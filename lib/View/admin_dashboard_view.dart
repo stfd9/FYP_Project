@@ -149,6 +149,14 @@ class _DashboardContent extends StatelessWidget {
                   iconBgColor: const Color(0xFF66BB6A), // Green
                   onTap: () => viewModel.onManageFaqPressed(context),
                 ),
+                _AdminActionCard(
+                  title: 'Community Tips',
+                  subtitle: 'Manage Tips',
+                  icon: Icons.local_library_rounded,
+                  iconColor: Colors.white,
+                  iconBgColor: const Color(0xFF9C27B0), // Purple
+                  onTap: () => viewModel.onManageCommunityTipsPressed(context),
+                ),
               ],
             ),
 

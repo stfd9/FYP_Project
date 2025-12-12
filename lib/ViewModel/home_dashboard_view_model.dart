@@ -4,6 +4,8 @@ import '../View/add_pet_view.dart';
 import 'base_view_model.dart';
 
 class HomeDashboardViewModel extends BaseViewModel {
+  final PageController tipPageController = PageController();
+
   final List<PetHomeInfo> _pets = const [
     PetHomeInfo(name: 'Milo', species: 'Dog', lastScan: '3 days ago'),
     PetHomeInfo(name: 'Luna', species: 'Cat', lastScan: '1 week ago'),
@@ -55,6 +57,12 @@ class HomeDashboardViewModel extends BaseViewModel {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  void dispose() {
+    tipPageController.dispose();
+    super.dispose();
   }
 }
 

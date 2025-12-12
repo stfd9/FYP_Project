@@ -15,6 +15,7 @@ import 'View/analysis_record_list_view.dart';
 import 'View/analysis_record_detail_view.dart';
 import 'View/manage_faq_view.dart';
 import 'View/admin_account_detail_view.dart';
+import 'View/admin_manage_community_tips_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,6 +47,8 @@ class MyApp extends StatelessWidget {
         '/analysis_record_detail': (context) =>
             const AnalysisRecordDetailView(),
         '/manage_faq': (context) => const ManageFAQView(),
+        '/manage_community_tips': (context) =>
+            const AdminManageCommunityTipsView(),
         '/change_password': (context) => const ChangePasswordView(),
       },
     );

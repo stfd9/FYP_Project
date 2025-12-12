@@ -22,6 +22,11 @@ class AdminDashboardViewModel extends BaseViewModel {
     Navigator.pushNamed(context, '/manage_faq');
   }
 
+  // -- Manage Community Tips --
+  void onManageCommunityTipsPressed(BuildContext context) {
+    Navigator.pushNamed(context, '/manage_community_tips');
+  }
+
   // -- Logout --
   void onLogoutPressed(BuildContext context) {
     // Navigate back to login and remove all previous routes

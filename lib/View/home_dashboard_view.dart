@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../ViewModel/home_dashboard_view_model.dart';
 import '../ViewModel/home_view_model.dart';
@@ -244,15 +245,6 @@ class _HomeDashboardContent extends StatelessWidget {
                             ],
                             onTap: () => homeViewModel?.goToCalendarTab(),
                           ),
-                          _QuickActionButton(
-                            icon: Icons.history,
-                            label: 'History',
-                            gradient: const [
-                              Color(0xFFEB3349),
-                              Color(0xFFF45C43),
-                            ],
-                            onTap: () {},
-                          ),
                         ],
                       ),
                     ),
@@ -459,99 +451,94 @@ class _HomeDashboardContent extends StatelessWidget {
 
                     const SizedBox(height: 28),
 
-                    // --- Health Tips ---
+                    // --- Community Tips ---
                     _SectionHeader(
-                      title: 'Pet Care Tips',
-                      icon: Icons.lightbulb_outline,
+                      title: 'Community Tips',
+                      icon: Icons.local_library_outlined,
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFF3E0), Color(0xFFFFFFFF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Row(
+                    SizedBox(
+                      height: 180,
+                      child: PageView(
+                        controller: dashboardViewModel.tipPageController,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.tips_and_updates,
-                              color: Colors.orange,
-                              size: 24,
-                            ),
+                          _CommunityTipCard(
+                            icon: Icons.water_drop_outlined,
+                            iconColor: const Color(0xFF45B7D1),
+                            category: 'Hydration',
+                            title: 'Keep Your Pet Hydrated',
+                            description:
+                                'Ensure fresh water is always available. Dogs need 1 ounce per pound of body weight daily.',
+                            gradient: const [
+                              Color(0xFFE0F7FA),
+                              Color(0xFFFFFFFF),
+                            ],
                           ),
-                          const SizedBox(width: 14),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Did you know?',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Regular grooming helps detect skin issues early!',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF2D3142),
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _CommunityTipCard(
+                            icon: Icons.fitness_center_outlined,
+                            iconColor: const Color(0xFF4ECDC4),
+                            category: 'Exercise',
+                            title: 'Daily Exercise Routine',
+                            description:
+                                'Regular exercise prevents obesity and behavioral issues. Aim for 30-60 minutes daily.',
+                            gradient: const [
+                              Color(0xFFE0F2F1),
+                              Color(0xFFFFFFFF),
+                            ],
+                          ),
+                          _CommunityTipCard(
+                            icon: Icons.medical_services_outlined,
+                            iconColor: const Color(0xFFFF6B6B),
+                            category: 'Health Check',
+                            title: 'Regular Vet Visits',
+                            description:
+                                'Schedule check-ups every 6-12 months. Early detection saves lives and reduces costs.',
+                            gradient: const [
+                              Color(0xFFFFEBEE),
+                              Color(0xFFFFFFFF),
+                            ],
+                          ),
+                          _CommunityTipCard(
+                            icon: Icons.clean_hands_outlined,
+                            iconColor: const Color(0xFFFFBE0B),
+                            category: 'Grooming',
+                            title: 'Dental Care Matters',
+                            description:
+                                'Brush your pet\'s teeth 2-3 times weekly. Poor dental health affects overall well-being.',
+                            gradient: const [
+                              Color(0xFFFFF9C4),
+                              Color(0xFFFFFFFF),
+                            ],
+                          ),
+                          _CommunityTipCard(
+                            icon: Icons.restaurant_outlined,
+                            iconColor: const Color(0xFF667EEA),
+                            category: 'Nutrition',
+                            title: 'Quality Food Matters',
+                            description:
+                                'Choose age-appropriate, high-quality food. Avoid human foods like chocolate and grapes.',
+                            gradient: const [
+                              Color(0xFFEDE7F6),
+                              Color(0xFFFFFFFF),
+                            ],
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 28),
-
-                    // --- Recent Scans ---
-                    _SectionHeader(title: 'Recent Scans', icon: Icons.history),
                     const SizedBox(height: 12),
-                    if (dashboardViewModel.recentScans.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'No recent scans',
-                            style: TextStyle(color: Colors.grey.shade500),
-                          ),
-                        ),
-                      )
-                    else
-                      ...dashboardViewModel.recentScans.asMap().entries.map(
-                        (entry) => _RecentScanTile(
-                          scan: entry.value,
-                          index: entry.key,
-                          onTap: () => dashboardViewModel.openScanDetail(
-                            context,
-                            entry.value,
-                          ),
+                    Center(
+                      child: SmoothPageIndicator(
+                        controller: dashboardViewModel.tipPageController,
+                        count: 5,
+                        effect: ExpandingDotsEffect(
+                          dotHeight: 8,
+                          dotWidth: 8,
+                          activeDotColor: colorScheme.primary,
+                          dotColor: Colors.grey.shade300,
+                          expansionFactor: 3,
                         ),
                       ),
+                    ),
 
                     const SizedBox(height: 20),
                   ],
@@ -754,123 +741,107 @@ class _PetHomeCard extends StatelessWidget {
   }
 }
 
-// --- Recent Scan Tile Widget ---
-class _RecentScanTile extends StatelessWidget {
-  final RecentScanInfo scan;
-  final int index;
-  final VoidCallback onTap;
+// --- Community Tip Card Widget ---
+class _CommunityTipCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String category;
+  final String title;
+  final String description;
+  final List<Color> gradient;
 
-  const _RecentScanTile({
-    required this.scan,
-    required this.index,
-    required this.onTap,
+  const _CommunityTipCard({
+    required this.icon,
+    required this.iconColor,
+    required this.category,
+    required this.title,
+    required this.description,
+    required this.gradient,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isHealthy =
-        scan.result.toLowerCase().contains('healthy') ||
-        scan.result.toLowerCase().contains('normal');
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: gradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: iconColor.withValues(alpha: 0.2), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: iconColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF667EEA).withValues(alpha: 0.15),
-                        const Color(0xFF764BA2).withValues(alpha: 0.1),
-                      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.document_scanner_outlined,
-                    color: Color(0xFF667EEA),
-                    size: 22,
+                  ],
+                ),
+                child: Icon(icon, color: iconColor, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: iconColor,
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        scan.petName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: Color(0xFF2D3142),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: isHealthy ? Colors.green : Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            scan.result,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          Text(
-                            ' • ${scan.time}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3142),
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+              height: 1.4,
+            ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
