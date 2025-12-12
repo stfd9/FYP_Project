@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../ViewModel/pet_detail_view_model.dart';
 import '../models/pet_info.dart';
-import 'edit_pet_view.dart';
-import 'pet_gallery_view.dart';
 
 class PetDetailView extends StatelessWidget {
   const PetDetailView({super.key, required this.pet});
@@ -65,7 +63,7 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => viewModel.onBackPressed(context),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -81,14 +79,7 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                   ),
                   // Edit button
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditPetView(pet: pet),
-                        ),
-                      );
-                    },
+                    onTap: () => viewModel.onEditPressed(context),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -302,14 +293,7 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PetGalleryView(pet: pet),
-                          ),
-                        );
-                      },
+                      onTap: () => viewModel.onViewGalleryPressed(context),
                       child: Text(
                         'See all',
                         style: TextStyle(

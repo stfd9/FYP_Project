@@ -227,7 +227,6 @@ class _LoginContent extends StatelessWidget {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 16),
 
                           // Forgot Password
                           Align(
@@ -245,8 +244,6 @@ class _LoginContent extends StatelessWidget {
                               ),
                             ),
                           ),
-
-                          const SizedBox(height: 24),
 
                           // Divider
                           Row(

@@ -31,156 +31,165 @@ class _CalendarBody extends StatelessWidget {
     final viewModel = context.watch<CalendarViewModel>();
     final selectedEvent = viewModel.selectedEvent;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => viewModel.onAddSchedulePressed(context),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        child: const Icon(Icons.add, size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title
-              Text(
-                'Calendar',
-                style: textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Calendar card
-              _CalendarCard(viewModel: viewModel),
-
-              const SizedBox(height: 20),
-
-              // Monthly Overview Title
-              Text(
-                'Monthly Overview',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Month Stats Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.1),
-                      colorScheme.primary.withValues(alpha: 0.05),
-                    ],
+    return Stack(
+      children: [
+        Container(
+          color: const Color(0xFFF5F6FA),
+          child: SafeArea(
+            bottom: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    'Calendar',
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
+                  const SizedBox(height: 16),
+
+                  // Calendar card
+                  _CalendarCard(viewModel: viewModel),
+
+                  const SizedBox(height: 20),
+
+                  // Monthly Overview Title
+                  Text(
+                    'Monthly Overview',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _MonthStat(
-                      icon: Icons.event,
-                      value: '${viewModel.totalEventsThisMonth}',
-                      label: 'Events',
-                      color: colorScheme.primary,
-                    ),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: colorScheme.primary.withValues(alpha: 0.2),
-                    ),
-                    _MonthStat(
-                      icon: Icons.upcoming,
-                      value: '${viewModel.upcomingEvents}',
-                      label: 'Upcoming',
-                      color: const Color(0xFF4ECDC4),
-                    ),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: colorScheme.primary.withValues(alpha: 0.2),
-                    ),
-                    _MonthStat(
-                      icon: Icons.pets,
-                      value: '${viewModel.petsWithEvents}',
-                      label: 'Pets',
-                      color: const Color(0xFFFF6B6B),
-                    ),
-                  ],
-                ),
-              ),
+                  const SizedBox(height: 12),
 
-              const SizedBox(height: 24),
-
-              // Scheduled Event section
-              Text(
-                'Scheduled Event',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (selectedEvent != null)
-                _ScheduledEventCard(
-                  event: selectedEvent,
-                  onTap: () => viewModel.onOpenSelectedEventPressed(context),
-                )
-              else
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                  // Month Stats Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primary.withValues(alpha: 0.1),
+                          colorScheme.primary.withValues(alpha: 0.05),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.event_available_outlined,
-                        size: 48,
-                        color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.2),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No schedule for this day',
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _MonthStat(
+                          icon: Icons.event,
+                          value: '${viewModel.totalEventsThisMonth}',
+                          label: 'Events',
+                          color: colorScheme.primary,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tap + to add a new schedule',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade500,
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: colorScheme.primary.withValues(alpha: 0.2),
                         ),
-                      ),
-                    ],
+                        _MonthStat(
+                          icon: Icons.upcoming,
+                          value: '${viewModel.upcomingEvents}',
+                          label: 'Upcoming',
+                          color: const Color(0xFF4ECDC4),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 30,
+                          color: colorScheme.primary.withValues(alpha: 0.2),
+                        ),
+                        _MonthStat(
+                          icon: Icons.pets,
+                          value: '${viewModel.petsWithEvents}',
+                          label: 'Pets',
+                          color: const Color(0xFFFF6B6B),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-            ],
+
+                  const SizedBox(height: 24),
+
+                  // Scheduled Event section
+                  Text(
+                    'Scheduled Event',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (selectedEvent != null)
+                    _ScheduledEventCard(
+                      event: selectedEvent,
+                      onTap: () =>
+                          viewModel.onOpenSelectedEventPressed(context),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.event_available_outlined,
+                            size: 48,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No schedule for this day',
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tap + to add a new schedule',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        Positioned(
+          right: 20,
+          bottom: 20,
+          child: FloatingActionButton(
+            onPressed: () => viewModel.onAddSchedulePressed(context),
+            backgroundColor: colorScheme.primary,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            child: const Icon(Icons.add, size: 28),
+          ),
+        ),
+      ],
     );
   }
 }

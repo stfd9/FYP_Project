@@ -27,9 +27,10 @@ class _ScanBody extends StatelessWidget {
     final viewModel = context.watch<ScanViewModel>();
     final File? selectedImage = viewModel.selectedImage;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

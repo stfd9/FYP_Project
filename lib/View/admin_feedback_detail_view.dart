@@ -1,137 +1,29 @@
 import 'package:flutter/material.dart';
-import '../ViewModel/admin_feedback_view_model.dart'; // Import for FeedbackItem class
+import 'package:provider/provider.dart';
+import '../ViewModel/admin_feedback_view_model.dart';
+import '../ViewModel/admin_feedback_detail_view_model.dart';
 
-class AdminFeedbackDetailView extends StatefulWidget {
+class AdminFeedbackDetailView extends StatelessWidget {
   const AdminFeedbackDetailView({super.key});
-
-  @override
-  State<AdminFeedbackDetailView> createState() =>
-      _AdminFeedbackDetailViewState();
-}
-
-class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
-  bool _showReplyField = false;
-  final TextEditingController _replyController = TextEditingController();
-  bool _isMarkedReviewed = false;
-  final List<Map<String, String>> _sentReplies = [];
-
-  @override
-  void dispose() {
-    _replyController.dispose();
-    super.dispose();
-  }
-
-  void _toggleReplyField() {
-    setState(() {
-      _showReplyField = !_showReplyField;
-    });
-  }
-
-  void _sendReply() {
-    if (_replyController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please enter a reply message'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-      return;
-    }
-
-    // Save the reply
-    final now = DateTime.now();
-    final timeString =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    final dateString = '${now.day}/${now.month}/${now.year}';
-
-    setState(() {
-      _sentReplies.add({
-        'message': _replyController.text.trim(),
-        'time': timeString,
-        'date': dateString,
-      });
-      _showReplyField = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Reply sent successfully!'),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-    _replyController.clear();
-  }
-
-  void _markAsReviewed() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            const Text('Mark as Reviewed'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to mark this feedback as reviewed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isMarkedReviewed = true;
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text('Feedback marked as reviewed!'),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final item = ModalRoute.of(context)!.settings.arguments as FeedbackItem;
+
+    return ChangeNotifierProvider(
+      create: (_) => AdminFeedbackDetailViewModel()..initialize(item),
+      child: const _AdminFeedbackDetailBody(),
+    );
+  }
+}
+
+class _AdminFeedbackDetailBody extends StatelessWidget {
+  const _AdminFeedbackDetailBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<AdminFeedbackDetailViewModel>();
+    final item = viewModel.feedback!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -323,7 +215,7 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
             ),
 
             // Sent Replies Section
-            if (_sentReplies.isNotEmpty) ...[
+            if (viewModel.replies.isNotEmpty) ...[
               const SizedBox(height: 20),
               Container(
                 width: double.infinity,
@@ -367,7 +259,7 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${_sentReplies.length}',
+                            '${viewModel.replies.length}',
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
@@ -377,11 +269,11 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    ...List.generate(_sentReplies.length, (index) {
-                      final reply = _sentReplies[index];
+                    ...List.generate(viewModel.replies.length, (index) {
+                      final reply = viewModel.replies[index];
                       return Container(
                         margin: EdgeInsets.only(
-                          bottom: index < _sentReplies.length - 1 ? 12 : 0,
+                          bottom: index < viewModel.replies.length - 1 ? 12 : 0,
                         ),
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
@@ -470,23 +362,25 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _isMarkedReviewed ? null : _markAsReviewed,
+                    onPressed: viewModel.isMarkedReviewed
+                        ? null
+                        : () => viewModel.markAsReviewed(context),
                     icon: Icon(
-                      _isMarkedReviewed
+                      viewModel.isMarkedReviewed
                           ? Icons.check_circle
                           : Icons.check_circle_outline,
                     ),
                     label: Text(
-                      _isMarkedReviewed ? 'Reviewed' : 'Mark Reviewed',
+                      viewModel.isMarkedReviewed ? 'Reviewed' : 'Mark Reviewed',
                     ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: BorderSide(
-                        color: _isMarkedReviewed
+                        color: viewModel.isMarkedReviewed
                             ? Colors.green
                             : colorScheme.primary,
                       ),
-                      foregroundColor: _isMarkedReviewed
+                      foregroundColor: viewModel.isMarkedReviewed
                           ? Colors.green
                           : colorScheme.primary,
                       shape: RoundedRectangleBorder(
@@ -498,12 +392,14 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: _toggleReplyField,
-                    icon: Icon(_showReplyField ? Icons.close : Icons.reply),
-                    label: Text(_showReplyField ? 'Cancel' : 'Reply'),
+                    onPressed: viewModel.toggleReplyField,
+                    icon: Icon(
+                      viewModel.showReplyField ? Icons.close : Icons.reply,
+                    ),
+                    label: Text(viewModel.showReplyField ? 'Cancel' : 'Reply'),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: _showReplyField
+                      backgroundColor: viewModel.showReplyField
                           ? Colors.grey.shade600
                           : colorScheme.primary,
                       shape: RoundedRectangleBorder(
@@ -519,7 +415,7 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
-              child: _showReplyField
+              child: viewModel.showReplyField
                   ? Container(
                       margin: const EdgeInsets.only(top: 16),
                       padding: const EdgeInsets.all(16),
@@ -555,7 +451,7 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
                           ),
                           const SizedBox(height: 12),
                           TextField(
-                            controller: _replyController,
+                            controller: viewModel.replyController,
                             maxLines: 4,
                             decoration: InputDecoration(
                               hintText: 'Type your reply here...',
@@ -586,7 +482,7 @@ class _AdminFeedbackDetailViewState extends State<AdminFeedbackDetailView> {
                           SizedBox(
                             width: double.infinity,
                             child: FilledButton.icon(
-                              onPressed: _sendReply,
+                              onPressed: () => viewModel.sendReply(context),
                               icon: const Icon(Icons.send),
                               label: const Text('Send Reply'),
                               style: FilledButton.styleFrom(

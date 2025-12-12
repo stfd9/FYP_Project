@@ -24,9 +24,10 @@ class _ProfileBody extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF8F9FD),
+      child: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(

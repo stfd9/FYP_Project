@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../View/add_pet_view.dart';
+import '../View/notifications_view.dart';
 import 'base_view_model.dart';
 
 class HomeDashboardViewModel extends BaseViewModel {
@@ -31,7 +32,10 @@ class HomeDashboardViewModel extends BaseViewModel {
   List<RecentScanInfo> get recentScans => List.unmodifiable(_recentScans);
 
   void openNotifications(BuildContext context) {
-    _showSnack(context, 'Notifications screen coming soon.');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsView()),
+    );
   }
 
   void openCalendar(BuildContext context) {

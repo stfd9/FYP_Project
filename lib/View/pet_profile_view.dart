@@ -25,9 +25,9 @@ class _PetProfileBody extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: SafeArea(
         bottom: false,
         child: Stack(
           children: [

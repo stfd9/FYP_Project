@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../ViewModel/admin_account_detail_view_model.dart';
 import '../ViewModel/manage_accounts_view_model.dart';
 
 class AdminAccountDetailView extends StatelessWidget {
@@ -7,6 +9,26 @@ class AdminAccountDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = ModalRoute.of(context)!.settings.arguments as UserAccount;
+
+    return ChangeNotifierProvider(
+      create: (_) => AdminAccountDetailViewModel()..initialize(user),
+      child: const _AdminAccountDetailBody(),
+    );
+  }
+}
+
+class _AdminAccountDetailBody extends StatelessWidget {
+  const _AdminAccountDetailBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<AdminAccountDetailViewModel>();
+    final user = viewModel.user;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -30,7 +52,7 @@ class AdminAccountDetailView extends StatelessWidget {
             ),
             child: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => viewModel.onBackPressed(context),
         ),
         title: Text(
           'Account Details',
@@ -55,7 +77,7 @@ class AdminAccountDetailView extends StatelessWidget {
                 ),
                 child: const Icon(Icons.more_vert, color: Colors.grey),
               ),
-              onPressed: () => _showOptionsMenu(context, user),
+              onPressed: () => viewModel.showOptionsMenu(context),
             ),
           ),
         ],
@@ -235,7 +257,7 @@ class AdminAccountDetailView extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _showSuspendDialog(context, user),
+                    onPressed: () => viewModel.showSuspendDialog(context),
                     icon: const Icon(Icons.block_outlined),
                     label: const Text('Suspend'),
                     style: OutlinedButton.styleFrom(
@@ -251,7 +273,7 @@ class AdminAccountDetailView extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () => _showDeleteDialog(context, user),
+                    onPressed: () => viewModel.showDeleteDialog(context),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Delete'),
                     style: FilledButton.styleFrom(
@@ -357,162 +379,5 @@ class AdminAccountDetailView extends StatelessWidget {
 
   Widget _buildDivider() {
     return Divider(color: Colors.grey.shade100, height: 1);
-  }
-
-  void _showOptionsMenu(BuildContext context, UserAccount user) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.email_outlined),
-              title: const Text('Send Email'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement email action
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('View Activity Log'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement activity log
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSuspendDialog(BuildContext context, UserAccount user) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.block_outlined, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Suspend Account'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to suspend ${user.name}\'s account? They will not be able to access the app.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${user.name}\'s account has been suspended',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.orange,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Suspend'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, UserAccount user) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.delete_outline, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Delete Account'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to permanently delete ${user.name}\'s account? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to list
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${user.name}\'s account has been deleted',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
   }
 }

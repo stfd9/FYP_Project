@@ -26,6 +26,14 @@ class ManageAccountsViewModel extends BaseViewModel {
 
   List<UserAccount> get users => List.unmodifiable(_users);
 
+  void onBackPressed(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+  void onUserCardTapped(BuildContext context, UserAccount user) {
+    Navigator.pushNamed(context, '/admin/account-detail', arguments: user);
+  }
+
   // Show confirmation dialog before deleting
   void confirmDeleteUser(BuildContext context, UserAccount user) {
     showDialog(

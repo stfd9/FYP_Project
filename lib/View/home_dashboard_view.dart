@@ -4,7 +4,6 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../ViewModel/home_dashboard_view_model.dart';
 import '../ViewModel/home_view_model.dart';
-import 'notifications_view.dart';
 
 class HomeDashboardView extends StatelessWidget {
   const HomeDashboardView({super.key});
@@ -32,9 +31,10 @@ class _HomeDashboardContent extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final dashboardViewModel = context.watch<HomeDashboardViewModel>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -152,15 +152,8 @@ class _HomeDashboardContent extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: IconButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const NotificationsView(),
-                                      ),
-                                    );
-                                  },
+                                  onPressed: () => dashboardViewModel
+                                      .openNotifications(context),
                                   icon: Stack(
                                     children: [
                                       const Icon(
@@ -437,7 +430,7 @@ class _HomeDashboardContent extends StatelessWidget {
                       )
                     else
                       SizedBox(
-                        height: 155,
+                        height: 185,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: dashboardViewModel.pets.length,
@@ -653,83 +646,153 @@ class _PetHomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 130,
-      margin: const EdgeInsets.only(right: 14),
+      width: 145,
+      margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: colors.first.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: colors.first.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Column(
         children: [
-          // Gradient header
-          Container(
-            height: 65,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colors.first.withValues(alpha: 0.8),
-                  colors.last.withValues(alpha: 0.6),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(12),
+          // Gradient header with age badge
+          Stack(
+            children: [
+              Container(
+                height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
-                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: colors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(22),
+                    topRight: Radius.circular(22),
+                  ),
                 ),
-                child: const Icon(Icons.pets, color: Colors.white, size: 28),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.pets,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              // Age badge
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    '2Y',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: colors.first,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           // Info section
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    pet.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF2D3142),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.first.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      pet.species,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: colors.first,
-                        fontWeight: FontWeight.w500,
+                  Column(
+                    children: [
+                      Text(
+                        pet.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Color(0xFF2D3142),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.first.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          pet.species,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.first,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Last scan info
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.camera_alt_outlined,
+                        size: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          pet.lastScan,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

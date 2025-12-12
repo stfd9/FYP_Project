@@ -6,19 +6,28 @@ class AdminFeedbackDetailViewModel extends BaseViewModel {
   FeedbackItem? _feedback;
   bool _isMarkedReviewed = false;
   final List<Map<String, String>> _replies = [];
+  bool _showReplyField = false;
+  final TextEditingController replyController = TextEditingController();
 
   FeedbackItem? get feedback => _feedback;
   bool get isMarkedReviewed => _isMarkedReviewed;
   List<Map<String, String>> get replies => List.unmodifiable(_replies);
+  bool get showReplyField => _showReplyField;
 
   void initialize(FeedbackItem feedback) {
     _feedback = feedback;
     _isMarkedReviewed = false;
+    _showReplyField = false;
     notifyListeners();
   }
 
-  void sendReply(BuildContext context, String message) {
-    if (message.trim().isEmpty) {
+  void toggleReplyField() {
+    _showReplyField = !_showReplyField;
+    notifyListeners();
+  }
+
+  void sendReply(BuildContext context) {
+    if (replyController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please enter a reply message'),
@@ -37,10 +46,12 @@ class AdminFeedbackDetailViewModel extends BaseViewModel {
     final dateString = '${now.day}/${now.month}/${now.year}';
 
     _replies.add({
-      'message': message.trim(),
+      'message': replyController.text.trim(),
       'time': timeString,
       'date': dateString,
     });
+    _showReplyField = false;
+    replyController.clear();
     notifyListeners();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -164,5 +175,11 @@ class AdminFeedbackDetailViewModel extends BaseViewModel {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Feedback archived successfully')),
     );
+  }
+
+  @override
+  void dispose() {
+    replyController.dispose();
+    super.dispose();
   }
 }

@@ -43,7 +43,7 @@ class _ManageAccountsBody extends StatelessWidget {
             ),
             child: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => viewModel.onBackPressed(context),
         ),
         title: Text(
           'Manage Accounts',
@@ -212,13 +212,7 @@ class _ManageAccountsBody extends StatelessWidget {
                       final user = viewModel.users[index];
                       return _UserCard(
                         user: user,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/admin/account-detail',
-                            arguments: user,
-                          );
-                        },
+                        onTap: () => viewModel.onUserCardTapped(context, user),
                         onDelete: () =>
                             viewModel.confirmDeleteUser(context, user),
                       );

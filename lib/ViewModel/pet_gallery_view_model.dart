@@ -21,6 +21,18 @@ class PetGalleryViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  void onBackPressed(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+  int? _lastTappedIndex;
+  int? get lastTappedIndex => _lastTappedIndex;
+
+  void onImageTapped(int index) {
+    _lastTappedIndex = index;
+    notifyListeners();
+  }
+
   Future<void> pickImage(BuildContext context, ImageSource source) async {
     setLoading(true);
     try {
@@ -213,49 +225,6 @@ class PetGalleryViewModel extends BaseViewModel {
             child: const Text('Delete'),
           ),
         ],
-      ),
-    );
-  }
-
-  void viewFullImage(BuildContext context, int index) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            _FullImageView(images: allImages, initialIndex: index),
-      ),
-    );
-  }
-}
-
-class _FullImageView extends StatelessWidget {
-  final List<dynamic> images;
-  final int initialIndex;
-
-  const _FullImageView({required this.images, required this.initialIndex});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: PageView.builder(
-        itemCount: images.length,
-        controller: PageController(initialPage: initialIndex),
-        itemBuilder: (context, index) {
-          return Center(
-            child: InteractiveViewer(
-              child: Image.asset(images[index], fit: BoxFit.contain),
-            ),
-          );
-        },
       ),
     );
   }
