@@ -23,6 +23,8 @@ class _DashboardContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 24;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
       appBar: AppBar(
@@ -76,7 +78,7 @@ class _DashboardContent extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -186,7 +188,7 @@ class _DashboardContent extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const _RecentActivityList(),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
           ],
         ),
       ),

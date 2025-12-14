@@ -13,53 +13,80 @@ class ScheduleDetailViewModel extends BaseViewModel {
       context: context,
       useRootNavigator: true,
       builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.red,
-                  size: 24,
-                ),
+        return LayoutBuilder(
+          builder: (ctx, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final dialogMaxWidth = maxWidth * 0.96;
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(width: 12),
-              const Text('Remove Schedule'),
-            ],
-          ),
-          content: const Text(
-            'Are you sure you want to remove this schedule? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext, rootNavigator: true).pop(false),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(child: Text('Remove Schedule')),
+                ],
               ),
-            ),
-            ElevatedButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext, rootNavigator: true).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: dialogMaxWidth),
+                child: const Text(
+                  'Are you sure you want to remove this schedule? This action cannot be undone.',
                 ),
               ),
-              child: const Text('Remove'),
-            ),
-          ],
+              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(
+                            dialogContext,
+                            rootNavigator: true,
+                          ).pop(false),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(
+                            dialogContext,
+                            rootNavigator: true,
+                          ).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Remove'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -78,53 +105,80 @@ class ScheduleDetailViewModel extends BaseViewModel {
       context: context,
       useRootNavigator: true,
       builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4ECDC4).withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle_outline_rounded,
-                  color: Color(0xFF4ECDC4),
-                  size: 24,
-                ),
+        return LayoutBuilder(
+          builder: (ctx, constraints) {
+            final maxWidth = constraints.maxWidth;
+            final dialogMaxWidth = maxWidth * 0.96;
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
-              const SizedBox(width: 12),
-              const Text('Mark Complete'),
-            ],
-          ),
-          content: Text(
-            'Mark "${event.activity}" for ${event.petName} as completed?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext, rootNavigator: true).pop(false),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4ECDC4).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: Color(0xFF4ECDC4),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Mark Complete')),
+                ],
               ),
-            ),
-            ElevatedButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext, rootNavigator: true).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4ECDC4),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: dialogMaxWidth),
+                child: Text(
+                  'Mark "${event.activity}" for ${event.petName} as completed?',
                 ),
               ),
-              child: const Text('Complete'),
-            ),
-          ],
+              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(
+                            dialogContext,
+                            rootNavigator: true,
+                          ).pop(false),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(
+                            dialogContext,
+                            rootNavigator: true,
+                          ).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4ECDC4),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Complete'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

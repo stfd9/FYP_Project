@@ -1,8 +1,10 @@
 import 'package:flutter/gestures.dart'; // REQUIRED for TapGestureRecognizer
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 import '../ViewModel/login_view_model.dart';
+import '../ViewModel/base_view_model.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -16,8 +18,193 @@ class LoginView extends StatelessWidget {
   }
 }
 
-class _LoginContent extends StatelessWidget {
+class _LoginContent extends StatefulWidget {
   const _LoginContent();
+
+  @override
+  State<_LoginContent> createState() => _LoginContentState();
+}
+
+class _LoginContentState extends State<_LoginContent> {
+  Timer? _dismissTimer;
+  String? _lastMessage;
+  late LoginViewModel _vm;
+  bool _isListening = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isListening) {
+      _vm = context.read<LoginViewModel>();
+      _vm.addListener(_onVmChanged);
+      _isListening = true;
+    }
+  }
+
+  void _onVmChanged() {
+    final vm = context.read<LoginViewModel>();
+    final msg = vm.message;
+    if (msg != null && msg.isNotEmpty) {
+      if (_lastMessage != msg) {
+        _dismissTimer?.cancel();
+        _dismissTimer = Timer(const Duration(seconds: 4), () {
+          if (mounted) vm.clearMessage();
+        });
+        _lastMessage = msg;
+      }
+    } else {
+      _dismissTimer?.cancel();
+      _dismissTimer = null;
+      _lastMessage = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_isListening) {
+      _vm.removeListener(_onVmChanged);
+      _isListening = false;
+    }
+    _dismissTimer?.cancel();
+    super.dispose();
+  }
+
+  Widget _displayMessage(
+    String? msg,
+    MessageType? type,
+    LoginViewModel viewModel,
+  ) {
+    if (msg == null || msg.isEmpty) return const SizedBox.shrink();
+
+    Color bgColor = Colors.red.shade50;
+    Color textColor = Colors.red.shade700;
+    IconData icon = Icons.error_outline;
+
+    switch (type) {
+      case MessageType.success:
+        bgColor = Colors.green.shade50;
+        textColor = Colors.green.shade700;
+        icon = Icons.check_circle_outline;
+        break;
+      case MessageType.info:
+        bgColor = Colors.blue.shade50;
+        textColor = Colors.blue.shade700;
+        icon = Icons.info_outline;
+        break;
+      case MessageType.warning:
+        bgColor = Colors.orange.shade50;
+        textColor = Colors.orange.shade700;
+        icon = Icons.warning_amber_outlined;
+        break;
+      case MessageType.error:
+      default:
+        bgColor = Colors.red.shade50;
+        textColor = Colors.red.shade700;
+        icon = Icons.error_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: bgColor.withOpacity(0.6)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: textColor, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              msg,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => viewModel.clearMessage(),
+            icon: Icon(Icons.close, color: textColor, size: 18),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTermsDialog(BuildContext context, LoginViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Terms & Conditions',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: SizedBox(
+          height: 300, // Limit height to make it scrollable
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  '1. Introduction',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Welcome to PawScope. By using our app, you agree to these terms...',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '2. User Data',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'We collect data regarding your pets to provide health insights. Your data is encrypted and secure...',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '3. AI Disclaimer',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'The AI scanning tool is for reference only and does not replace professional veterinary advice...',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                // Add more dummy text as needed
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              // User agrees via Dialog
+              viewModel.toggleTerms(true);
+              Navigator.pop(ctx);
+            },
+            child: const Text('I Agree'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,8 +348,10 @@ class _LoginContent extends StatelessWidget {
                                         ),
                                         // Open Pop-up when clicked
                                         recognizer: TapGestureRecognizer()
-                                          ..onTap = () => viewModel
-                                              .openTermsAndConditions(context),
+                                          ..onTap = () => _showTermsDialog(
+                                            context,
+                                            viewModel,
+                                          ),
                                       ),
                                     ],
                                   ),
@@ -173,18 +362,11 @@ class _LoginContent extends StatelessWidget {
 
                           const SizedBox(height: 16),
 
-                          if (viewModel.errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                viewModel.errorMessage!,
-                                style: TextStyle(
-                                  color: colorScheme.error,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
+                          _displayMessage(
+                            viewModel.message,
+                            viewModel.messageType,
+                            viewModel,
+                          ),
 
                           // Login Button
                           SizedBox(

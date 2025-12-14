@@ -7,7 +7,27 @@ class AdminLoginViewModel extends BaseViewModel {
 
   bool _obscurePassword = true;
 
+  String? _message;
+  MessageType? _messageType;
+
   bool get obscurePassword => _obscurePassword;
+  String? get message => _message;
+  MessageType? get messageType => _messageType;
+  @override
+  String? get errorMessage => _message; // Backwards compat
+
+  void setMessage(String? msg, [MessageType? type]) {
+    _message = msg;
+    _messageType = type;
+    notifyListeners();
+  }
+
+  void clearMessage() {
+    if (_message == null && _messageType == null) return;
+    _message = null;
+    _messageType = null;
+    notifyListeners();
+  }
 
   void togglePasswordVisibility() {
     _obscurePassword = !_obscurePassword;
@@ -17,7 +37,7 @@ class AdminLoginViewModel extends BaseViewModel {
   Future<void> loginAdmin(BuildContext context) async {
     final validationError = _validateInputs();
     if (validationError != null) {
-      setError(validationError);
+      setMessage(validationError, MessageType.error);
       return;
     }
 

@@ -99,7 +99,7 @@ class _RegisterContent extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           TextField(
-                            controller: viewModel.nameController,
+                            controller: viewModel.usernameController,
                             keyboardType: TextInputType.name,
                             decoration: _inputDecoration(context, 'Username'),
                           ),

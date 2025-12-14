@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Use Case Specifications - Pet Health Monitoring System</title>
+<style>
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000;
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    font-size: 16pt;
+    text-decoration: underline;
+  }
+  h2 {
+    font-size: 14pt;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    page-break-before: always; /* Force new page for each UC when printing */
+  }
+  h2:first-of-type {
+    page-break-before: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #000; /* Thick outer border */
+    margin-bottom: 30px;
+  }
+  th, td {
+    border: 1px solid #000; /* Standard cell borders */
+    padding: 8px;
+    vertical-align: top;
+    text-align: left;
+  }
+  /* Column widths */
+  .col-label { width: 25%; font-weight: bold; background-color: #f2f2f2; }
+  .col-content { width: 75%; }
+  
+  /* Flow Table Styles */
+  .flow-header {
+    background-color: #e0e0e0;
+    text-align: center;
+    font-weight: bold;
+  }
+  .flow-cell-left { width: 50%; border-right: 1px solid #000; }
+  .flow-cell-right { width: 50%; border-left: 1px solid #000; }
+  
+  /* Lists inside tables */
+  ul, ol { margin: 0; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<h1>Use Case Specifications<br>Pet Health Monitoring System</h1>
+
+<h2>1. LOGIN</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Login</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User, Admin</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>This use case allows the user to authenticate themselves and gain access to the application's features.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>The user must have an account in the system.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>The user is successfully authenticated and is directed to the main application dashboard or home screen.</td></tr>
+  
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header" style="width:50%">Actor Action</td><td class="flow-header" style="width:50%">System Response</td></tr>
+  
+  <tr><td>1. User enters their Email.</td><td></td></tr>
+  <tr><td></td><td>4. System validates credentials.</td></tr>
+  <tr><td>2. User enters their Password.</td><td></td></tr>
+  <tr><td></td><td>5. System creates a user session.</td></tr>
+  <tr><td>3. User clicks the "Log in" button.</td><td></td></tr>
+  <tr><td></td><td>6. System directs the user to the homepage.</td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Social Login):</b> User selects Facebook or Google icon; system redirects to provider, obtains OAuth token and links or creates a local account so user is logged in.<br><br>
+    <b>A2 (Password Reset):</b> User clicks "Forgot Password"; system sends reset email and user resets password via token.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Missing Fields):</b> System shows field-specific error messages.<br>
+    <b>E2 (Invalid Credentials):</b> System shows "Invalid email or password."<br>
+    <b>E3 (Account Locked):</b> System locks account after repeated failures and notifies the user.
+  </td></tr>
+  
+  <tr><td class="col-label">Functional Requirement</td><td>
+    <ol>
+      <li>System shall allow users to log in using email/password.</li>
+      <li>System shall support third-party authentication.</li>
+      <li>System shall establish secure sessions.</li>
+      <li>System shall validate input formats.</li>
+      <li>System shall support password reset.</li>
+    </ol>
+  </td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Security:</b> Confidentiality and secure session management for authentication.</li>
+      <li><b>Performance:</b> Authentication responses within acceptable latency so login feels responsive.</li>
+      <li><b>Usability:</b> Clear error messages and accessible login flows.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>2. REGISTER</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Register</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>A new user creates an account by providing email, password, and basic profile information.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User does not have an existing account.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>New account created and verified or redirected to login.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User navigates to registration page.</td><td></td></tr>
+  <tr><td></td><td>8. System validates fields and password strength.</td></tr>
+  <tr><td>2. User enters email address.</td><td></td></tr>
+  <tr><td></td><td>9. System checks email uniqueness.</td></tr>
+  <tr><td>3. User enters full name.</td><td></td></tr>
+  <tr><td></td><td>10. System creates account and sends verification email.</td></tr>
+  <tr><td>4. User enters password.</td><td></td></tr>
+  <tr><td>5. User confirms password.</td><td></td></tr>
+  <tr><td>6. User accepts terms and conditions.</td><td></td></tr>
+  <tr><td>7. User clicks "Register".</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Social Registration):</b> Social provider data used to create or link account and log the user in.<br>
+    <b>A2 (Email Verification):</b> User clicks verification link; system verifies email and activates account.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Email Exists):</b> System shows an error that the email already exists.<br>
+    <b>E2 (Weak Password):</b> System shows password-strength validation message.<br>
+    <b>E3 (T&Cs Not Accepted):</b> System blocks registration until terms are accepted.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Email uniqueness, password policy, verification email, secure storage.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Security:</b> Secure storage of credentials and verification tokens.</li>
+      <li><b>Performance:</b> Registration completes within a short time and verification emails dispatched promptly.</li>
+      <li><b>Privacy:</b> Minimize collected data and follow retention rules.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>3. MANAGE PET PROFILE</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Pet Profile</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>User creates, views, updates pet profiles (info, photos, history).</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User is authenticated.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Pet profile created or updated and visible.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User navigates to "My Pets".</td><td></td></tr>
+  <tr><td></td><td>6. System validates required fields.</td></tr>
+  <tr><td>2. User clicks "Add New Pet".</td><td></td></tr>
+  <tr><td></td><td>7. System processes image and stores profile.</td></tr>
+  <tr><td>3. User enters pet name, species, breed, DOB, weight.</td><td></td></tr>
+  <tr><td></td><td>8. System displays confirmation and updates list.</td></tr>
+  <tr><td>4. User uploads pet photo (optional).</td><td></td></tr>
+  <tr><td>5. User clicks "Save Pet".</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Quick Add):</b> Create basic profile without photo.<br>
+    <b>A2 (Edit Profile):</b> User edits existing profile; system updates fields.<br>
+    <b>A3 (Bulk Import):</b> User imports CSV; system validates and imports valid rows.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Missing Fields):</b> System prompts user to fill required fields.<br>
+    <b>E2 (Invalid Data):</b> System rejects invalid DOB or unsupported photo formats/sizes.<br>
+    <b>E3 (Duplicate):</b> System warns about duplicate pet names and requests confirmation.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>CRUD operations, image upload/compression, age calc, health history.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Fast CRUD operations and image processing.</li>
+      <li><b>Storage:</b> Optimize image storage and retention policies.</li>
+      <li><b>Security:</b> Access controls for pet data.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>4. MANAGE ACCOUNT DETAILS</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Account Details</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>User views/updates personal account info and preferences.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User is authenticated.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Account updated; confirmations sent for sensitive changes.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User opens Account Settings.</td><td></td></tr>
+  <tr><td></td><td>5. System validates inputs.</td></tr>
+  <tr><td>2. User edits profile fields (name, phone, address).</td><td></td></tr>
+  <tr><td></td><td>6. System updates records and sends confirmation.</td></tr>
+  <tr><td>3. User selects language or preferences.</td><td></td></tr>
+  <tr><td>4. User clicks "Save Changes".</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Email Change):</b> System verifies the new email before applying change.<br>
+    <b>A2 (Password Change):</b> System validates current password before updating.<br>
+    <b>A3 (Enable 2FA):</b> System provisions and verifies two-factor authentication.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Invalid Contact):</b> System rejects invalid phone/email formats.<br>
+    <b>E2 (Bad Current Password):</b> System shows an error when the current password is incorrect.<br>
+    <b>E3 (Address Validation Fail):</b> System requests corrected address details.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Update profile, validation, audit log, 2FA support.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Security:</b> Protect sensitive changes with verification and audit logging.</li>
+      <li><b>Performance:</b> Updates applied promptly.</li>
+      <li><b>Usability:</b> Clear guidance during sensitive operations.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>5. AI SKIN DISEASE IDENTIFIER</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">AI Skin Disease Identifier</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>User uploads pet skin photo; AI analyzes and returns possible diseases with recommendations.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User authenticated; clear photo available.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Analysis result shown and saved.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User navigates to Skin Disease Scan.</td><td></td></tr>
+  <tr><td></td><td>4. System validates image and sends to AI model.</td></tr>
+  <tr><td>2. User selects pet and uploads/takes photo.</td><td></td></tr>
+  <tr><td></td><td>5. AI returns diagnosis with confidence scores.</td></tr>
+  <tr><td>3. User clicks "Analyze".</td><td></td></tr>
+  <tr><td></td><td>6. System displays results and recommendations and saves record.</td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Retake Photo):</b> User retakes photo for better quality.<br>
+    <b>A2 (Batch Photos):</b> User submits multiple photos for comparison.<br>
+    <b>A3 (View Details):</b> User views detailed disease info and referral options.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Poor Image):</b> System requests a better-quality photo.<br>
+    <b>E2 (AI Unavailable):</b> System shows a temporary error and provides retry options.<br>
+    <b>E3 (Inconclusive):</b> System recommends veterinary consultation when AI confidence is low.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Image handling, AI integration, confidence scores, record storage.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Accuracy:</b> Target model accuracy and confidence thresholds.</li>
+      <li><b>Performance:</b> Analysis completes in acceptable time.</li>
+      <li><b>Security & Privacy:</b> Handle images securely and respect retention rules.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>6. AI BREED IDENTIFIER</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">AI Breed Identifier</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Identify pet breed from photo and provide breed info.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User authenticated; clear photo available.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Breed results shown and saved.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User opens Breed Identifier.</td><td></td></tr>
+  <tr><td></td><td>4. System validates image and sends to AI model.</td></tr>
+  <tr><td>2. User uploads/takes photo.</td><td></td></tr>
+  <tr><td></td><td>5. AI returns likely breeds with confidence.</td></tr>
+  <tr><td>3. User clicks "Identify Breed".</td><td></td></tr>
+  <tr><td></td><td>6. System displays top matches and breed info; saves record.</td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Mixed-Breed):</b> Provide mixed-breed breakdown when applicable.<br>
+    <b>A2 (Manual Selection):</b> Allow manual selection if AI is unclear.<br>
+    <b>A3 (Compare):</b> Compare multiple pets for similarity.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (No Pet Detected):</b> System requests a clearer photo.<br>
+    <b>E2 (AI Down):</b> System allows retry or manual identification when AI service is unavailable.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>AI integration, breed DB, confidence scores.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Low-latency identification.</li>
+      <li><b>Accuracy:</b> Confidence thresholds for suggestions.</li>
+      <li><b>Privacy:</b> Secure handling of images and minimal retention.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>7. MANAGE SCHEDULE</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Schedule</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Create/view/manage pet healthcare schedules and reminders.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User authenticated; pet(s) registered.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Events saved and reminders configured.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User opens Calendar/Schedule.</td><td></td></tr>
+  <tr><td></td><td>6. System validates fields and saves event.</td></tr>
+  <tr><td>2. User clicks "Add New Event".</td><td></td></tr>
+  <tr><td></td><td>7. System schedules reminders and displays event.</td></tr>
+  <tr><td>3. User selects pet, event type, date/time.</td><td></td></tr>
+  <tr><td>4. User sets reminders and notes.</td><td></td></tr>
+  <tr><td>5. User clicks "Save Event".</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Recurring):</b> Create recurring events.<br>
+    <b>A2 (Import):</b> Import events from existing records or files.<br>
+    <b>A3 (Share):</b> Share calendar with family or caregivers.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Conflict):</b> System warns user about scheduling conflicts.<br>
+    <b>E2 (Past Date):</b> System rejects scheduling events in the past.<br>
+    <b>E3 (Missing Location):</b> System requests a location for vet visits.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Event types, calendar views, reminders, conflict detection.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Calendar loads and queries quickly.</li>
+      <li><b>Availability:</b> Reminders delivered reliably.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>8. HELP & SUPPORT</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Help & Support</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User, Software Agent</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Access FAQs, chatbot, email/phone support and documentation.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User has a question or issue.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>User receives help or a ticket is created.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User clicks Help or ? icon.</td><td></td></tr>
+  <tr><td></td><td>4. System returns matching articles or chatbot responses.</td></tr>
+  <tr><td>2. User searches FAQs or chooses Chat/Email.</td><td></td></tr>
+  <tr><td></td><td>5. If escalated, system creates ticket and notifies agent.</td></tr>
+  <tr><td>3. User reads article or interacts with chatbot.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Escalate):</b> Live chat escalates to a human agent.<br>
+    <b>A2 (Video):</b> Provide video tutorials.<br>
+    <b>A3 (Forum):</b> Suggest community forum answers.<br>
+    <b>A4 (Email):</b> Create an email ticket when needed.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (No Match):</b> System suggests contacting support when no FAQ match is found.<br>
+    <b>E2 (Unresolved):</b> Chatbot escalates to a human agent if it cannot resolve the issue.<br>
+    <b>E3 (Queue):</b> System offers alternative channels when queues are long.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>FAQ search, chatbot, ticketing, multilingual support.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Fast search and chat response times.</li>
+      <li><b>SLA:</b> Define support SLAs for escalation.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>9. MANAGE NOTIFICATION</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Notification</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>User, Software Agent</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Send and manage notifications (push, email, SMS); user configures preferences.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>User has enabled notifications.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Notifications delivered and preferences saved.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. User opens Notification Settings.</td><td></td></tr>
+  <tr><td></td><td>4. System applies preferences and persists them.</td></tr>
+  <tr><td>2. User configures types, channels, quiet hours.</td><td></td></tr>
+  <tr><td></td><td>5. Agent triggers notifications based on events; system queues and delivers them.</td></tr>
+  <tr><td>3. User saves preferences.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Digest):</b> Daily digest aggregation.<br>
+    <b>A2 (Override):</b> Critical alert override for urgent messages.<br>
+    <b>A3 (Snooze):</b> Snooze options for notifications.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Delivery Failures):</b> System retries and logs failures.<br>
+    <b>E2 (Invalid Contact):</b> System requests updated phone/email.<br>
+    <b>E3 (Unsubscribed):</b> System respects opt-out preferences.<br>
+    <b>E4 (Rate Limit):</b> System throttles non-critical alerts under load.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Multi-channel notifications, preferences, scheduling, delivery tracking.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Scalability:</b> Handle high notification volumes.</li>
+      <li><b>Reliability:</b> Ensure delivery and retry policies.</li>
+      <li><b>Compliance:</b> Respect opt-outs and regulations.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>10. MANAGE ACCOUNT (Admin)</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Account</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>Admin</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Admin manages user accounts: view, edit, suspend, delete, roles.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>Admin authenticated with privileges.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Account changes applied and logged.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. Admin opens User Management.</td><td></td></tr>
+  <tr><td></td><td>5. System validates admin permissions and updates user record.</td></tr>
+  <tr><td>2. Admin selects a user to view or edit.</td><td></td></tr>
+  <tr><td></td><td>6. System logs the action and notifies affected user if necessary.</td></tr>
+  <tr><td>3. Admin modifies user details or role.</td><td></td></tr>
+  <tr><td>4. Admin clicks Save/Confirm.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Suspend):</b> Suspend account and notify user.<br>
+    <b>A2 (Soft Delete):</b> Archive data for soft-deletion workflows.<br>
+    <b>A3 (Restore):</b> Restore archived accounts.<br>
+    <b>A4 (Bulk Actions):</b> Apply bulk actions to multiple users.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (No Permission):</b> System blocks actions for insufficient admin permissions.<br>
+    <b>E2 (Not Found):</b> System reports when a user is not found.<br>
+    <b>E3 (DB Error):</b> System logs DB failures and reports errors.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>RBAC, audit log, account lifecycle operations.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Logging:</b> Maintain audit trails for admin actions.</li>
+      <li><b>Retention:</b> Follow data retention policies.</li>
+      <li><b>Security:</b> Strong access controls and monitoring.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>11. MANAGE ANALYSIS RECORDS (Admin)</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage Analysis Records</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>Admin</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Admin reviews and manages AI analysis records, verifies or corrects results.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>Admin authenticated; records exist.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Records verified/updated and corrections logged.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. Admin opens Analysis Records.</td><td></td></tr>
+  <tr><td></td><td>5. System updates record status, logs correction, and queues correction for AI retraining.</td></tr>
+  <tr><td>2. Admin filters/selects records to inspect.</td><td></td></tr>
+  <tr><td>3. Admin reviews AI result and user feedback.</td><td></td></tr>
+  <tr><td>4. Admin verifies or corrects diagnosis and saves.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Accuracy Report):</b> Generate model accuracy reports.<br>
+    <b>A2 (Flag):</b> Flag records for expert review.<br>
+    <b>A3 (Bulk Verify):</b> Bulk verification for similar records.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Conflicting Feedback):</b> Escalate to a consultant for resolution.<br>
+    <b>E2 (Missing Image):</b> Mark record for archive if source image is missing.<br>
+    <b>E3 (AI Unavailable):</b> Hold records pending model availability.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Display AI output, correction logging, reporting, retraining pipeline.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Fast query and reporting for large record sets.</li>
+      <li><b>Compliance:</b> Maintain audit logs for corrections and retraining.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>12. REVIEW USER FEEDBACK (Admin)</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Review User Feedback</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>Admin</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Admin reviews and responds to feedback, creates tickets, and monitors trends.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>Admin authenticated; feedback exists.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>Feedback addressed or converted into action items.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. Admin opens Feedback Dashboard.</td><td></td></tr>
+  <tr><td></td><td>5. System notifies user and updates feedback status.</td></tr>
+  <tr><td>2. Admin filters/sorts feedback.</td><td></td></tr>
+  <tr><td>3. Admin reviews selected item and responds or assigns.</td><td></td></tr>
+  <tr><td>4. Admin sends response or creates ticket.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Dev Ticket):</b> Create a development ticket from feedback.<br>
+    <b>A2 (Merge):</b> Merge duplicate feedback items.<br>
+    <b>A3 (Escalate):</b> Public response or escalate to management when needed.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Abusive Content):</b> Flag for moderator review.<br>
+    <b>E2 (Account Deleted):</b> Retain feedback for context even if account is deleted.<br>
+    <b>E3 (No Action):</b> Record rationale when no action is possible.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Categorization, response, ticketing, analytics.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Dashboard loads and filters quickly.</li>
+      <li><b>Retention:</b> Store feedback per retention policy.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>13. MANAGE FAQ (Admin)</h2>
+<table>
+  <tr><td class="col-label">Use Case Name</td><td class="col-content">Manage FAQ</td></tr>
+  <tr><td class="col-label">Actor(s)</td><td>Admin</td></tr>
+  <tr><td class="col-label">Brief Description</td><td>Admin creates, edits, publishes, and organizes FAQ articles.</td></tr>
+  <tr><td class="col-label">Precondition</td><td>Admin authenticated.</td></tr>
+  <tr><td class="col-label">Postcondition</td><td>FAQ content published and searchable.</td></tr>
+
+  <tr><td colspan="2" class="flow-header">Main Flow of Events</td></tr>
+  <tr><td class="flow-header">Actor Action</td><td class="flow-header">System Response</td></tr>
+  
+  <tr><td>1. Admin opens FAQ Management.</td><td></td></tr>
+  <tr><td></td><td>5. System validates content, indexes article, and publishes it.</td></tr>
+  <tr><td>2. Admin clicks Create New Article and enters title, category, content.</td><td></td></tr>
+  <tr><td></td><td>6. System records analytics for article views and ratings.</td></tr>
+  <tr><td>3. Admin sets visibility and keywords.</td><td></td></tr>
+  <tr><td>4. Admin clicks Publish.</td><td></td></tr>
+
+  <tr><td class="col-label">Alternative Flow</td><td>
+    <b>A1 (Bulk Import):</b> Bulk import FAQs from files or sources.<br>
+    <b>A2 (Versioning):</b> Use versioning and rollback for edits.<br>
+    <b>A3 (Translation):</b> Schedule translations for multi-language support.<br>
+    <b>A4 (Analytics):</b> Drive updates from analytics insights.
+  </td></tr>
+  <tr><td class="col-label">Exception Flow</td><td>
+    <b>E1 (Duplicate):</b> System warns and suggests merging duplicate content.<br>
+    <b>E2 (Missing Fields):</b> System blocks publishing until required fields are provided.<br>
+    <b>E3 (Formatting Errors):</b> System shows preview and highlights formatting issues.
+  </td></tr>
+  <tr><td class="col-label">Functional Requirement</td><td>Article management, search indexing, versioning, multi-language support.</td></tr>
+  <tr><td class="col-label">Non-Functional Requirement</td><td>
+    <ul>
+      <li><b>Performance:</b> Fast indexing and search.</li>
+      <li><b>SEO & Accessibility:</b> Support SEO-friendly markup and accessible content.</li>
+    </ul>
+  </td></tr>
+</table>
+
+<h2>Summary Table - Use Case Overview</h2>
+<table>
+<thead>
+  <tr style="background-color: #e0e0e0;">
+    <th>#</th>
+    <th>Use Case</th>
+    <th>Actor(s)</th>
+    <th>Type</th>
+    <th>Priority</th>
+  </tr>
+</thead>
+<tbody>
+  <tr><td>1</td><td>Login</td><td>User, Admin</td><td>Authentication</td><td>Critical</td></tr>
+  <tr><td>2</td><td>Register</td><td>User</td><td>Authentication</td><td>Critical</td></tr>
+  <tr><td>3</td><td>Manage Pet Profile</td><td>User</td><td>Core Feature</td><td>High</td></tr>
+  <tr><td>4</td><td>Manage Account Details</td><td>User</td><td>Account Mgmt</td><td>High</td></tr>
+  <tr><td>5</td><td>AI Skin Disease Identifier</td><td>User</td><td>AI Feature</td><td>Critical</td></tr>
+  <tr><td>6</td><td>AI Breed Identifier</td><td>User</td><td>AI Feature</td><td>High</td></tr>
+  <tr><td>7</td><td>Manage Schedule</td><td>User</td><td>Core Feature</td><td>High</td></tr>
+  <tr><td>8</td><td>Help & Support</td><td>User, Software Agent</td><td>Support</td><td>Medium</td></tr>
+  <tr><td>9</td><td>Manage Notification</td><td>User, Software Agent</td><td>System</td><td>High</td></tr>
+  <tr><td>10</td><td>Manage Account</td><td>Admin</td><td>Admin Feature</td><td>High</td></tr>
+  <tr><td>11</td><td>Manage Analysis Records</td><td>Admin</td><td>Admin Feature</td><td>High</td></tr>
+  <tr><td>12</td><td>Review User Feedback</td><td>Admin</td><td>Admin Feature</td><td>Medium</td></tr>
+  <tr><td>13</td><td>Manage FAQ</td><td>Admin</td><td>Admin Feature</td><td>Medium</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

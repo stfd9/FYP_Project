@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../ViewModel/admin_login_view_model.dart';
+import '../ViewModel/base_view_model.dart';
 
 class AdminLoginView extends StatelessWidget {
   const AdminLoginView({super.key});
@@ -14,8 +16,119 @@ class AdminLoginView extends StatelessWidget {
   }
 }
 
-class _AdminLoginContent extends StatelessWidget {
+class _AdminLoginContent extends StatefulWidget {
   const _AdminLoginContent();
+
+  @override
+  State<_AdminLoginContent> createState() => _AdminLoginContentState();
+}
+
+class _AdminLoginContentState extends State<_AdminLoginContent> {
+  Timer? _dismissTimer;
+  String? _lastMessage;
+  late AdminLoginViewModel _vm;
+  bool _isListening = false;
+
+  void _onVmChanged() {
+    final msg = _vm.message;
+    if (msg != null && msg.isNotEmpty) {
+      if (_lastMessage != msg) {
+        _dismissTimer?.cancel();
+        _dismissTimer = Timer(const Duration(seconds: 4), () {
+          if (mounted) _vm.clearMessage();
+        });
+        _lastMessage = msg;
+      }
+    } else {
+      _dismissTimer?.cancel();
+      _dismissTimer = null;
+      _lastMessage = null;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isListening) {
+      _vm = context.read<AdminLoginViewModel>();
+      _vm.addListener(_onVmChanged);
+      _isListening = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_isListening) {
+      _vm.removeListener(_onVmChanged);
+      _isListening = false;
+    }
+    _dismissTimer?.cancel();
+    super.dispose();
+  }
+
+  Widget _displayMessage(
+    String? msg,
+    MessageType? type,
+    AdminLoginViewModel viewModel,
+  ) {
+    if (msg == null || msg.isEmpty) return const SizedBox.shrink();
+
+    Color bgColor = Colors.red.shade50;
+    Color textColor = Colors.red.shade700;
+    IconData icon = Icons.error_outline;
+
+    switch (type) {
+      case MessageType.success:
+        bgColor = Colors.green.shade50;
+        textColor = Colors.green.shade700;
+        icon = Icons.check_circle_outline;
+        break;
+      case MessageType.info:
+        bgColor = Colors.blue.shade50;
+        textColor = Colors.blue.shade700;
+        icon = Icons.info_outline;
+        break;
+      case MessageType.warning:
+        bgColor = Colors.orange.shade50;
+        textColor = Colors.orange.shade700;
+        icon = Icons.warning_amber_outlined;
+        break;
+      case MessageType.error:
+      default:
+        bgColor = Colors.red.shade50;
+        textColor = Colors.red.shade700;
+        icon = Icons.error_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: bgColor.withOpacity(0.6)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: textColor, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              msg,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => viewModel.clearMessage(),
+            icon: Icon(Icons.close, color: textColor, size: 18),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,36 +240,12 @@ class _AdminLoginContent extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // --- Error Message ---
-              if (viewModel.errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade100),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.red.shade400,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          viewModel.errorMessage!,
-                          style: TextStyle(
-                            color: Colors.red.shade700,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              // --- Message Widget ---
+              _displayMessage(
+                viewModel.message,
+                viewModel.messageType,
+                viewModel,
+              ),
 
               const SizedBox(height: 40),
 

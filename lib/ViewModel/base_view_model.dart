@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-/// Provides shared loading and error state for all view models.
+/// Provides shared loading, message and error state for all view models.
+enum MessageType { error, success, info, warning }
+
 abstract class BaseViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;

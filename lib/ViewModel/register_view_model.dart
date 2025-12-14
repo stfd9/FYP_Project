@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'base_view_model.dart';
 
 class RegisterViewModel extends BaseViewModel {
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -62,7 +63,8 @@ class RegisterViewModel extends BaseViewModel {
   }
 
   String? _validateInputs() {
-    if (nameController.text.isEmpty ||
+    if (usernameController.text.isEmpty ||
+        nameController.text.isEmpty ||
         emailController.text.isEmpty ||
         passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
@@ -79,6 +81,7 @@ class RegisterViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    usernameController.dispose();
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
