@@ -105,7 +105,7 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: bgColor.withOpacity(0.6)),
+        border: Border.all(color: bgColor.withValues(alpha: 0.6)),
       ),
       child: Row(
         children: [

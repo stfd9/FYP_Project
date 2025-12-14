@@ -109,7 +109,7 @@ class _LoginContentState extends State<_LoginContent> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: bgColor.withOpacity(0.6)),
+        border: Border.all(color: bgColor.withValues(alpha: 0.6)),
       ),
       child: Row(
         children: [
@@ -378,9 +378,9 @@ class _LoginContentState extends State<_LoginContent> {
                                 foregroundColor: colorScheme.onPrimary,
                                 // Dim button if terms not accepted
                                 disabledBackgroundColor: colorScheme.onSurface
-                                    .withOpacity(0.12),
+                                    .withValues(alpha: 0.12),
                                 disabledForegroundColor: colorScheme.onSurface
-                                    .withOpacity(0.38),
+                                    .withValues(alpha: 0.38),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),

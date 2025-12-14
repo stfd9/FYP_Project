@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'ViewModel/pet_profile_view_model.dart';
 import 'package:fyp_project/View/change_password_view.dart';
 import 'View/home_view.dart';
 import 'View/login_view.dart';
@@ -26,31 +29,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PetCare Auth',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      home: const LoginView(),
-      routes: {
-        '/login': (context) => const LoginView(),
-        '/register': (context) => const RegisterView(),
-        '/home': (context) => const HomeView(),
-        '/admin_login': (context) => const AdminLoginView(),
-        '/admin_dashboard': (context) => const AdminDashboardView(),
-        '/calendar': (context) => const CalendarView(),
-        '/notification_detail': (context) => const NotificationDetailView(),
-        '/manage_accounts': (context) => const ManageAccountsView(),
-        '/admin/account-detail': (context) => const AdminAccountDetailView(),
-        '/admin_feedback_list': (context) => const AdminFeedbackListView(),
-        '/admin_feedback_detail': (context) => const AdminFeedbackDetailView(),
-        '/analysis_records': (context) => const AnalysisRecordListView(),
-        '/analysis_record_detail': (context) =>
-            const AnalysisRecordDetailView(),
-        '/manage_faq': (context) => const ManageFAQView(),
-        '/manage_community_tips': (context) =>
-            const AdminManageCommunityTipsView(),
-        '/change_password': (context) => const ChangePasswordView(),
-      },
+    return ChangeNotifierProvider(
+      create: (_) => PetProfileViewModel(),
+      child: MaterialApp(
+        title: 'PetCare Auth',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        home: const LoginView(),
+        routes: {
+          '/login': (context) => const LoginView(),
+          '/register': (context) => const RegisterView(),
+          '/home': (context) => const HomeView(),
+          '/admin_login': (context) => const AdminLoginView(),
+          '/admin_dashboard': (context) => const AdminDashboardView(),
+          '/calendar': (context) => const CalendarView(),
+          '/notification_detail': (context) => const NotificationDetailView(),
+          '/manage_accounts': (context) => const ManageAccountsView(),
+          '/admin/account-detail': (context) => const AdminAccountDetailView(),
+          '/admin_feedback_list': (context) => const AdminFeedbackListView(),
+          '/admin_feedback_detail': (context) =>
+              const AdminFeedbackDetailView(),
+          '/analysis_records': (context) => const AnalysisRecordListView(),
+          '/analysis_record_detail': (context) =>
+              const AnalysisRecordDetailView(),
+          '/manage_faq': (context) => const ManageFAQView(),
+          '/manage_community_tips': (context) =>
+              const AdminManageCommunityTipsView(),
+          '/change_password': (context) => const ChangePasswordView(),
+        },
+      ),
     );
   }
 }

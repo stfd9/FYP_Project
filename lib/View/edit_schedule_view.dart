@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../calendar_event.dart';
+import 'add_pet_view.dart';
 import '../ViewModel/edit_schedule_view_model.dart';
+import '../ViewModel/pet_profile_view_model.dart';
 
 class EditScheduleView extends StatelessWidget {
   final CalendarEvent event;
@@ -224,36 +226,102 @@ class _EditScheduleBody extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: viewModel.petNameController,
-                            decoration: InputDecoration(
-                              hintText: 'Enter pet name',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
+                          Builder(
+                            builder: (ctx) {
+                              final petVm = ctx.watch<PetProfileViewModel>();
+                              final petNames = petVm.pets
+                                  .map((p) => p.name)
+                                  .toList();
+                              // Ensure current pet is present in the list
+                              if (viewModel.selectedPetName != null &&
+                                  viewModel.selectedPetName!.isNotEmpty &&
+                                  !petNames.contains(
+                                    viewModel.selectedPetName,
+                                  )) {
+                                petNames.insert(0, viewModel.selectedPetName!);
+                              }
+
+                              if (petNames.isEmpty) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: Colors.grey.shade200,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'No pets found. Add a pet to manage schedules.',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () => Navigator.push(
+                                        ctx,
+                                        MaterialPageRoute(
+                                          builder: (_) => const AddPetView(),
+                                        ),
+                                      ),
+                                      child: const Text('Add Pet'),
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              return DropdownButtonFormField<String>(
+                                initialValue: viewModel.selectedPetName,
+                                decoration: InputDecoration(
+                                  hintText: 'Select pet',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey.shade50,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.all(16),
                                 ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 1.5,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                            validator: (v) =>
-                                v?.trim().isEmpty == true ? 'Required' : null,
+                                items: petNames
+                                    .map(
+                                      (name) => DropdownMenuItem(
+                                        value: name,
+                                        child: Text(name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) =>
+                                    viewModel.selectedPetName = value,
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                    ? 'Required'
+                                    : null,
+                              );
+                            },
                           ),
                         ],
                       ),

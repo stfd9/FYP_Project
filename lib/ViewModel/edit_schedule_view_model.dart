@@ -8,6 +8,7 @@ class EditScheduleViewModel extends ChangeNotifier {
   late TextEditingController petNameController;
   late TextEditingController activityController;
   late TextEditingController locationController;
+  String? _selectedPetName;
 
   DateTime _selectedDate;
   TimeOfDay _selectedTime;
@@ -16,7 +17,8 @@ class EditScheduleViewModel extends ChangeNotifier {
     : _selectedDate = DateTime.now(),
       _selectedTime = TimeOfDay.now() {
     // Initialize controllers with original event data
-    petNameController = TextEditingController(text: originalEvent.petName);
+    // Initialize selected pet name from the original event
+    _selectedPetName = originalEvent.petName;
     activityController = TextEditingController(text: originalEvent.activity);
     locationController = TextEditingController(text: originalEvent.location);
 
@@ -124,7 +126,7 @@ class EditScheduleViewModel extends ChangeNotifier {
 
     return CalendarEvent(
       day: _selectedDate.day,
-      petName: petNameController.text.trim(),
+      petName: _selectedPetName?.trim() ?? '',
       activity: activityController.text.trim(),
       location: locationController.text.trim(),
       time: timeString,
@@ -197,9 +199,15 @@ class EditScheduleViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    petNameController.dispose();
     activityController.dispose();
     locationController.dispose();
     super.dispose();
+  }
+
+  String? get selectedPetName => _selectedPetName;
+
+  set selectedPetName(String? v) {
+    _selectedPetName = v;
+    notifyListeners();
   }
 }

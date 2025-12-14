@@ -9,10 +9,7 @@ class PetProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => PetProfileViewModel(),
-      child: const _PetProfileBody(),
-    );
+    return const _PetProfileBody();
   }
 }
 

@@ -189,7 +189,7 @@ Date: ${_item!.dateLabel}
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.1),
+                    color: accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.lightbulb_outline, color: accentColor),

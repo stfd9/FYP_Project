@@ -138,7 +138,7 @@ class HelpFaqViewModel extends BaseViewModel {
         FaqItem(
           question: 'How do I delete my account?',
           answer:
-              'Go to Settings > Privacy & Security > Delete Account. Note that this action is permanent and will remove all your data.',
+              'Account deletion is not available directly in the app. Please contact support via the Help & Feedback page to request account deletion.',
         ),
       ],
     ),

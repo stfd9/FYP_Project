@@ -6,7 +6,16 @@ import 'base_view_model.dart';
 
 class AddScheduleViewModel extends BaseViewModel {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final TextEditingController petNameController = TextEditingController();
+
+  String? _selectedPetName;
+
+  String? get selectedPetName => _selectedPetName;
+
+  set selectedPetName(String? v) {
+    _selectedPetName = v;
+    notifyListeners();
+  }
+
   final TextEditingController activityController = TextEditingController();
   final TextEditingController locationController = TextEditingController();
 
@@ -75,7 +84,7 @@ class AddScheduleViewModel extends BaseViewModel {
 
     final newEvent = CalendarEvent(
       day: _scheduledAt!.day,
-      petName: petNameController.text.trim(),
+      petName: selectedPetName?.trim() ?? '',
       activity: activityController.text.trim(),
       location: locationController.text.trim(),
       time: timeString,
@@ -86,7 +95,6 @@ class AddScheduleViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    petNameController.dispose();
     activityController.dispose();
     locationController.dispose();
     super.dispose();

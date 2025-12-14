@@ -21,8 +21,13 @@ class PrivacySecurityViewModel extends BaseViewModel {
     );
   }
 
+  // Account deletion removed from in-app settings; keep for backwards compatibility
+  // or future admin functionality. Currently it shows a helpful message.
   void deleteAccount(BuildContext context) {
-    _showSnack(context, 'Account deletion flow coming soon.');
+    _showSnack(
+      context,
+      'Account deletion is handled via support. Please contact support for assistance.',
+    );
   }
 
   void _showSnack(BuildContext context, String message) {

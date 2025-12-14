@@ -162,16 +162,7 @@ class _PrivacySecurityBody extends StatelessWidget {
                     onTap: () => viewModel.openPrivacyPolicy(context),
                     showDivider: true,
                   ),
-                  _SettingsTile(
-                    icon: Icons.delete_outline,
-                    iconColor: Colors.red,
-                    iconBgColor: const Color(0xFFFFEBEE),
-                    title: 'Delete Account',
-                    subtitle: 'Permanently remove your data',
-                    onTap: () => viewModel.deleteAccount(context),
-                    showDivider: false,
-                    isDestructive: true,
-                  ),
+                  // Delete Account removed: account deletion is handled via support
                 ],
               ),
             ),
@@ -246,8 +237,6 @@ class _SettingsTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
   final bool showDivider;
-  final bool isDestructive;
-
   const _SettingsTile({
     required this.icon,
     required this.iconColor,
@@ -256,7 +245,6 @@ class _SettingsTile extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.showDivider = false,
-    this.isDestructive = false,
   });
 
   @override
@@ -298,9 +286,7 @@ class _SettingsTile extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: isDestructive
-                                ? Colors.red.shade600
-                                : const Color(0xFF2D3142),
+                            color: const Color(0xFF2D3142),
                           ),
                         ),
                         const SizedBox(height: 4),

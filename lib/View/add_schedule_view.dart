@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../ViewModel/add_schedule_view_model.dart';
+import '../ViewModel/pet_profile_view_model.dart';
+import 'add_pet_view.dart';
 
 class AddScheduleView extends StatelessWidget {
   const AddScheduleView({super.key});
@@ -226,39 +228,94 @@ class _AddScheduleForm extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: viewModel.petNameController,
-                            decoration: InputDecoration(
-                              hintText: 'Enter pet name',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 1.5,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter pet name';
+                          Builder(
+                            builder: (ctx) {
+                              final petVm = ctx.watch<PetProfileViewModel>();
+                              final petNames = petVm.pets
+                                  .map((p) => p.name)
+                                  .toList();
+                              if (petNames.isEmpty) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: Colors.grey.shade200,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'No pets found. Add a pet to create schedules.',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () => Navigator.push(
+                                        ctx,
+                                        MaterialPageRoute(
+                                          builder: (_) => const AddPetView(),
+                                        ),
+                                      ),
+                                      child: const Text('Add Pet'),
+                                    ),
+                                  ],
+                                );
                               }
-                              return null;
+
+                              return DropdownButtonFormField<String>(
+                                initialValue: viewModel.selectedPetName,
+                                decoration: InputDecoration(
+                                  hintText: 'Select pet',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey.shade50,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: colorScheme.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.all(16),
+                                ),
+                                items: petNames
+                                    .map(
+                                      (name) => DropdownMenuItem(
+                                        value: name,
+                                        child: Text(name),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) =>
+                                    viewModel.selectedPetName = value,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please select a pet';
+                                  }
+                                  return null;
+                                },
+                              );
                             },
                           ),
                         ],
