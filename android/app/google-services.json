@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756171113352",
+    "project_id": "pawscope-3b1be",
+    "storage_bucket": "pawscope-3b1be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756171113352:android:0c6d93cd8a3353dcb3f03d",
+        "android_client_info": {
+          "package_name": "com.example.fyp_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCggfF-OW2QRS_8KROohT-DuF_SrSpCaBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
