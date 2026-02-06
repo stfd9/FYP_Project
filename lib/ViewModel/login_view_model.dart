@@ -58,6 +58,7 @@ class LoginViewModel extends ChangeNotifier {
       return;
     }
 
+    debugPrint('🔵 Login button pressed');
     _isLoading = true;
     notifyListeners();
 
