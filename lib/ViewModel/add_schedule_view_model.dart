@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
@@ -73,9 +75,55 @@ class AddScheduleViewModel extends BaseViewModel {
       return;
     }
 
+<<<<<<< HEAD
     if (_scheduledAt == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select date & time')),
+=======
+    if (_startDateTime == null || _endDateTime == null) {
+      _showSnack(context, 'Please select start and end date & time.');
+      return;
+    }
+
+    if (_endDateTime!.isBefore(_startDateTime!)) {
+      _showSnack(context, 'End time cannot be before start time.');
+      return;
+    }
+
+    if (_reminderEnabled && _reminderDateTime == null) {
+      _showSnack(context, 'Please select a reminder date & time.');
+      return;
+    }
+
+    if (_reminderEnabled &&
+        _reminderDateTime != null &&
+        _reminderDateTime!.isAfter(_startDateTime!)) {
+      _showSnack(context, 'Reminder must be before the start time.');
+      return;
+    }
+
+    final start = _startDateTime!;
+    final end = _endDateTime!;
+
+    runAsync(() async {
+      final resolvedUserId = await _resolveUserId();
+      if (resolvedUserId == null || resolvedUserId.isEmpty) {
+        if (context.mounted) {
+          _showSnack(context, 'User not found. Please log in again.');
+        }
+        return;
+      }
+
+      final payload = ScheduleCreate(
+        scheTitle: titleController.text.trim(),
+        scheDescription: descriptionController.text.trim(),
+        startDateTime: start,
+        endDateTime: end,
+        reminderEnabled: _reminderEnabled,
+        reminderDateTime: _reminderDateTime,
+        petId: _selectedPet?.id,
+        userId: resolvedUserId,
+>>>>>>> 83a1e546d7253223782158454cca43600bece61d
       );
       return;
     }
@@ -90,7 +138,50 @@ class AddScheduleViewModel extends BaseViewModel {
       time: timeString,
     );
 
+<<<<<<< HEAD
     Navigator.pop(context, newEvent);
+=======
+      final timeString = DateFormat('h:mm a').format(start);
+      final newEvent = CalendarEvent(
+        day: start.day,
+        petName: _selectedPet?.name ?? '',
+        activity: titleController.text.trim(),
+        location: descriptionController.text.trim(),
+        time: timeString,
+      );
+
+      Navigator.pop(context, newEvent);
+    });
+  }
+
+  Future<String?> _resolveUserId() async {
+    if (userId != null && userId!.trim().isNotEmpty) {
+      return userId!.trim();
+    }
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return null;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .where('providerId', isEqualTo: currentUser.uid)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
+  }
+
+  String _formatDateTimeLabel(DateTime? value, {required String placeholder}) {
+    if (value == null) return placeholder;
+    return DateFormat('EEE, d MMM yyyy • h:mm a').format(value);
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+>>>>>>> 83a1e546d7253223782158454cca43600bece61d
   }
 
   @override
