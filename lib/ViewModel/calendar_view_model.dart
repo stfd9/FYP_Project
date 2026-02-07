@@ -42,7 +42,7 @@ class CalendarViewModel extends BaseViewModel {
   late int _currentMonth;
   late int _currentYear;
 
-  CalendarViewModel({DateTime? initialDate}) {
+  CalendarViewModel({DateTime? initialDate, this.userId}) {
     final now = DateTime.now();
     if (initialDate != null) {
       _selectedDay = initialDate.day;
@@ -54,6 +54,8 @@ class CalendarViewModel extends BaseViewModel {
       _currentYear = now.year;
     }
   }
+
+  final String? userId;
 
   int get selectedDay => _selectedDay;
   int get currentMonth => _currentMonth;
@@ -123,7 +125,7 @@ class CalendarViewModel extends BaseViewModel {
   Future<void> addSchedule(BuildContext context) async {
     final newEvent = await Navigator.push<CalendarEvent>(
       context,
-      MaterialPageRoute(builder: (_) => const AddScheduleView()),
+      MaterialPageRoute(builder: (_) => AddScheduleView(userId: userId)),
     );
 
     if (newEvent == null) return;
