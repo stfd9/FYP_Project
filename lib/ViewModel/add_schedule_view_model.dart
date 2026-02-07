@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
@@ -145,11 +147,6 @@ class AddScheduleViewModel extends BaseViewModel {
       return;
     }
 
-    if (userId == null || userId!.trim().isEmpty) {
-      _showSnack(context, 'User not found. Please log in again.');
-      return;
-    }
-
     if (_startDateTime == null || _endDateTime == null) {
       _showSnack(context, 'Please select start and end date & time.');
       return;
@@ -176,6 +173,14 @@ class AddScheduleViewModel extends BaseViewModel {
     final end = _endDateTime!;
 
     runAsync(() async {
+      final resolvedUserId = await _resolveUserId();
+      if (resolvedUserId == null || resolvedUserId.isEmpty) {
+        if (context.mounted) {
+          _showSnack(context, 'User not found. Please log in again.');
+        }
+        return;
+      }
+
       final payload = ScheduleCreate(
         scheTitle: titleController.text.trim(),
         scheDescription: descriptionController.text.trim(),
@@ -184,7 +189,7 @@ class AddScheduleViewModel extends BaseViewModel {
         reminderEnabled: _reminderEnabled,
         reminderDateTime: _reminderDateTime,
         petId: _selectedPet?.id,
-        userId: userId!.trim(),
+        userId: resolvedUserId,
       );
 
       await _scheduleService.createSchedule(payload);
@@ -202,6 +207,24 @@ class AddScheduleViewModel extends BaseViewModel {
 
       Navigator.pop(context, newEvent);
     });
+  }
+
+  Future<String?> _resolveUserId() async {
+    if (userId != null && userId!.trim().isNotEmpty) {
+      return userId!.trim();
+    }
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return null;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .where('providerId', isEqualTo: currentUser.uid)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    return snapshot.docs.first.id;
   }
 
   String _formatDateTimeLabel(DateTime? value, {required String placeholder}) {
