@@ -31,7 +31,6 @@ class _RegisterContent extends StatelessWidget {
           children: [
             // 1. Main Content
             Align(
-              // --- CHANGED: Adjusted alignment slightly down ---
               alignment: const Alignment(0.0, 0.1),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -59,7 +58,6 @@ class _RegisterContent extends StatelessWidget {
                       ),
                     ),
 
-                    // --- CHANGED: Increased spacing to push form lower ---
                     const SizedBox(height: 48),
 
                     // --- Register Form Card ---
@@ -84,7 +82,7 @@ class _RegisterContent extends StatelessWidget {
                             'Create Account',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface, // Midnight Blue
+                              color: colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -98,6 +96,7 @@ class _RegisterContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
 
+                          // Username
                           TextField(
                             controller: viewModel.usernameController,
                             keyboardType: TextInputType.name,
@@ -120,6 +119,25 @@ class _RegisterContent extends StatelessWidget {
                             decoration: _inputDecoration(context, 'Email'),
                           ),
                           const SizedBox(height: 16),
+
+                          // --- NEW: Date of Birth Field ---
+                          TextField(
+                            controller: viewModel.dateOfBirthController,
+                            readOnly:
+                                true, // Prevent manual typing to enforce format
+                            onTap: () =>
+                                viewModel.onDateOfBirthPressed(context),
+                            decoration: _inputDecoration(
+                              context,
+                              'Date of Birth',
+                              suffixIcon: Icon(
+                                Icons.calendar_today_outlined,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // --------------------------------
 
                           // Password
                           TextField(
@@ -181,8 +199,8 @@ class _RegisterContent extends StatelessWidget {
                             height: 50,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary, // Cobalt
-                                foregroundColor: colorScheme.onPrimary, // White
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -233,7 +251,7 @@ class _RegisterContent extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary, // Cobalt Link
+                                    color: colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -291,7 +309,7 @@ class _RegisterContent extends StatelessWidget {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       filled: true,
-      fillColor: theme.scaffoldBackgroundColor, // Light background for inputs
+      fillColor: theme.scaffoldBackgroundColor,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey.shade300),
