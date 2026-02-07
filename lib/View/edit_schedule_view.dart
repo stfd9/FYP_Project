@@ -327,7 +327,7 @@ class _EditScheduleBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Activity
+                    // Title
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +340,7 @@ class _EditScheduleBody extends StatelessWidget {
                               ),
                               const SizedBox(width: 14),
                               const Text(
-                                'Activity',
+                                'Title',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -385,7 +385,7 @@ class _EditScheduleBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Location
+                    // Description
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,12 +393,12 @@ class _EditScheduleBody extends StatelessWidget {
                           Row(
                             children: [
                               const _IconBox(
-                                icon: Icons.location_on_rounded,
+                                icon: Icons.description_rounded,
                                 color: Color(0xFFFF6B6B),
                               ),
                               const SizedBox(width: 14),
                               const Text(
-                                'Location',
+                                'Description',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -411,7 +411,7 @@ class _EditScheduleBody extends StatelessWidget {
                           TextFormField(
                             controller: viewModel.locationController,
                             decoration: InputDecoration(
-                              hintText: 'Enter location',
+                              hintText: 'Add details about this schedule',
                               hintStyle: TextStyle(color: Colors.grey.shade400),
                               filled: true,
                               fillColor: Colors.grey.shade50,

@@ -7,15 +7,17 @@ import '../ViewModel/calendar_view_model.dart';
 class CalendarView extends StatelessWidget {
   // 1. Receive the date from the parent (HomeView)
   final DateTime? initialDate;
+  final String? userId;
 
   // 2. Update constructor to accept it
-  const CalendarView({super.key, this.initialDate});
+  const CalendarView({super.key, this.initialDate, this.userId});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       // 3. Use the 'initialDate' variable passed from HomeView
-      create: (_) => CalendarViewModel(initialDate: initialDate),
+      create: (_) =>
+          CalendarViewModel(initialDate: initialDate, userId: userId),
       child: const _CalendarBody(),
     );
   }

@@ -258,12 +258,12 @@ class _ScheduleDetailBody extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  // Location Card
+                  // Description Card
                   _InfoCard(
                     child: Row(
                       children: [
                         _IconBox(
-                          icon: Icons.location_on_rounded,
+                          icon: Icons.description_rounded,
                           color: const Color(0xFFFF6B6B),
                         ),
                         const SizedBox(width: 16),
@@ -272,7 +272,7 @@ class _ScheduleDetailBody extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Location',
+                                'Description',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey,
@@ -297,7 +297,7 @@ class _ScheduleDetailBody extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            Icons.directions_rounded,
+                            Icons.notes_rounded,
                             color: Colors.grey.shade600,
                             size: 20,
                           ),
