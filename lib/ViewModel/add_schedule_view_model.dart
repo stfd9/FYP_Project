@@ -183,6 +183,7 @@ class AddScheduleViewModel extends BaseViewModel {
       reminderEnabled: _reminderEnabled,
       reminderDateTime: _reminderDateTime,
       petId: _selectedPet?.id,
+      isCompleted: false,
     );
 
     if (context.mounted) {
@@ -232,6 +233,7 @@ class AddScheduleViewModel extends BaseViewModel {
           ? Timestamp.fromDate(reminderDateTime)
           : null,
       'scheCreatedAt': FieldValue.serverTimestamp(),
+      'status': 'Active',
       'petId': petId,
       'userId': userId,
     });

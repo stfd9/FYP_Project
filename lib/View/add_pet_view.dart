@@ -150,30 +150,61 @@ class _AddPetBody extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // 3. Breed
-                _buildTextField(
+                // 3. Gender
+                _buildDropdownField(
                   context,
-                  controller: viewModel.breedController,
-                  labelText: 'Breed',
-                  icon: Icons.category_outlined,
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Please enter the breed (or type)'
-                      : null,
+                  labelText: 'Gender',
+                  icon: Icons.wc_outlined,
+                  value: viewModel.gender,
+                  options: viewModel.genderOptions,
+                  onChanged: viewModel.selectGender,
                 ),
+
                 const SizedBox(height: 20),
 
-                // 4. Age
+                // 4. Breed (from Firestore)
+                _buildBreedDropdown(context, viewModel: viewModel),
+
+                const SizedBox(height: 20),
+
+                // 5. Colour
                 _buildTextField(
                   context,
-                  controller: viewModel.ageController,
-                  labelText: 'Age',
-                  hintText: 'e.g. 2 years, 6 months',
-                  icon: Icons.cake_outlined,
-                  keyboardType: TextInputType.text,
+                  controller: viewModel.colourController,
+                  labelText: 'Colour',
+                  icon: Icons.palette_outlined,
                   validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Please enter your pet’s age'
+                      ? 'Please enter your pet’s colour'
                       : null,
                 ),
+
+                const SizedBox(height: 20),
+
+                // 6. Weight
+                _buildTextField(
+                  context,
+                  controller: viewModel.weightController,
+                  labelText: 'Weight (kg)',
+                  icon: Icons.monitor_weight_outlined,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    final parsed = double.tryParse(value?.trim() ?? '');
+                    if (parsed == null || parsed <= 0) {
+                      return 'Please enter a valid weight';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // 7. Date of Birth
+                _buildDateField(context, viewModel: viewModel),
+
+                const SizedBox(height: 20),
+
+                // 8. Gallery Photos
+                _buildGalleryPicker(context, viewModel: viewModel),
 
                 const SizedBox(height: 40),
 
@@ -191,14 +222,27 @@ class _AddPetBody extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    onPressed: () => viewModel.savePet(context),
-                    child: const Text(
-                      'Save Pet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : () => viewModel.savePet(context),
+                    child: viewModel.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            'Save Pet',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -295,6 +339,143 @@ class _AddPetBody extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildBreedDropdown(
+    BuildContext context, {
+    required AddPetViewModel viewModel,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final breeds = viewModel.filteredBreeds;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Breed',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<BreedOption>(
+          value: viewModel.selectedBreed,
+          decoration: _inputDecoration(
+            context,
+            icon: Icons.category_outlined,
+            hintText: viewModel.isBreedsLoading
+                ? 'Loading breeds...'
+                : 'Select breed',
+            isDropdown: true,
+          ),
+          isExpanded: true,
+          icon: Icon(Icons.arrow_drop_down, color: colorScheme.primary),
+          items: breeds
+              .map(
+                (breed) =>
+                    DropdownMenuItem(value: breed, child: Text(breed.name)),
+              )
+              .toList(),
+          onChanged: viewModel.isBreedsLoading
+              ? null
+              : (value) => viewModel.selectBreed(value),
+          validator: (value) {
+            if (value == null) {
+              return 'Please select a breed';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField(
+    BuildContext context, {
+    required AddPetViewModel viewModel,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date of Birth',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: viewModel.dateOfBirthController,
+          readOnly: true,
+          onTap: () => viewModel.pickDateOfBirth(context),
+          decoration: _inputDecoration(
+            context,
+            icon: Icons.cake_outlined,
+            hintText: 'Select date of birth',
+            labelText: 'Date of Birth',
+          ),
+          validator: (value) => value == null || value.trim().isEmpty
+              ? 'Please select date of birth'
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGalleryPicker(
+    BuildContext context, {
+    required AddPetViewModel viewModel,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Gallery photos',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => viewModel.pickGalleryImages(context),
+          icon: Icon(Icons.photo_library_outlined, color: colorScheme.primary),
+          label: Text(
+            viewModel.galleryImages.isEmpty
+                ? 'Add gallery photos'
+                : 'Selected ${viewModel.galleryImages.length} photos',
+          ),
+        ),
+        if (viewModel.galleryImages.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 72,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: viewModel.galleryImages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    viewModel.galleryImages[index],
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -75,6 +75,7 @@ class _ScheduleDetailBody extends StatelessWidget {
     final event = viewModel.event;
     final activityColor = _getActivityColor(event.activity);
     final activityIcon = _getActivityIcon(event.activity);
+    final petLabel = event.petName.trim().isEmpty ? 'No Pet' : event.petName;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -202,7 +203,7 @@ class _ScheduleDetailBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        event.petName,
+                        petLabel,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -389,26 +390,34 @@ class _ScheduleDetailBody extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF4CAF50,
-                            ).withValues(alpha: 0.12),
+                            color:
+                                (event.isCompleted
+                                        ? Colors.grey
+                                        : const Color(0xFF4CAF50))
+                                    .withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.check_circle,
+                                event.isCompleted
+                                    ? Icons.check_circle
+                                    : Icons.check_circle,
                                 size: 16,
-                                color: Color(0xFF4CAF50),
+                                color: event.isCompleted
+                                    ? Colors.grey
+                                    : const Color(0xFF4CAF50),
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
-                                'Active',
+                                event.isCompleted ? 'Completed' : 'Active',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF4CAF50),
+                                  color: event.isCompleted
+                                      ? Colors.grey
+                                      : const Color(0xFF4CAF50),
                                 ),
                               ),
                             ],
@@ -460,28 +469,39 @@ class _ScheduleDetailBody extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: GestureDetector(
-                          onTap: () => viewModel.markAsCompleted(context),
+                          onTap: event.isCompleted
+                              ? null
+                              : () => viewModel.markAsCompleted(context),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [
-                                  colorScheme.primary,
-                                  colorScheme.primary.withValues(alpha: 0.8),
-                                ],
+                                colors: event.isCompleted
+                                    ? [
+                                        Colors.grey.shade400,
+                                        Colors.grey.shade400,
+                                      ]
+                                    : [
+                                        colorScheme.primary,
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                      ],
                               ),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
+                                  color: event.isCompleted
+                                      ? Colors.transparent
+                                      : colorScheme.primary.withValues(
+                                          alpha: 0.3,
+                                        ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 6),
                                 ),
                               ],
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -489,10 +509,12 @@ class _ScheduleDetailBody extends StatelessWidget {
                                   color: Colors.white,
                                   size: 20,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
-                                  'Mark Completed',
-                                  style: TextStyle(
+                                  event.isCompleted
+                                      ? 'Completed'
+                                      : 'Mark Completed',
+                                  style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,

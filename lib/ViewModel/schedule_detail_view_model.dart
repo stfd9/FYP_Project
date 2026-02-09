@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../calendar_event.dart';
 import 'base_view_model.dart';
@@ -92,11 +93,28 @@ class ScheduleDetailViewModel extends BaseViewModel {
     );
 
     if (confirmed == true) {
-      if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 120));
-      if (context.mounted) {
-        Navigator.pop(context, true);
+      final scheduleId = event.scheduleId;
+      if (scheduleId == null || scheduleId.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Schedule id not found.')),
+          );
+        }
+        return;
       }
+
+      runAsync(() async {
+        await FirebaseFirestore.instance
+            .collection('schedules')
+            .doc(scheduleId)
+            .delete();
+
+        if (!context.mounted) return;
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (context.mounted) {
+          Navigator.pop(context, true);
+        }
+      });
     }
   }
 
@@ -184,12 +202,44 @@ class ScheduleDetailViewModel extends BaseViewModel {
     );
 
     if (confirmed == true) {
-      if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 120));
-      if (context.mounted) {
-        // Return boolean result to align with caller expectations
-        Navigator.pop(context, true);
+      final scheduleId = event.scheduleId;
+      if (scheduleId == null || scheduleId.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Schedule id not found.')),
+          );
+        }
+        return;
       }
+
+      runAsync(() async {
+        await FirebaseFirestore.instance
+            .collection('schedules')
+            .doc(scheduleId)
+            .update({'status': 'Completed'});
+
+        if (!context.mounted) return;
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (context.mounted) {
+          Navigator.pop(
+            context,
+            CalendarEvent(
+              day: event.day,
+              petName: event.petName,
+              activity: event.activity,
+              location: event.location,
+              time: event.time,
+              scheduleId: event.scheduleId,
+              startDateTime: event.startDateTime,
+              endDateTime: event.endDateTime,
+              reminderEnabled: event.reminderEnabled,
+              reminderDateTime: event.reminderDateTime,
+              petId: event.petId,
+              isCompleted: true,
+            ),
+          );
+        }
+      });
     }
   }
 

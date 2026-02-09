@@ -137,6 +137,7 @@ class EditScheduleViewModel extends BaseViewModel {
       reminderEnabled: _reminderEnabled,
       reminderDateTime: _reminderDateTime,
       petId: _selectedPet?.id,
+      isCompleted: originalEvent.isCompleted,
     );
   }
 

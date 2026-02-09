@@ -238,8 +238,7 @@ class _CalendarCard extends StatelessWidget {
 
   final CalendarViewModel viewModel;
 
-  bool _isEventDay(int day) =>
-      viewModel.events.any((event) => event.day == day);
+  bool _isEventDay(int day) => viewModel.isEventDay(day);
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +339,8 @@ class _CalendarCard extends StatelessWidget {
                       return const SizedBox.shrink();
                     }
                     final hasEvent = _isEventDay(day);
+                    final hasActiveEvent = viewModel.hasActiveEvent(day);
+                    final completedOnly = viewModel.hasCompletedOnlyEvent(day);
                     final isSelected = day == viewModel.selectedDay;
                     final now = DateTime.now();
                     final isToday =
@@ -354,6 +355,9 @@ class _CalendarCard extends StatelessWidget {
                           ? _PawSelectedDay(
                               day: day,
                               hasEvent: hasEvent,
+                              indicatorColor: completedOnly
+                                  ? Colors.grey.shade300
+                                  : Colors.white,
                               colorScheme: colorScheme,
                               textTheme: textTheme,
                             )
@@ -389,7 +393,11 @@ class _CalendarCard extends StatelessWidget {
                                         width: 5,
                                         height: 5,
                                         decoration: BoxDecoration(
-                                          color: colorScheme.error,
+                                          color: completedOnly
+                                              ? Colors.grey.shade300
+                                              : (hasActiveEvent
+                                                    ? colorScheme.error
+                                                    : Colors.grey.shade300),
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -413,12 +421,14 @@ class _CalendarCard extends StatelessWidget {
 class _PawSelectedDay extends StatelessWidget {
   final int day;
   final bool hasEvent;
+  final Color indicatorColor;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   const _PawSelectedDay({
     required this.day,
     required this.hasEvent,
+    required this.indicatorColor,
     required this.colorScheme,
     required this.textTheme,
   });
@@ -448,8 +458,8 @@ class _PawSelectedDay extends StatelessWidget {
             child: Container(
               width: 5,
               height: 5,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: indicatorColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -558,6 +568,19 @@ class _ScheduledEventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final petLabel = event.petName.trim().isEmpty ? 'No Pet' : event.petName;
+    final isCompleted = event.isCompleted;
+    final cardBackground = isCompleted ? Colors.grey.shade100 : Colors.white;
+    final primaryTextColor = isCompleted
+        ? Colors.grey.shade600
+        : (textTheme.titleMedium?.color ?? Colors.black);
+    final secondaryTextColor = isCompleted
+        ? Colors.grey.shade500
+        : Colors.grey.shade700;
+    final iconColor = isCompleted ? Colors.grey.shade400 : colorScheme.primary;
+    final accentColor = isCompleted
+        ? Colors.grey.shade300
+        : colorScheme.primary.withValues(alpha: 0.1);
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -566,7 +589,7 @@ class _ScheduledEventCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -582,10 +605,10 @@ class _ScheduledEventCard extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
+                color: accentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.pets, color: colorScheme.primary, size: 28),
+              child: Icon(Icons.pets, color: iconColor, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -593,16 +616,17 @@ class _ScheduledEventCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    event.petName,
+                    event.activity,
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    event.activity,
+                    petLabel,
                     style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade700,
+                      color: secondaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 4),

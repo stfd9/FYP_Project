@@ -1,20 +1,42 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'base_view_model.dart';
 import '../models/pet_info.dart';
 
 class PetGalleryViewModel extends BaseViewModel {
   final ImagePicker _picker = ImagePicker();
   final List<String> _uploadedImages = [];
+  final Set<String> _removedRemoteUrls = {};
+  final List<File> _pendingUploads = [];
   PetInfo? _pet;
 
   List<String> get uploadedImages => List.unmodifiable(_uploadedImages);
   PetInfo? get pet => _pet;
+  List<File> get pendingUploads => List.unmodifiable(_pendingUploads);
+  bool get hasPendingUploads => _pendingUploads.isNotEmpty;
 
-  List<dynamic> get allImages => [
-    if (_pet != null) ..._pet!.galleryImages,
-    ..._uploadedImages,
-  ];
+  List<dynamic> get allImages {
+    final images = <String>[];
+    final pet = _pet;
+    if (pet != null) {
+      images.addAll(
+        pet.galleryImages.where((path) => !_removedRemoteUrls.contains(path)),
+      );
+      images.addAll(
+        pet.photoUrls.where((url) => !_removedRemoteUrls.contains(url)),
+      );
+    }
+    images.addAll(
+      _uploadedImages.where((url) => !_removedRemoteUrls.contains(url)),
+    );
+    return images;
+  }
 
   void initialize(PetInfo pet) {
     _pet = pet;
@@ -33,41 +55,149 @@ class PetGalleryViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<void> pickImage(BuildContext context, ImageSource source) async {
+  Future<void> pickGalleryImages(BuildContext context) async {
     setLoading(true);
     try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
+      final images = await _picker.pickMultiImage(
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (images.isNotEmpty) {
+        _pendingUploads
+          ..clear()
+          ..addAll(images.map((image) => File(image.path)));
+        notifyListeners();
+      }
+    } catch (e) {
+      setError('Failed to pick images: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  Future<void> pickCameraImage(BuildContext context) async {
+    setLoading(true);
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 85,
       );
 
       if (image != null) {
-        _uploadedImages.add(image.path);
+        _pendingUploads
+          ..clear()
+          ..add(File(image.path));
         notifyListeners();
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text('Photo added successfully!'),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
       }
     } catch (e) {
-      setError('Failed to pick image: $e');
+      setError('Failed to take photo: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  Future<void> confirmUpload(BuildContext context) async {
+    if (_pendingUploads.isEmpty) return;
+    setLoading(true);
+    try {
+      final pet = _pet;
+      if (pet == null || pet.id == null) {
+        throw Exception('Pet not found for upload.');
+      }
+      final authUid = FirebaseAuth.instance.currentUser?.uid;
+      if (authUid == null) {
+        throw Exception('User not authenticated for photo upload.');
+      }
+
+      final List<String> uploadedUrls = [];
+      for (final file in _pendingUploads) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('pets')
+            .child(authUid)
+            .child(pet.id!)
+            .child('gallery_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+        final uploadTask = storageRef.putFile(file);
+        await uploadTask.timeout(const Duration(seconds: 60));
+        final url = await storageRef.getDownloadURL().timeout(
+          const Duration(seconds: 10),
+        );
+        uploadedUrls.add(url);
+      }
+
+      try {
+        await FirebaseFirestore.instance.collection('pet').doc(pet.id).update({
+          'photoUrls': FieldValue.arrayUnion(uploadedUrls),
+        });
+      } on FirebaseException catch (error) {
+        throw Exception('Firestore update failed: ${error.code}');
+      }
+
+      _uploadedImages.addAll(uploadedUrls);
+      _pendingUploads.clear();
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Photos uploaded successfully!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } on FirebaseException catch (error) {
+      setError('Upload failed: ${error.code}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: ${error.code}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } on TimeoutException {
+      setError('Upload timed out. Please try again.');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Upload timed out. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setError('Upload failed: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -104,7 +234,7 @@ class PetGalleryViewModel extends BaseViewModel {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Add Photo',
+              'Add Photos',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -119,7 +249,7 @@ class PetGalleryViewModel extends BaseViewModel {
               color: const Color(0xFF7165E3),
               onTap: () {
                 Navigator.pop(ctx);
-                pickImage(context, ImageSource.gallery);
+                pickGalleryImages(context);
               },
             ),
             const SizedBox(height: 12),
@@ -130,7 +260,7 @@ class PetGalleryViewModel extends BaseViewModel {
               color: const Color(0xFFFF9F59),
               onTap: () {
                 Navigator.pop(ctx);
-                pickImage(context, ImageSource.camera);
+                pickCameraImage(context);
               },
             ),
             const SizedBox(height: 16),
@@ -182,7 +312,21 @@ class PetGalleryViewModel extends BaseViewModel {
     );
   }
 
-  void deleteImage(BuildContext context, int index, bool isAssetImage) {
+  void deleteImage({
+    required BuildContext context,
+    required String imagePath,
+    required bool isAssetImage,
+    required bool isNetworkImage,
+  }) {
+    if (isAssetImage) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Built-in photos cannot be deleted.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -204,22 +348,60 @@ class PetGalleryViewModel extends BaseViewModel {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (!isAssetImage) {
-                final uploadedIndex = index - (_pet?.galleryImages.length ?? 0);
-                if (uploadedIndex >= 0 &&
-                    uploadedIndex < _uploadedImages.length) {
-                  _uploadedImages.removeAt(uploadedIndex);
-                  notifyListeners();
-                }
-              }
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Photo deleted successfully'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              setLoading(true);
+              try {
+                if (isNetworkImage) {
+                  final pet = _pet;
+                  if (pet == null || pet.id == null) {
+                    throw Exception('Pet not found for deletion.');
+                  }
+                  final ref = FirebaseStorage.instance.refFromURL(imagePath);
+                  await ref.delete();
+                  await FirebaseFirestore.instance
+                      .collection('pet')
+                      .doc(pet.id)
+                      .update({
+                        'photoUrls': FieldValue.arrayRemove([imagePath]),
+                      });
+                  _removedRemoteUrls.add(imagePath);
+                } else {
+                  _uploadedImages.remove(imagePath);
+                }
+
+                notifyListeners();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Photo deleted successfully'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } on FirebaseException catch (error) {
+                setError('Delete failed: ${error.code}');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Delete failed: ${error.code}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } catch (e) {
+                setError('Delete failed: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Delete failed: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              } finally {
+                setLoading(false);
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
