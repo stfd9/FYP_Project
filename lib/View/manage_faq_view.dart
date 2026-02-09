@@ -32,6 +32,11 @@ class _ManageFAQBody extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        // Using manual back button to ensure ViewModel's onBackPressed is called
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => viewModel.onBackPressed(context),
+        ),
         foregroundColor: const Color(0xFF2D3142),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -45,45 +50,49 @@ class _ManageFAQBody extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 4,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Row(
+      // --- ADDED: Loading Indicator ---
+      body: viewModel.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
               children: [
-                Icon(
-                  Icons.category_outlined,
-                  size: 20,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Browse by Category',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.category_outlined,
+                        size: 20,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Browse by Category',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
+                // --- ITERATE THROUGH DEFINED CATEGORIES ---
+                ...viewModel.categoryDefinitions.map((categoryDef) {
+                  // Get items belonging to this category
+                  final items = viewModel.getFaqsByCategory(categoryDef.title);
+
+                  return _CategoryCard(
+                    categoryDef: categoryDef,
+                    items: items,
+                    viewModel: viewModel,
+                    onEditItem: (faq) =>
+                        _showFAQDialog(context, viewModel, faq),
+                  );
+                }),
               ],
             ),
-          ),
-
-          // --- ITERATE THROUGH DEFINED CATEGORIES ---
-          ...viewModel.categoryDefinitions.map((categoryDef) {
-            // Get items belonging to this category
-            final items = viewModel.getFaqsByCategory(categoryDef.title);
-
-            return _CategoryCard(
-              categoryDef: categoryDef,
-              items: items,
-              viewModel: viewModel,
-              onEditItem: (faq) => _showFAQDialog(context, viewModel, faq),
-            );
-          }),
-        ],
-      ),
     );
   }
 
@@ -425,6 +434,7 @@ class _ManageFAQBody extends StatelessWidget {
                                         answerController.text.isNotEmpty) {
                                       if (isEditing) {
                                         viewModel.editFAQ(
+                                          context,
                                           faq.id,
                                           questionController.text,
                                           answerController.text,
@@ -432,12 +442,14 @@ class _ManageFAQBody extends StatelessWidget {
                                         );
                                       } else {
                                         viewModel.addFAQ(
+                                          context,
                                           questionController.text,
                                           answerController.text,
                                           selectedCategory,
                                         );
                                       }
-                                      Navigator.pop(ctx);
+                                      // Note: Navigator.pop is handled by the ViewModel
+                                      // upon success to ensure we don't close too early
                                     }
                                   },
                                   child: Container(

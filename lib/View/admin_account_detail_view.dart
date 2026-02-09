@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Required for Timestamp
 import '../ViewModel/admin_account_detail_view_model.dart';
-import '../ViewModel/manage_accounts_view_model.dart';
 
 class AdminAccountDetailView extends StatelessWidget {
   const AdminAccountDetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = ModalRoute.of(context)!.settings.arguments as UserAccount;
+    // 1. Receive data as a Map (Raw Data)
+    final userMap = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
     return ChangeNotifierProvider(
-      create: (_) => AdminAccountDetailViewModel()..initialize(user),
+      create: (_) => AdminAccountDetailViewModel()..initialize(userMap),
       child: const _AdminAccountDetailBody(),
     );
   }
@@ -23,14 +24,33 @@ class _AdminAccountDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminAccountDetailViewModel>();
-    final user = viewModel.user;
+    final user = viewModel.user; // This is now a Map
 
+    // 2. Handle Loading / Null State
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // 3. Extract Data Safely
+    final name = user['userName'] ?? 'Unknown';
+    final email = user['userEmail'] ?? 'No Email';
+    final userId = user['userId'] ?? user['id'] ?? 'N/A'; // Prefer custom ID, fallback to Doc ID
+    
+    // 4. Format Date
+    String joinDate = 'Unknown';
+    if (user['dateCreated'] != null && user['dateCreated'] is Timestamp) {
+      final timestamp = user['dateCreated'] as Timestamp;
+      final date = timestamp.toDate();
+      joinDate = "${date.day}/${date.month}/${date.year}";
+    }
+
+    // Status Color Logic
+    final isSuspended = viewModel.isAccountLocked;
+    final statusColor = isSuspended ? Colors.orange : Colors.green;
+    final statusText = viewModel.accountStatus;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -59,34 +79,12 @@ class _AdminAccountDetailBody extends StatelessWidget {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.more_vert, color: Colors.grey),
-              ),
-              onPressed: () => viewModel.showOptionsMenu(context),
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Profile Header Card
+            // --- Profile Header Card ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -126,7 +124,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: textTheme.headlineLarge?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -137,7 +135,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
                   const SizedBox(height: 16),
                   // Name
                   Text(
-                    user.name,
+                    name,
                     style: textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -146,7 +144,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Email
                   Text(
-                    user.email,
+                    email,
                     style: textTheme.bodyMedium?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
@@ -159,7 +157,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -168,17 +166,17 @@ class _AdminAccountDetailBody extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.greenAccent,
+                          decoration: BoxDecoration(
+                            color: statusColor,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Active',
+                          statusText,
                           style: textTheme.labelMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -190,7 +188,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Account Information Card
+            // --- Account Information Card ---
             _buildInfoCard(
               context,
               title: 'Account Information',
@@ -200,28 +198,30 @@ class _AdminAccountDetailBody extends StatelessWidget {
                   context,
                   icon: Icons.badge_outlined,
                   label: 'User ID',
-                  value: '#${user.id}',
+                  value: '#$userId',
                 ),
                 _buildDivider(),
                 _buildInfoRow(
                   context,
                   icon: Icons.email_outlined,
                   label: 'Email Address',
-                  value: user.email,
+                  value: email,
                 ),
                 _buildDivider(),
                 _buildInfoRow(
                   context,
                   icon: Icons.calendar_today_outlined,
                   label: 'Join Date',
-                  value: user.joinDate,
+                  value: joinDate,
                 ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            // Activity Stats Card
+            // --- Activity Stats Card (Placeholder Logic) ---
+            // Note: Currently just placeholders ("0") as fetching sub-collections 
+            // requires more complex queries not in the current ViewModel.
             _buildInfoCard(
               context,
               title: 'Activity Stats',
@@ -231,67 +231,67 @@ class _AdminAccountDetailBody extends StatelessWidget {
                   context,
                   icon: Icons.pets_outlined,
                   label: 'Pets Registered',
-                  value: '3',
+                  value: '${user['petsCount'] ?? 0}', // Safe fallback
                 ),
                 _buildDivider(),
                 _buildInfoRow(
                   context,
                   icon: Icons.event_outlined,
                   label: 'Scheduled Events',
-                  value: '12',
-                ),
-                _buildDivider(),
-                _buildInfoRow(
-                  context,
-                  icon: Icons.access_time,
-                  label: 'Last Active',
-                  value: 'Today, 2:30 PM',
+                  value: '0', // Placeholder
                 ),
               ],
             ),
 
             const SizedBox(height: 24),
 
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => viewModel.showSuspendDialog(context),
-                    icon: const Icon(Icons.block_outlined),
-                    label: const Text('Suspend'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.orange),
-                      foregroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+            // --- Action Buttons ---
+            // 1. Suspend / Unlock
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => viewModel.showLockConfirmation(context),
+                icon: Icon(
+                  isSuspended ? Icons.lock_open : Icons.block_outlined,
+                ),
+                label: Text(isSuspended ? 'Unlock Account' : 'Suspend Account'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(
+                    color: isSuspended ? Colors.green : Colors.orange,
+                  ),
+                  foregroundColor: isSuspended ? Colors.green : Colors.orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () => viewModel.showDeleteDialog(context),
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Delete'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 2. Delete Account
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => viewModel.showDeleteConfirmation(context),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Delete Permanently'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  // --- Helper Widgets ---
 
   Widget _buildInfoCard(
     BuildContext context, {

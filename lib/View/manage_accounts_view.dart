@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../ViewModel/manage_accounts_view_model.dart';
 
 class ManageAccountsView extends StatelessWidget {
@@ -54,7 +55,7 @@ class _ManageAccountsBody extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stats Summary Card
+          // --- 1. Stats Summary Card (Fixed Design) ---
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
             child: Container(
@@ -70,6 +71,13 @@ class _ManageAccountsBody extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -89,8 +97,9 @@ class _ManageAccountsBody extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Use totalUsersCount from ViewModel
                       Text(
-                        '${viewModel.users.length}',
+                        '${viewModel.totalUsersCount}',
                         style: textTheme.headlineMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -105,6 +114,7 @@ class _ManageAccountsBody extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
+                  // Active Users Pill
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -125,8 +135,9 @@ class _ManageAccountsBody extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
+                        // Use activeUsersCount from ViewModel
                         Text(
-                          '${viewModel.users.length} Active',
+                          '${viewModel.activeUsersCount} Active',
                           style: textTheme.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -140,7 +151,7 @@ class _ManageAccountsBody extends StatelessWidget {
             ),
           ),
 
-          // Search Bar
+          // --- 2. Search Bar ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -157,6 +168,7 @@ class _ManageAccountsBody extends StatelessWidget {
                 ],
               ),
               child: TextField(
+                onChanged: (value) => viewModel.searchUsers(value),
                 decoration: InputDecoration(
                   hintText: 'Search users...',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -170,7 +182,6 @@ class _ManageAccountsBody extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // List Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -182,42 +193,45 @@ class _ManageAccountsBody extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // User List
+          // --- 3. User List (Fixed Red Screen Error) ---
           Expanded(
-            child: viewModel.users.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.people_outline,
-                          size: 64,
-                          color: Colors.grey.shade400,
+            child: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : viewModel.users.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No users found',
+                              style: textTheme.bodyLarge?.copyWith(
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No users found',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    itemCount: viewModel.users.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final user = viewModel.users[index];
-                      return _UserCard(
-                        user: user,
-                        onTap: () => viewModel.onUserCardTapped(context, user),
-                        onDelete: () =>
-                            viewModel.confirmDeleteUser(context, user),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        itemCount: viewModel.users.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final user = viewModel.users[index];
+                          return _UserCard(
+                            user: user,
+                            onTap: () =>
+                                viewModel.onUserCardTapped(context, user),
+                            onDelete: () =>
+                                viewModel.confirmDeleteUser(context, user),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -225,8 +239,9 @@ class _ManageAccountsBody extends StatelessWidget {
   }
 }
 
+// --- UPDATED USER CARD (Crash Proof) ---
 class _UserCard extends StatelessWidget {
-  final dynamic user;
+  final Map<String, dynamic> user;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -240,6 +255,26 @@ class _UserCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // SAFE DATA EXTRACTION (Prevents Red Screen)
+    final name = (user['userName'] ?? 'Unknown').toString();
+    final email = (user['userEmail'] ?? 'No Email').toString();
+    final status = (user['accountStatus'] ?? 'Active').toString();
+
+    // Safe Date Parsing
+    String joinDate = 'Unknown';
+    try {
+      if (user['dateCreated'] != null && user['dateCreated'] is Timestamp) {
+        final timestamp = user['dateCreated'] as Timestamp;
+        final date = timestamp.toDate();
+        joinDate = "${date.day}/${date.month}/${date.year}";
+      }
+    } catch (e) {
+      joinDate = 'Error';
+    }
+
+    final isSuspended = status == 'Suspended';
+    final statusColor = isSuspended ? Colors.orange : Colors.green;
 
     return InkWell(
       onTap: onTap,
@@ -276,7 +311,7 @@ class _UserCard extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
                   style: textTheme.titleLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -291,7 +326,7 @@ class _UserCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.name,
+                    name,
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -307,7 +342,7 @@ class _UserCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          user.email,
+                          email,
                           style: textTheme.bodySmall?.copyWith(
                             color: Colors.grey.shade600,
                           ),
@@ -323,16 +358,16 @@ class _UserCard extends StatelessWidget {
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
+                        decoration: BoxDecoration(
+                          color: statusColor,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Active',
+                        status,
                         style: textTheme.labelSmall?.copyWith(
-                          color: Colors.green,
+                          color: statusColor,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -344,7 +379,7 @@ class _UserCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Joined ${user.joinDate}',
+                        'Joined $joinDate',
                         style: textTheme.labelSmall?.copyWith(
                           color: Colors.grey.shade500,
                         ),
@@ -373,7 +408,6 @@ class _UserCard extends StatelessWidget {
                   onPressed: onDelete,
                   constraints: const BoxConstraints(),
                   padding: EdgeInsets.zero,
-                  tooltip: 'Delete User',
                 ),
               ],
             ),

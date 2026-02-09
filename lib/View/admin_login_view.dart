@@ -137,7 +137,7 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -159,8 +159,6 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-
-              // --- 1. Header Section (Centered) ---
               Center(
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -197,18 +195,18 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 40),
 
-              // --- 2. Input Fields ---
-              _buildLabel('Admin ID / Email'),
+              // --- Input Fields ---
+              _buildLabel('Admin ID'),
               const SizedBox(height: 8),
               TextField(
-                controller: viewModel.emailController,
-                keyboardType: TextInputType.emailAddress,
+                controller: viewModel.adminIdController,
+                keyboardType:
+                    TextInputType.text,
                 style: const TextStyle(fontWeight: FontWeight.w500),
                 decoration: _inputDecoration(
-                  hint: 'Enter admin ID',
+                  hint: 'Enter Admin ID',
                   icon: Icons.person_outline_rounded,
                   colorScheme: colorScheme,
                 ),
@@ -239,23 +237,19 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
               ),
 
               const SizedBox(height: 16),
-
-              // --- Message Widget ---
               _displayMessage(
                 viewModel.message,
                 viewModel.messageType,
                 viewModel,
               ),
-
               const SizedBox(height: 40),
 
-              // --- Action Button ---
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary, // Cobalt Blue
+                    backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
                     elevation: 8,
                     shadowColor: colorScheme.primary.withValues(alpha: 0.3),
@@ -302,7 +296,6 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
     );
   }
 
-  // --- Fixed Method: Removed duplicate 'enabledBorder' ---
   InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,

@@ -19,6 +19,7 @@ class _DashboardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the ViewModel for changes
     final viewModel = context.watch<AdminDashboardViewModel>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -26,7 +27,7 @@ class _DashboardContent extends StatelessWidget {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 24;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -51,7 +52,6 @@ class _DashboardContent extends StatelessWidget {
           ],
         ),
         actions: [
-          // Logout Button
           Container(
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
@@ -77,131 +77,250 @@ class _DashboardContent extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- 1. Welcome Banner ---
-            _AdminWelcomeBanner(colorScheme: colorScheme),
+      // --- LOADING STATE CHECK ---
+      body: viewModel.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, bottomPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- 1. Welcome Banner ---
+                  _AdminWelcomeBanner(colorScheme: colorScheme),
 
-            const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-            // --- 2. Key Statistics ---
-            Text(
-              'Statistics',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A1A1A),
-                fontSize: 18,
+                  // --- 2. Key Statistics ---
+                  Text(
+                    'Statistics',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A1A1A),
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const _DashboardStatsRow(),
+
+                  const SizedBox(height: 32),
+
+                  // --- 3. Management Grid ---
+                  Text(
+                    'Manage',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1A1A1A),
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: [
+                      _AdminActionCard(
+                        title: 'Accounts',
+                        subtitle: 'Users & Admins',
+                        icon: Icons.people_alt_rounded,
+                        iconColor: Colors.white,
+                        iconBgColor: colorScheme.primary,
+                        onTap: () => viewModel.onManageAccountsPressed(context),
+                      ),
+                      _AdminActionCard(
+                        title: 'Records',
+                        subtitle: 'AI Analysis Logs',
+                        icon: Icons.analytics_rounded,
+                        iconColor: Colors.white,
+                        iconBgColor: const Color(0xFF29B6F6),
+                        onTap: () =>
+                            viewModel.onAnalysisRecordsPressed(context),
+                      ),
+                      _AdminActionCard(
+                        title: 'Feedback',
+                        subtitle: 'User Reports',
+                        icon: Icons.reviews_rounded,
+                        iconColor: Colors.white,
+                        iconBgColor: const Color(0xFFFFB74D),
+                        onTap: () => viewModel.onUserFeedbackPressed(context),
+                      ),
+                      _AdminActionCard(
+                        title: 'FAQ',
+                        subtitle: 'Help Content',
+                        icon: Icons.live_help_rounded,
+                        iconColor: Colors.white,
+                        iconBgColor: const Color(0xFF66BB6A),
+                        onTap: () => viewModel.onManageFaqPressed(context),
+                      ),
+                      _AdminActionCard(
+                        title: 'Community Tips',
+                        subtitle: 'Manage Tips',
+                        icon: Icons.local_library_rounded,
+                        iconColor: Colors.white,
+                        iconBgColor: const Color(0xFF9C27B0),
+                        onTap: () =>
+                            viewModel.onManageCommunityTipsPressed(context),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // --- 4. System Activity (Dynamic) ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Activity Log',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1A1A),
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text(
+                        'Recent',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const _RecentActivityList(), // Now Dynamic
+                  const SizedBox(height: 48),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const _DashboardStatsRow(),
+    );
+  }
+}
 
-            const SizedBox(height: 32),
+// --- WIDGET: Recent Activity List (Modified to be Dynamic) ---
+class _RecentActivityList extends StatelessWidget {
+  const _RecentActivityList();
 
-            // --- 3. Management Grid ---
-            Text(
-              'Manage',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1A1A1A),
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 16),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.1,
-              children: [
-                _AdminActionCard(
-                  title: 'Accounts',
-                  subtitle: 'Users & Admins',
-                  icon: Icons.people_alt_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: colorScheme.primary, // Cobalt
-                  onTap: () => viewModel.onManageAccountsPressed(context),
-                ),
-                _AdminActionCard(
-                  title: 'Records',
-                  subtitle: 'AI Analysis Logs',
-                  icon: Icons.analytics_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF29B6F6), // Light Blue
-                  onTap: () => viewModel.onAnalysisRecordsPressed(context),
-                ),
-                _AdminActionCard(
-                  title: 'Feedback',
-                  subtitle: 'User Reports',
-                  icon: Icons.reviews_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: const Color(0xFFFFB74D), // Orange
-                  onTap: () => viewModel.onUserFeedbackPressed(context),
-                ),
-                _AdminActionCard(
-                  title: 'FAQ',
-                  subtitle: 'Help Content',
-                  icon: Icons.live_help_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF66BB6A), // Green
-                  onTap: () => viewModel.onManageFaqPressed(context),
-                ),
-                _AdminActionCard(
-                  title: 'Community Tips',
-                  subtitle: 'Manage Tips',
-                  icon: Icons.local_library_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF9C27B0), // Purple
-                  onTap: () => viewModel.onManageCommunityTipsPressed(context),
-                ),
-              ],
-            ),
+  @override
+  Widget build(BuildContext context) {
+    // 1. Access the ViewModel
+    final viewModel = context.watch<AdminDashboardViewModel>();
+    final activities = viewModel.recentActivities;
 
-            const SizedBox(height: 32),
-
-            // --- 4. System Activity ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Activity Log',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A1A1A),
-                    fontSize: 18,
-                  ),
-                ),
-                Text(
-                  'View All',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const _RecentActivityList(),
-            const SizedBox(height: 48),
-          ],
+    // 2. Handle Empty State
+    if (activities.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
         ),
+        child: Center(
+          child: Text(
+            'No recent activity',
+            style: TextStyle(color: Colors.grey.shade500),
+          ),
+        ),
+      );
+    }
+
+    // 3. Build List dynamically
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: List.generate(activities.length, (index) {
+          final item = activities[index];
+          final isLastItem = index == activities.length - 1;
+
+          return Column(
+            children: [
+              _ActivityItem(
+                text: item['text'] ?? 'Unknown Activity',
+                time: item['time'] ?? '',
+                color: item['color'] ?? Colors.grey,
+                isFirst: index == 0,
+                isLast: isLastItem,
+              ),
+              if (!isLastItem) Divider(height: 1, color: Colors.grey.shade100),
+            ],
+          );
+        }),
       ),
     );
   }
 }
 
-// --- WIDGET: Welcome Banner ---
+// ... (Rest of your widgets: _AdminWelcomeBanner, _DashboardStatsRow, _StatCard, _AdminActionCard, _ActivityItem)
+// Keep them exactly as they were in your original code.
+// I will just include _ActivityItem here for completeness since I used it above.
+
+class _ActivityItem extends StatelessWidget {
+  final String text;
+  final String time;
+  final Color color;
+  final bool isFirst;
+  final bool isLast;
+
+  const _ActivityItem({
+    required this.text,
+    required this.time,
+    required this.color,
+    this.isFirst = false,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, isFirst ? 20 : 16, 20, isLast ? 20 : 16),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF333333),
+              ),
+            ),
+          ),
+          Text(
+            time,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ... Ensure _AdminWelcomeBanner, _DashboardStatsRow, _StatCard, _AdminActionCard are present in your file ...
+// (I omitted them here to save space, but you should keep the ones from your original code)
 class _AdminWelcomeBanner extends StatelessWidget {
   final ColorScheme colorScheme;
-
   const _AdminWelcomeBanner({required this.colorScheme});
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -268,10 +387,8 @@ class _AdminWelcomeBanner extends StatelessWidget {
   }
 }
 
-// --- WIDGET: Stats Row ---
 class _DashboardStatsRow extends StatelessWidget {
   const _DashboardStatsRow();
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -312,14 +429,12 @@ class _StatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
-
   const _StatCard({
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -370,7 +485,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// --- WIDGET: Admin Action Card ---
 class _AdminActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -378,7 +492,6 @@ class _AdminActionCard extends StatelessWidget {
   final Color iconColor;
   final Color iconBgColor;
   final VoidCallback onTap;
-
   const _AdminActionCard({
     required this.title,
     required this.subtitle,
@@ -387,7 +500,6 @@ class _AdminActionCard extends StatelessWidget {
     required this.iconBgColor,
     required this.onTap,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -455,98 +567,6 @@ class _AdminActionCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// --- WIDGET: Recent Activity List ---
-class _RecentActivityList extends StatelessWidget {
-  const _RecentActivityList();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _ActivityItem(
-            text: 'New user "Alex" registered',
-            time: '2m ago',
-            color: const Color(0xFF6C63FF),
-            isFirst: true,
-          ),
-          Divider(height: 1, color: Colors.grey.shade100),
-          _ActivityItem(
-            text: 'Skin analysis #402 flagged',
-            time: '1h ago',
-            color: const Color(0xFF29B6F6),
-          ),
-          Divider(height: 1, color: Colors.grey.shade100),
-          const _ActivityItem(
-            text: 'Feedback received: "Crash bug"',
-            time: '3h ago',
-            color: Color(0xFFFF7043),
-            isLast: true,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActivityItem extends StatelessWidget {
-  final String text;
-  final String time;
-  final Color color;
-  final bool isFirst;
-  final bool isLast;
-
-  const _ActivityItem({
-    required this.text,
-    required this.time,
-    required this.color,
-    this.isFirst = false,
-    this.isLast = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, isFirst ? 20 : 16, 20, isLast ? 20 : 16),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
-              ),
-            ),
-          ),
-          Text(
-            time,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-          ),
-        ],
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // REQUIRED
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../View/home_view.dart';
 import '../View/register_view.dart';
@@ -51,6 +51,38 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- NEW HELPER: Check Account Suspension ---
+  // Returns true if allowed, false if suspended
+  Future<bool> _checkIfSuspended(String uid) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('providerId', isEqualTo: uid)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final userData = snapshot.docs.first.data();
+
+        // CHECK STATUS
+        if (userData['accountStatus'] == 'Suspended') {
+          // Key logic: Sign out immediately
+          await FirebaseAuth.instance.signOut();
+
+          setMessage(
+            "Your account has been suspended. Contact admin.",
+            MessageType.error,
+          );
+          return false; // Block login
+        }
+      }
+      return true; // Allow login
+    } catch (e) {
+      print("Status check error: $e");
+      return true; // Fallback: Allow login if check fails (or handle differently)
+    }
+  }
+
   // --- Email/Password Login ---
   Future<void> onLoginPressed(BuildContext context) async {
     setMessage(null, null);
@@ -72,10 +104,23 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text,
-      );
+      // 1. Sign In
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text,
+          );
+
+      // 2. CHECK SUSPENSION (Added Code)
+      if (userCredential.user != null) {
+        bool isAllowed = await _checkIfSuspended(userCredential.user!.uid);
+
+        if (!isAllowed) {
+          _isLoading = false;
+          notifyListeners();
+          return; // Stop execution here
+        }
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -110,7 +155,6 @@ class LoginViewModel extends ChangeNotifier {
     BuildContext context,
     String providerName,
   ) async {
-    // Terms Check for Social Login
     if (!_isTermsAccepted) {
       setMessage('Please accept the Terms & Conditions.', MessageType.error);
       return;
@@ -123,14 +167,13 @@ class LoginViewModel extends ChangeNotifier {
       UserCredential? userCredential;
 
       if (providerName == 'Google') {
-        // --- GOOGLE LOGIN ---
         final GoogleSignIn googleSignIn = GoogleSignIn();
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
         if (googleUser == null) {
           _isLoading = false;
           notifyListeners();
-          return; // User cancelled
+          return;
         }
 
         final GoogleSignInAuthentication googleAuth =
@@ -144,7 +187,6 @@ class LoginViewModel extends ChangeNotifier {
           credential,
         );
       } else if (providerName == 'Facebook') {
-        // --- FACEBOOK LOGIN ---
         final LoginResult result = await FacebookAuth.instance.login();
 
         if (result.status == LoginStatus.success) {
@@ -159,7 +201,7 @@ class LoginViewModel extends ChangeNotifier {
         } else if (result.status == LoginStatus.cancelled) {
           _isLoading = false;
           notifyListeners();
-          return; // User cancelled
+          return;
         } else {
           throw FirebaseAuthException(
             code: 'facebook-login-failed',
@@ -175,9 +217,17 @@ class LoginViewModel extends ChangeNotifier {
         return;
       }
 
-      // --- SAVE TO FIRESTORE & NAVIGATE ---
+      // --- SAVE TO FIRESTORE & CHECK SUSPENSION ---
       if (userCredential != null && userCredential.user != null) {
-        // Pass the provider name so the DB saves "google" or "facebook" correctly
+        // 1. CHECK SUSPENSION FIRST (Added Code)
+        bool isAllowed = await _checkIfSuspended(userCredential.user!.uid);
+        if (!isAllowed) {
+          _isLoading = false;
+          notifyListeners();
+          return; // Stop logic if suspended
+        }
+
+        // 2. Save User if they are new
         await _saveSocialUserToFirestore(
           userCredential.user!,
           providerName.toLowerCase(),
@@ -212,7 +262,6 @@ class LoginViewModel extends ChangeNotifier {
   ) async {
     final firestore = FirebaseFirestore.instance;
 
-    // Check if user already exists
     final QuerySnapshot result = await firestore
         .collection('user')
         .where('providerId', isEqualTo: user.uid)
@@ -220,10 +269,9 @@ class LoginViewModel extends ChangeNotifier {
         .get();
 
     if (result.docs.isNotEmpty) {
-      return; // User exists, do nothing
+      return;
     }
 
-    // Generate Custom ID (U00000X)
     final counterRef = firestore.collection('counters').doc('userCounter');
 
     await firestore.runTransaction((transaction) async {
@@ -242,7 +290,7 @@ class LoginViewModel extends ChangeNotifier {
         'userName': user.displayName ?? '$providerName User',
         'userEmail': user.email ?? '',
         'password_hash': '${providerName.toUpperCase()}_AUTH',
-        'authProvider': providerName, // Saves 'google' or 'facebook'
+        'authProvider': providerName,
         'providerId': user.uid,
         'userRole': 'User',
         'accountStatus': 'Active',

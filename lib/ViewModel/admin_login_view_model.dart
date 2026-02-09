@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
-import 'base_view_model.dart'; // Assuming you reuse the same base class
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'base_view_model.dart';
 
 class AdminLoginViewModel extends BaseViewModel {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController adminIdController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  bool get obscurePassword => _obscurePassword;
+  bool get isLoading => _isLoading;
+
+  @override
+  String? get errorMessage => message;
 
   String? _message;
   MessageType? _messageType;
 
-  bool get obscurePassword => _obscurePassword;
-  String? get message => _message;
-  MessageType? get messageType => _messageType;
   @override
-  String? get errorMessage => _message; // Backwards compat
+  String? get message => _message;
+  @override
+  MessageType? get messageType => _messageType;
 
   void setMessage(String? msg, [MessageType? type]) {
     _message = msg;
@@ -34,38 +42,141 @@ class AdminLoginViewModel extends BaseViewModel {
     notifyListeners();
   }
 
+  // --- Main Login Logic ---
   Future<void> loginAdmin(BuildContext context) async {
-    final validationError = _validateInputs();
-    if (validationError != null) {
-      setMessage(validationError, MessageType.error);
+    if (adminIdController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      setMessage('Please enter Username and Password.', MessageType.error);
       return;
     }
 
-    // Logic specifically for Admin Login
-    // You might call a different API endpoint here like authService.adminLogin()
-    runAsync(() async {
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
+    _isLoading = true;
+    clearMessage();
+    notifyListeners();
 
-      // Navigate to Admin Dashboard instead of Home
-      // Ensure '/admin_dashboard' is defined in your routes
-      if (context.mounted) {
-        Navigator.pushReplacementNamed(context, '/admin_dashboard');
+    try {
+      final usernameInput = adminIdController.text.trim();
+
+      // DEBUG PRINT 1: Check what the user typed
+      print("DEBUG: User typed username: $usernameInput");
+
+      // 1. Find Email associated with this Username
+      final emailToLogin = await _getEmailFromUsername(usernameInput);
+
+      // DEBUG PRINT 2: Check what email we found
+      print("DEBUG: Found email from database: $emailToLogin");
+
+      if (emailToLogin == null) {
+        throw FirebaseAuthException(
+          code: 'user-not-found',
+          message: 'Username "$usernameInput" not found in database.',
+        );
       }
-    });
+
+      // 2. Authenticate with Firebase Auth (MUST USE EMAIL)
+      // We pass 'emailToLogin' (the email), NOT 'usernameInput'
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: emailToLogin,
+            password: passwordController.text,
+          );
+
+      // 3. SECURITY CHECK: Verify 'Admin' Role
+      if (userCredential.user != null) {
+        final isAuthorized = await _verifyAdminRole(userCredential.user!.uid);
+
+        if (!isAuthorized) {
+          await FirebaseAuth.instance.signOut();
+          setMessage(
+            'Access Denied: You do not have Admin privileges.',
+            MessageType.error,
+          );
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+
+        // Success
+        setMessage('Login Successful', MessageType.success);
+        _isLoading = false;
+        notifyListeners();
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/admin_dashboard',
+            (route) => false,
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      print("DEBUG: Firebase Auth Error: ${e.code} - ${e.message}");
+
+      String msg = 'Login failed.';
+      if (e.code == 'user-not-found')
+        msg = 'Username not found.';
+      else if (e.code == 'wrong-password')
+        msg = 'Incorrect password.';
+      else if (e.code == 'invalid-email')
+        msg = 'System Error: Invalid email format retrieved.';
+      else if (e.code == 'invalid-credential')
+        msg = 'Invalid credentials.';
+      else if (e.message != null)
+        msg = e.message!;
+
+      setMessage(msg, MessageType.error);
+    } catch (e) {
+      _isLoading = false;
+      print("DEBUG: General Error: $e");
+      setMessage('An error occurred: $e', MessageType.error);
+    }
   }
 
-  String? _validateInputs() {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      return 'Please provide admin credentials.';
+  // --- Helper: Get Email from Username ---
+  Future<String?> _getEmailFromUsername(String username) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('userName', isEqualTo: username)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        // ADD .trim() HERE to fix the trailing space issue automatically
+        String email = snapshot.docs.first.get('userEmail');
+        return email.trim();
+      }
+    } catch (e) {
+      print("DEBUG: Error in _getEmailFromUsername: $e");
     }
-    // You can add specific admin validation here (e.g., must contain @admin.com)
     return null;
+  }
+
+  // --- Helper: Verify Role ---
+  Future<bool> _verifyAdminRole(String authUid) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('providerId', isEqualTo: authUid)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final role = snapshot.docs.first.get('userRole');
+        return role == 'Admin';
+      }
+    } catch (e) {
+      print("DEBUG: Error verifying role: $e");
+    }
+    return false;
   }
 
   @override
   void dispose() {
-    emailController.dispose();
+    adminIdController.dispose();
     passwordController.dispose();
     super.dispose();
   }
