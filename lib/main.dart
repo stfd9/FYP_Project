@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart'; // REQUIRED IMPORT
 
 import 'ViewModel/pet_profile_view_model.dart';
 import 'package:fyp_project/View/change_password_view.dart';
@@ -20,7 +21,15 @@ import 'View/manage_faq_view.dart';
 import 'View/admin_account_detail_view.dart';
 import 'View/admin_manage_community_tips_view.dart';
 
-void main() {
+// --- UPDATE THIS MAIN FUNCTION ---
+void main() async {
+  // 1. Ensure Flutter bindings are initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 2. Initialize Firebase
+  await Firebase.initializeApp();
+
+  // 3. Run the App
   runApp(const MyApp());
 }
 

@@ -4,57 +4,90 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
+// Make sure you import your Pet model and ScheduleCreate model if they are in other files
+// import '../Model/pet_model.dart'; 
+// import '../Model/schedule_create_model.dart'; 
 import 'base_view_model.dart';
 
 class AddScheduleViewModel extends BaseViewModel {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  String? _selectedPetName;
+  // --- Controllers (Renamed to match the new logic) ---
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  
+  // --- State Variables ---
+  DateTime? _startDateTime;
+  DateTime? _endDateTime;
+  DateTime? _reminderDateTime;
+  bool _reminderEnabled = false;
+  
+  // Placeholder for Pet object (Change 'dynamic' to 'Pet' if you have the model imported)
+  dynamic _selectedPet; 
+  String? userId; // To store resolved User ID
 
-  String? get selectedPetName => _selectedPetName;
+  // --- Getters ---
+  DateTime? get startDateTime => _startDateTime;
+  DateTime? get endDateTime => _endDateTime;
+  DateTime? get reminderDateTime => _reminderDateTime;
+  bool get reminderEnabled => _reminderEnabled;
+  dynamic get selectedPet => _selectedPet;
 
-  set selectedPetName(String? v) {
-    _selectedPetName = v;
+  // --- Setters ---
+  void setStartDate(DateTime? date) {
+    _startDateTime = date;
     notifyListeners();
   }
 
-  final TextEditingController activityController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-
-  DateTime? _scheduledAt;
-
-  String get scheduledLabel => _scheduledAt == null
-      ? 'Pick date & time'
-      : DateFormat('EEE, d MMM yyyy • h:mm a').format(_scheduledAt!);
-
-  void onPickDateTimePressed(BuildContext context) {
-    pickDateTime(context);
+  void setEndDate(DateTime? date) {
+    _endDateTime = date;
+    notifyListeners();
   }
 
-  Future<void> pickDateTime(BuildContext context) async {
+  void setReminderDate(DateTime? date) {
+    _reminderDateTime = date;
+    notifyListeners();
+  }
+
+  void toggleReminder(bool value) {
+    _reminderEnabled = value;
+    notifyListeners();
+  }
+
+  void setSelectedPet(dynamic pet) {
+    _selectedPet = pet;
+    notifyListeners();
+  }
+
+  // --- Helper to Format Date for UI ---
+  String formatDateTimeLabel(DateTime? value, {String placeholder = 'Select Date'}) {
+    if (value == null) return placeholder;
+    return DateFormat('EEE, d MMM yyyy • h:mm a').format(value);
+  }
+
+  // --- Date Picker Logic ---
+  Future<void> pickDateTime(BuildContext context, {required bool isStart}) async {
     final now = DateTime.now();
+    final initial = isStart ? (_startDateTime ?? now) : (_endDateTime ?? now);
 
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: _scheduledAt ?? now,
+      initialDate: initial,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
     );
 
     if (selectedDate == null || !context.mounted) return;
 
-    final initialTime = _scheduledAt != null
-        ? TimeOfDay.fromDateTime(_scheduledAt!)
-        : TimeOfDay.fromDateTime(now);
-
+    final timeInitial = TimeOfDay.fromDateTime(initial);
     final selectedTime = await showTimePicker(
       context: context,
-      initialTime: initialTime,
+      initialTime: timeInitial,
     );
 
     if (selectedTime == null || !context.mounted) return;
 
-    _scheduledAt = DateTime(
+    final result = DateTime(
       selectedDate.year,
       selectedDate.month,
       selectedDate.day,
@@ -62,24 +95,22 @@ class AddScheduleViewModel extends BaseViewModel {
       selectedTime.minute,
     );
 
+    if (isStart) {
+      _startDateTime = result;
+    } else {
+      _endDateTime = result;
+    }
     notifyListeners();
   }
 
+  // --- Main Save Logic (Merged) ---
   void onSaveSchedulePressed(BuildContext context) {
-    saveSchedule(context);
-  }
-
-  void saveSchedule(BuildContext context) {
     final formState = formKey.currentState;
     if (formState == null || !formState.validate()) {
       return;
     }
 
-<<<<<<< HEAD
-    if (_scheduledAt == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select date & time')),
-=======
+    // 1. Validation
     if (_startDateTime == null || _endDateTime == null) {
       _showSnack(context, 'Please select start and end date & time.');
       return;
@@ -102,57 +133,58 @@ class AddScheduleViewModel extends BaseViewModel {
       return;
     }
 
+    // 2. Async Save Operation
+    // (Assuming runAsync is a method in your BaseViewModel)
+    // If runAsync is not defined, just remove the wrapper and use 'await' normally.
+    
+    // runAsync(() async {  <-- Uncomment if BaseViewModel has this
+      _performSave(context);
+    // });                  <-- Uncomment if BaseViewModel has this
+  }
+
+  Future<void> _performSave(BuildContext context) async {
     final start = _startDateTime!;
     final end = _endDateTime!;
 
-    runAsync(() async {
-      final resolvedUserId = await _resolveUserId();
-      if (resolvedUserId == null || resolvedUserId.isEmpty) {
-        if (context.mounted) {
-          _showSnack(context, 'User not found. Please log in again.');
-        }
-        return;
+    // 3. Resolve User ID
+    final resolvedUserId = await _resolveUserId();
+    if (resolvedUserId == null || resolvedUserId.isEmpty) {
+      if (context.mounted) {
+        _showSnack(context, 'User not found. Please log in again.');
       }
-
-      final payload = ScheduleCreate(
-        scheTitle: titleController.text.trim(),
-        scheDescription: descriptionController.text.trim(),
-        startDateTime: start,
-        endDateTime: end,
-        reminderEnabled: _reminderEnabled,
-        reminderDateTime: _reminderDateTime,
-        petId: _selectedPet?.id,
-        userId: resolvedUserId,
->>>>>>> 83a1e546d7253223782158454cca43600bece61d
-      );
       return;
     }
 
-    final timeString = DateFormat('h:mm a').format(_scheduledAt!);
+    /* // 4. Create Payload (Uncomment this when you have the ScheduleCreate model)
+    final payload = ScheduleCreate(
+      scheTitle: titleController.text.trim(),
+      scheDescription: descriptionController.text.trim(),
+      startDateTime: start,
+      endDateTime: end,
+      reminderEnabled: _reminderEnabled,
+      reminderDateTime: _reminderDateTime,
+      petId: _selectedPet?.id, // Assuming Pet object has 'id'
+      userId: resolvedUserId,
+    );
+    // await _repository.createSchedule(payload); // Call your API/DB here
+    */
 
+    // 5. Create Local Event for Calendar (Immediate UI update)
+    final timeString = DateFormat('h:mm a').format(start);
     final newEvent = CalendarEvent(
-      day: _scheduledAt!.day,
-      petName: selectedPetName?.trim() ?? '',
-      activity: activityController.text.trim(),
-      location: locationController.text.trim(),
+      day: start.day,
+      petName: _selectedPet?.name ?? '', // Assuming Pet object has 'name'
+      activity: titleController.text.trim(),
+      location: descriptionController.text.trim(),
       time: timeString,
     );
 
-<<<<<<< HEAD
-    Navigator.pop(context, newEvent);
-=======
-      final timeString = DateFormat('h:mm a').format(start);
-      final newEvent = CalendarEvent(
-        day: start.day,
-        petName: _selectedPet?.name ?? '',
-        activity: titleController.text.trim(),
-        location: descriptionController.text.trim(),
-        time: timeString,
-      );
-
+    if (context.mounted) {
       Navigator.pop(context, newEvent);
-    });
+    }
   }
+
+  // --- Helpers ---
 
   Future<String?> _resolveUserId() async {
     if (userId != null && userId!.trim().isNotEmpty) {
@@ -172,22 +204,14 @@ class AddScheduleViewModel extends BaseViewModel {
     return snapshot.docs.first.id;
   }
 
-  String _formatDateTimeLabel(DateTime? value, {required String placeholder}) {
-    if (value == null) return placeholder;
-    return DateFormat('EEE, d MMM yyyy • h:mm a').format(value);
-  }
-
   void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
->>>>>>> 83a1e546d7253223782158454cca43600bece61d
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   void dispose() {
-    activityController.dispose();
-    locationController.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
     super.dispose();
   }
 }

@@ -80,7 +80,6 @@ class _AddScheduleForm extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    const Spacer(),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -127,6 +126,7 @@ class _AddScheduleForm extends StatelessWidget {
               ],
             ),
           ),
+
           // --- Form Content ---
           Expanded(
             child: SingleChildScrollView(
@@ -136,7 +136,7 @@ class _AddScheduleForm extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date & Time Card
+                    // --- Date & Time Card (Start & End) ---
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,65 +159,49 @@ class _AddScheduleForm extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          GestureDetector(
-                            onTap: () =>
-                                viewModel.onPickDateTimePressed(context),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.access_time_rounded,
-                                    color: Colors.grey.shade600,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      viewModel.scheduledLabel,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            viewModel.scheduledLabel ==
-                                                'Tap to select'
-                                            ? Colors.grey.shade500
-                                            : const Color(0xFF1A1A1A),
-                                      ),
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.edit_rounded,
-                                    color: colorScheme.primary,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
+
+                          // Start Date Picker
+                          _DateTimePicker(
+                            label: viewModel.formatDateTimeLabel(
+                              viewModel.startDateTime,
+                              placeholder: 'Select Start Time',
                             ),
+                            onTap: () =>
+                                viewModel.pickDateTime(context, isStart: true),
+                            colorScheme: colorScheme,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // End Date Picker
+                          _DateTimePicker(
+                            label: viewModel.formatDateTimeLabel(
+                              viewModel.endDateTime,
+                              placeholder: 'Select End Time',
+                            ),
+                            onTap: () =>
+                                viewModel.pickDateTime(context, isStart: false),
+                            colorScheme: colorScheme,
                           ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
-                    // Pet Name Card
+
+                    // --- Pet Name Card ---
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          const Row(
                             children: [
-                              const _IconBox(
+                              _IconBox(
                                 icon: Icons.pets_rounded,
                                 color: Color(0xFF4ECDC4),
                               ),
-                              const SizedBox(width: 14),
-                              const Text(
+                              SizedBox(width: 14),
+                              Text(
                                 'Pet Name',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -231,31 +215,15 @@ class _AddScheduleForm extends StatelessWidget {
                           Builder(
                             builder: (ctx) {
                               final petVm = ctx.watch<PetProfileViewModel>();
-                              final petNames = petVm.pets
-                                  .map((p) => p.name)
-                                  .toList();
-                              if (petNames.isEmpty) {
+                              // Assuming petVm.pets is a list of Pet objects
+                              if (petVm.pets.isEmpty) {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: Colors.grey.shade200,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'No pets found. Add a pet to create schedules.',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
+                                    const Text(
+                                      'No pets found. Add a pet to create schedules.',
+                                      style: TextStyle(color: Colors.grey),
                                     ),
-                                    const SizedBox(height: 8),
                                     TextButton(
                                       onPressed: () => Navigator.push(
                                         ctx,
@@ -269,50 +237,25 @@ class _AddScheduleForm extends StatelessWidget {
                                 );
                               }
 
-                              return DropdownButtonFormField<String>(
-                                initialValue: viewModel.selectedPetName,
-                                decoration: InputDecoration(
-                                  hintText: 'Select pet',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade200,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade200,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide(
-                                      color: colorScheme.primary,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.all(16),
+                              return DropdownButtonFormField<dynamic>(
+                                value: viewModel.selectedPet,
+                                decoration: _inputDecoration(
+                                  hint: 'Select pet',
+                                  colorScheme: colorScheme,
                                 ),
-                                items: petNames
-                                    .map(
-                                      (name) => DropdownMenuItem(
-                                        value: name,
-                                        child: Text(name),
-                                      ),
-                                    )
-                                    .toList(),
+                                items: petVm.pets.map((pet) {
+                                  return DropdownMenuItem(
+                                    value: pet,
+                                    child: Text(
+                                      pet.name,
+                                    ), // Access .name property
+                                  );
+                                }).toList(),
                                 onChanged: (value) =>
-                                    viewModel.selectedPetName = value,
+                                    viewModel.setSelectedPet(value),
                                 validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
+                                  if (value == null)
                                     return 'Please select a pet';
-                                  }
                                   return null;
                                 },
                               );
@@ -321,21 +264,23 @@ class _AddScheduleForm extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
-                    // Activity Card
+
+                    // --- Activity (Title) Card ---
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          const Row(
                             children: [
-                              const _IconBox(
+                              _IconBox(
                                 icon: Icons.event_rounded,
                                 color: Color(0xFF667EEA),
                               ),
-                              const SizedBox(width: 14),
-                              const Text(
-                                'Activity',
+                              SizedBox(width: 14),
+                              Text(
+                                'Activity Title',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -346,36 +291,14 @@ class _AddScheduleForm extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
-                            controller: viewModel.activityController,
-                            decoration: InputDecoration(
-                              hintText: 'e.g. Vet checkup, Grooming',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 1.5,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
+                            controller: viewModel.titleController, // Updated
+                            decoration: _inputDecoration(
+                              hint: 'e.g. Vet checkup, Grooming',
+                              colorScheme: colorScheme,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Please enter the activity';
+                                return 'Please enter the activity title';
                               }
                               return null;
                             },
@@ -383,21 +306,23 @@ class _AddScheduleForm extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
-                    // Location Card
+
+                    // --- Location (Description) Card ---
                     _FormCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          const Row(
                             children: [
-                              const _IconBox(
-                                icon: Icons.location_on_rounded,
+                              _IconBox(
+                                icon: Icons.description_rounded, // Changed Icon
                                 color: Color(0xFFFF6B6B),
                               ),
-                              const SizedBox(width: 14),
-                              const Text(
-                                'Location',
+                              SizedBox(width: 14),
+                              Text(
+                                'Description / Location',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -408,36 +333,15 @@ class _AddScheduleForm extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
-                            controller: viewModel.locationController,
-                            decoration: InputDecoration(
-                              hintText: 'Enter location',
-                              hintStyle: TextStyle(color: Colors.grey.shade400),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade200,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide(
-                                  color: colorScheme.primary,
-                                  width: 1.5,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.all(16),
+                            controller:
+                                viewModel.descriptionController, // Updated
+                            decoration: _inputDecoration(
+                              hint: 'Enter location or details',
+                              colorScheme: colorScheme,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Please enter the location';
+                                return 'Please enter details';
                               }
                               return null;
                             },
@@ -445,8 +349,10 @@ class _AddScheduleForm extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 28),
-                    // Action Buttons
+
+                    // --- Action Buttons ---
                     Row(
                       children: [
                         Expanded(
@@ -535,11 +441,88 @@ class _AddScheduleForm extends StatelessWidget {
       ),
     );
   }
+
+  // Helper for Input Decoration to reduce repetition
+  InputDecoration _inputDecoration({
+    required String hint,
+    required ColorScheme colorScheme,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+      filled: true,
+      fillColor: Colors.grey.shade50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.all(16),
+    );
+  }
+}
+
+// Helper Widget for Date Pickers
+class _DateTimePicker extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  final ColorScheme colorScheme;
+
+  const _DateTimePicker({
+    required this.label,
+    required this.onTap,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.access_time_rounded,
+              color: Colors.grey.shade600,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: label.startsWith('Select')
+                      ? Colors.grey.shade500
+                      : const Color(0xFF1A1A1A),
+                ),
+              ),
+            ),
+            Icon(Icons.edit_rounded, color: colorScheme.primary, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _FormCard extends StatelessWidget {
   final Widget child;
-
   const _FormCard({required this.child});
 
   @override
@@ -566,7 +549,6 @@ class _FormCard extends StatelessWidget {
 class _IconBox extends StatelessWidget {
   final IconData icon;
   final Color color;
-
   const _IconBox({required this.icon, required this.color});
 
   @override
