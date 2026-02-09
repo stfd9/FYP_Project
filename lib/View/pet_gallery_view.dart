@@ -8,20 +8,27 @@ import '../ViewModel/pet_gallery_view_model.dart';
 
 class PetGalleryView extends StatelessWidget {
   final PetInfo pet;
+  final bool selectionMode;
 
-  const PetGalleryView({super.key, required this.pet});
+  const PetGalleryView({
+    super.key,
+    required this.pet,
+    this.selectionMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => PetGalleryViewModel()..initialize(pet),
-      child: const _PetGalleryBody(),
+      child: _PetGalleryBody(selectionMode: selectionMode),
     );
   }
 }
 
 class _PetGalleryBody extends StatelessWidget {
-  const _PetGalleryBody();
+  const _PetGalleryBody({required this.selectionMode});
+
+  final bool selectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -46,23 +53,37 @@ class _PetGalleryBody extends StatelessWidget {
           onPressed: () => viewModel.onBackPressed(context),
         ),
         title: Text(
-          '${pet.name}\'s Gallery',
+          selectionMode ? 'Select Photo' : '${pet.name}\'s Gallery',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xFF2D3142),
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => viewModel.showImageSourceDialog(context),
-            icon: const Icon(
-              Icons.add_photo_alternate,
-              color: Color(0xFF2D3142),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
+        actions: selectionMode
+            ? null
+            : [
+                IconButton(
+                  onPressed: () => viewModel.showImageSourceDialog(context),
+                  icon: const Icon(
+                    Icons.add_photo_alternate,
+                    color: Color(0xFF2D3142),
+                  ),
+                ),
+                if (viewModel.hasPendingUploads)
+                  IconButton(
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : () => viewModel.confirmUpload(context),
+                    icon: Icon(
+                      Icons.check_circle,
+                      color: viewModel.isLoading
+                          ? Colors.grey.shade400
+                          : const Color(0xFF2D3142),
+                    ),
+                  ),
+                const SizedBox(width: 8),
+              ],
       ),
       body: allImages.isEmpty
           ? Center(
@@ -104,9 +125,24 @@ class _PetGalleryBody extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final imagePath = allImages[index];
                   final isAsset = pet.galleryImages.contains(imagePath);
+                  final isNetwork =
+                      imagePath is String && imagePath.startsWith('http');
 
                   return GestureDetector(
                     onTap: () {
+                      if (selectionMode) {
+                        if (isNetwork) {
+                          Navigator.pop(context, imagePath);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Select a gallery photo only.'),
+                            ),
+                          );
+                        }
+                        return;
+                      }
+
                       viewModel.onImageTapped(index);
                       Navigator.push(
                         context,
@@ -115,6 +151,13 @@ class _PetGalleryBody extends StatelessWidget {
                             imagePath: imagePath,
                             heroTag: 'gallery_${pet.name}_$index',
                             isAsset: isAsset,
+                            isNetwork: isNetwork,
+                            onDelete: () => viewModel.deleteImage(
+                              context: context,
+                              imagePath: imagePath,
+                              isAssetImage: isAsset,
+                              isNetworkImage: isNetwork,
+                            ),
                           ),
                         ),
                       );
@@ -134,7 +177,9 @@ class _PetGalleryBody extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: isAsset
+                          child: isNetwork
+                              ? Image.network(imagePath, fit: BoxFit.cover)
+                              : isAsset
                               ? Image.asset(imagePath, fit: BoxFit.cover)
                               : Image.file(File(imagePath), fit: BoxFit.cover),
                         ),
@@ -153,11 +198,15 @@ class _FullScreenImageView extends StatelessWidget {
   final dynamic imagePath;
   final String heroTag;
   final bool isAsset;
+  final bool isNetwork;
+  final VoidCallback onDelete;
 
   const _FullScreenImageView({
     required this.imagePath,
     required this.heroTag,
     required this.isAsset,
+    required this.isNetwork,
+    required this.onDelete,
   });
 
   @override
@@ -168,6 +217,12 @@ class _FullScreenImageView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
       ),
       body: Center(
         child: Hero(
@@ -175,7 +230,9 @@ class _FullScreenImageView extends StatelessWidget {
           child: InteractiveViewer(
             minScale: 0.5,
             maxScale: 4.0,
-            child: isAsset
+            child: isNetwork
+                ? Image.network(imagePath, fit: BoxFit.contain)
+                : isAsset
                 ? Image.asset(imagePath, fit: BoxFit.contain)
                 : Image.file(File(imagePath), fit: BoxFit.contain),
           ),
