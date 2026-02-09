@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'base_view_model.dart';
-import 'admin_feedback_view_model.dart';
+import '../models/feedback_model.dart';
 
 class AdminFeedbackDetailViewModel extends BaseViewModel {
-  FeedbackItem? _feedback;
+  FeedbackModel? _feedback;
   bool _isMarkedReviewed = false;
-  final List<Map<String, String>> _replies = [];
   bool _showReplyField = false;
   final TextEditingController replyController = TextEditingController();
 
-  FeedbackItem? get feedback => _feedback;
-  bool get isMarkedReviewed => _isMarkedReviewed;
-  List<Map<String, String>> get replies => List.unmodifiable(_replies);
-  bool get showReplyField => _showReplyField;
+  // For displaying the reply in UI after sending
+  String? _currentReplyMessage;
+  String? _currentReplyDate;
 
-  void initialize(FeedbackItem feedback) {
+  FeedbackModel? get feedback => _feedback;
+  bool get isMarkedReviewed => _isMarkedReviewed;
+  bool get showReplyField => _showReplyField;
+  String? get currentReplyMessage => _currentReplyMessage;
+  String? get currentReplyDate => _currentReplyDate;
+
+  void initialize(FeedbackModel feedback) {
     _feedback = feedback;
-    _isMarkedReviewed = false;
-    _showReplyField = false;
+    _isMarkedReviewed = feedback.status == 'Reviewed';
+    // If already replied, populate the view
+    _currentReplyMessage = feedback.messageReply;
+    if (feedback.replyAt != null) {
+      _currentReplyDate =
+          "${feedback.replyAt!.day}/${feedback.replyAt!.month}/${feedback.replyAt!.year}";
+    }
     notifyListeners();
   }
 
@@ -26,155 +37,96 @@ class AdminFeedbackDetailViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  void sendReply(BuildContext context) {
-    if (replyController.text.trim().isEmpty) {
+  Future<void> sendReply(BuildContext context) async {
+    final text = replyController.text.trim();
+    if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please enter a reply message'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+        const SnackBar(content: Text('Please enter a reply message')),
       );
       return;
     }
 
-    final now = DateTime.now();
-    final timeString =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-    final dateString = '${now.day}/${now.month}/${now.year}';
+    try {
+      final adminUser = FirebaseAuth.instance.currentUser;
+      final adminName =
+          adminUser?.displayName ?? 'Admin'; // Or fetch from your admin profile
 
-    _replies.add({
-      'message': replyController.text.trim(),
-      'time': timeString,
-      'date': dateString,
-    });
-    _showReplyField = false;
-    replyController.clear();
-    notifyListeners();
+      // Update Firestore
+      await FirebaseFirestore.instance
+          .collection('feedback')
+          .doc(_feedback!.id)
+          .update({
+            'messageReply': text,
+            'replyBy': adminName,
+            'replyAt': FieldValue.serverTimestamp(),
+            'status': 'Replied',
+          });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Reply sent successfully!'),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      // Update Local State for UI
+      final now = DateTime.now();
+      _currentReplyMessage = text;
+      _currentReplyDate = "${now.day}/${now.month}/${now.year}";
+      _showReplyField = false;
+      replyController.clear();
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Reply sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error replying: $e')));
+    }
   }
 
-  void markAsReviewed(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            const Text('Mark as Reviewed'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to mark this feedback as reviewed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+  Future<void> markAsReviewed(BuildContext context) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('feedback')
+          .doc(_feedback!.id)
+          .update({'status': 'Reviewed'});
+
+      _isMarkedReviewed = true;
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Marked as reviewed'),
+            backgroundColor: Colors.green,
           ),
-          ElevatedButton(
-            onPressed: () {
-              _isMarkedReviewed = true;
-              notifyListeners();
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text('Marked as reviewed'),
-                    ],
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
-  void deleteFeedback(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.delete_outline, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Delete Feedback'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to delete this feedback? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+  Future<void> deleteFeedback(BuildContext context) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('feedback')
+          .doc(_feedback!.id)
+          .delete();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Feedback deleted successfully'),
+            backgroundColor: Colors.red,
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Feedback deleted successfully'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void archiveFeedback(BuildContext context) {
-    if (_feedback == null) return;
-
-    notifyListeners();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Feedback archived successfully')),
-    );
+        );
+        Navigator.pop(context); // Go back to list
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override

@@ -1,48 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_view_model.dart';
+import '../models/feedback_model.dart';
+import '../View/admin_feedback_detail_view.dart'; // <--- IMPORT YOUR DETAIL VIEW HERE
 
 class AdminFeedbackViewModel extends BaseViewModel {
-  final List<FeedbackItem> _feedbackList = [
-    FeedbackItem(
-      id: '101',
-      title: 'App crashes on scan',
-      message:
-          'Whenever I try to scan my cat, the app closes unexpectedly. Please fix this soon.',
-      sender: 'john@example.com',
-      date: '2025-01-25',
-      category: 'Bug Report',
-    ),
-    FeedbackItem(
-      id: '102',
-      title: 'Suggestion for Calendar',
-      message: 'It would be great if we could sync this with Google Calendar.',
-      sender: 'jane@test.com',
-      date: '2025-01-24',
-      category: 'Feature Request',
-    ),
-  ];
+  List<FeedbackModel> _feedbackList = [];
+  bool _isLoading = true;
 
-  List<FeedbackItem> get feedbackList => List.unmodifiable(_feedbackList);
+  List<FeedbackModel> get feedbackList => _feedbackList;
+  bool get isLoading => _isLoading;
 
-  void openFeedbackDetail(BuildContext context, FeedbackItem item) {
-    Navigator.pushNamed(context, '/admin_feedback_detail', arguments: item);
+  AdminFeedbackViewModel() {
+    fetchFeedback();
   }
-}
 
-class FeedbackItem {
-  final String id;
-  final String title;
-  final String message;
-  final String sender;
-  final String date;
-  final String category;
+  Future<void> fetchFeedback() async {
+    _isLoading = true;
+    notifyListeners();
 
-  FeedbackItem({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.sender,
-    required this.date,
-    required this.category,
-  });
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('feedback')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      _feedbackList = snapshot.docs
+          .map((doc) => FeedbackModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print("Error fetching feedback: $e");
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // --- FIXED NAVIGATION FUNCTION ---
+  Future<void> openFeedbackDetail(
+    BuildContext context,
+    FeedbackModel item,
+  ) async {
+    // We use MaterialPageRoute to directly navigate without needing main.dart routes
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AdminFeedbackDetailView(),
+        // This passes the 'item' so ModalRoute.of(context) in the view still works
+        settings: RouteSettings(arguments: item),
+      ),
+    );
+
+    // Refresh list when coming back (in case status changed to 'Replied')
+    fetchFeedback();
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../ViewModel/admin_feedback_view_model.dart';
+import '../models/feedback_model.dart'; // IMPORT THE MODEL
 
 class AdminFeedbackListView extends StatelessWidget {
   const AdminFeedbackListView({super.key});
@@ -123,7 +124,9 @@ class _FeedbackListBody extends StatelessWidget {
 
           // Feedback list
           Expanded(
-            child: viewModel.feedbackList.isEmpty
+            child: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : viewModel.feedbackList.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -164,7 +167,7 @@ class _FeedbackListBody extends StatelessWidget {
 }
 
 class _FeedbackCard extends StatelessWidget {
-  final FeedbackItem item;
+  final FeedbackModel item; // Changed from FeedbackItem to FeedbackModel
   final VoidCallback onTap;
 
   const _FeedbackCard({required this.item, required this.onTap});
@@ -173,6 +176,10 @@ class _FeedbackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Format Date
+    final dateString =
+        "${item.createdAt.day}/${item.createdAt.month}/${item.createdAt.year}";
 
     return InkWell(
       onTap: onTap,
@@ -197,12 +204,18 @@ class _FeedbackCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
+                color: item.status == 'Replied' || item.status == 'Reviewed'
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                Icons.message_outlined,
-                color: colorScheme.primary,
+                item.status == 'Replied' || item.status == 'Reviewed'
+                    ? Icons.check_circle_outline
+                    : Icons.message_outlined,
+                color: item.status == 'Replied' || item.status == 'Reviewed'
+                    ? Colors.green
+                    : colorScheme.primary,
                 size: 22,
               ),
             ),
@@ -249,7 +262,7 @@ class _FeedbackCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          item.sender,
+                          item.userEmail, // Changed from sender to userEmail
                           style: textTheme.bodySmall?.copyWith(
                             color: Colors.grey.shade600,
                           ),
@@ -268,7 +281,7 @@ class _FeedbackCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  item.date,
+                  dateString, // Use formatted date
                   style: textTheme.bodySmall?.copyWith(
                     color: Colors.grey.shade500,
                     fontSize: 11,

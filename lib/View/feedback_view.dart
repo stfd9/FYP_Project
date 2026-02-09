@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../ViewModel/feedback_view_model.dart';
 
 class FeedbackView extends StatelessWidget {
@@ -15,18 +14,12 @@ class FeedbackView extends StatelessWidget {
   }
 }
 
-class _FeedbackBody extends StatefulWidget {
+class _FeedbackBody extends StatelessWidget {
   const _FeedbackBody();
 
   @override
-  State<_FeedbackBody> createState() => _FeedbackBodyState();
-}
-
-class _FeedbackBodyState extends State<_FeedbackBody> {
-  int _selectedRating = 0;
-
-  @override
   Widget build(BuildContext context) {
+    // Watch the ViewModel to rebuild when state changes
     final viewModel = context.watch<FeedbackViewModel>();
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -42,242 +35,70 @@ class _FeedbackBodyState extends State<_FeedbackBody> {
         elevation: 0,
         foregroundColor: const Color(0xFF2D3142),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // --- Header Illustration ---
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.1),
-                      colorScheme.primary.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
+      body: viewModel.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // ... Header Illustration (Keep existing code) ...
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                        gradient: LinearGradient(
+                          colors: [
+                            colorScheme.primary.withValues(alpha: 0.1),
+                            colorScheme.primary.withValues(alpha: 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      child: const Icon(
-                        Icons.rate_review_outlined,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'We Value Your Feedback',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3142),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Help us improve PetCare AI by sharing your thoughts',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // --- Rating Section ---
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'How would you rate your experience?',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        final starIndex = index + 1;
-                        return GestureDetector(
-                          onTap: () => setState(() => _selectedRating = starIndex),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: AnimatedScale(
-                              scale: _selectedRating >= starIndex ? 1.1 : 1.0,
-                              duration: const Duration(milliseconds: 150),
-                              child: Icon(
-                                _selectedRating >= starIndex
-                                    ? Icons.star_rounded
-                                    : Icons.star_outline_rounded,
-                                size: 40,
-                                color: _selectedRating >= starIndex
-                                    ? Colors.amber
-                                    : Colors.grey.shade300,
-                              ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.rate_review_outlined,
+                              color: Colors.white,
+                              size: 36,
                             ),
                           ),
-                        );
-                      }),
-                    ),
-                    if (_selectedRating > 0) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _getRatingText(_selectedRating),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // --- Feedback Form ---
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category Dropdown
-                    _SectionLabel(icon: Icons.category_outlined, label: 'Category'),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: viewModel.selectedCategory,
-                          isExpanded: true,
-                          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade600),
-                          items: viewModel.categories
-                              .map(
-                                (value) => DropdownMenuItem(
-                                  value: value,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        _getCategoryIcon(value),
-                                        size: 18,
-                                        color: colorScheme.primary,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        value,
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              viewModel.selectCategory(value);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Subject Field
-                    _SectionLabel(icon: Icons.title, label: 'Subject'),
-                    const SizedBox(height: 10),
-                    _ModernTextField(
-                      controller: viewModel.subjectController,
-                      hintText: 'Brief summary of your feedback',
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Message Field
-                    _SectionLabel(icon: Icons.message_outlined, label: 'Message'),
-                    const SizedBox(height: 10),
-                    _ModernTextField(
-                      controller: viewModel.messageController,
-                      hintText: 'Describe your feedback in detail...',
-                      maxLines: 5,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Privacy Notice
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.privacy_tip_outlined,
-                            size: 18,
-                            color: Colors.blue.shade700,
+                          const SizedBox(height: 16),
+                          const Text(
+                            'We Value Your Feedback',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3142),
+                            ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Your feedback helps us improve. We respect your privacy and won\'t share your personal information.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue.shade700,
-                                height: 1.4,
-                              ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Help us improve PetCare AI by sharing your thoughts',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
                             ),
                           ),
                         ],
@@ -285,47 +106,202 @@ class _FeedbackBodyState extends State<_FeedbackBody> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Submit Button
-                    SizedBox(
+                    // --- Rating Section ---
+                    Container(
                       width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          elevation: 0,
-                        ),
-                        onPressed: () => viewModel.onSubmitFeedbackPressed(context),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.send_rounded, size: 20),
-                            SizedBox(width: 10),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'How would you rate your experience?',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(5, (index) {
+                              final starIndex = index + 1;
+                              return GestureDetector(
+                                // CONNECTED TO VIEW MODEL HERE
+                                onTap: () => viewModel.setRating(starIndex),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  child: AnimatedScale(
+                                    scale: viewModel.rating >= starIndex
+                                        ? 1.1
+                                        : 1.0,
+                                    duration: const Duration(milliseconds: 150),
+                                    child: Icon(
+                                      viewModel.rating >= starIndex
+                                          ? Icons.star_rounded
+                                          : Icons.star_outline_rounded,
+                                      size: 40,
+                                      color: viewModel.rating >= starIndex
+                                          ? Colors.amber
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                          if (viewModel.rating > 0) ...[
+                            const SizedBox(height: 8),
                             Text(
-                              'Submit Feedback',
+                              _getRatingText(viewModel.rating),
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // --- Feedback Form ---
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Category Dropdown
+                          _SectionLabel(
+                            icon: Icons.category_outlined,
+                            label: 'Category',
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: viewModel.selectedCategory,
+                                isExpanded: true,
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.grey.shade600,
+                                ),
+                                items: viewModel.categories
+                                    .map(
+                                      (value) => DropdownMenuItem(
+                                        value: value,
+                                        child: Text(
+                                          value,
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  if (value != null)
+                                    viewModel.selectCategory(value);
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Subject Field
+                          _SectionLabel(icon: Icons.title, label: 'Subject'),
+                          const SizedBox(height: 10),
+                          _ModernTextField(
+                            controller: viewModel.subjectController,
+                            hintText: 'Brief summary of your feedback',
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Message Field
+                          _SectionLabel(
+                            icon: Icons.message_outlined,
+                            label: 'Message',
+                          ),
+                          const SizedBox(height: 10),
+                          _ModernTextField(
+                            controller: viewModel.messageController,
+                            hintText: 'Describe your feedback in detail...',
+                            maxLines: 5,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () =>
+                                  viewModel.onSubmitFeedbackPressed(context),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.send_rounded, size: 20),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Submit Feedback',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
+  // ... (Keep helper methods _getRatingText, _SectionLabel, _ModernTextField exactly as you had them)
   String _getRatingText(int rating) {
     switch (rating) {
       case 1:
@@ -342,31 +318,12 @@ class _FeedbackBodyState extends State<_FeedbackBody> {
         return '';
     }
   }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'bug report':
-        return Icons.bug_report_outlined;
-      case 'feature request':
-        return Icons.lightbulb_outline;
-      case 'general feedback':
-        return Icons.chat_bubble_outline;
-      case 'ui/ux':
-        return Icons.design_services_outlined;
-      case 'performance':
-        return Icons.speed_outlined;
-      default:
-        return Icons.feedback_outlined;
-    }
-  }
 }
 
 class _SectionLabel extends StatelessWidget {
   final IconData icon;
   final String label;
-
   const _SectionLabel({required this.icon, required this.label});
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -390,13 +347,11 @@ class _ModernTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final int maxLines;
-
   const _ModernTextField({
     required this.controller,
     required this.hintText,
     this.maxLines = 1,
   });
-
   @override
   Widget build(BuildContext context) {
     return TextField(
@@ -404,13 +359,13 @@ class _ModernTextField extends StatelessWidget {
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 14,
-        ),
+        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.grey.shade200),

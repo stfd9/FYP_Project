@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../ViewModel/help_faq_view_model.dart';
 
 class HelpFaqView extends StatelessWidget {
@@ -36,190 +35,230 @@ class _HelpFaqBody extends StatelessWidget {
         foregroundColor: const Color(0xFF2D3142),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            // --- Header Illustration ---
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    colorScheme.primary.withValues(alpha: 0.1),
-                    colorScheme.primary.withValues(alpha: 0.05),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+        child: viewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
                 ),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
                 children: [
+                  // --- Header Illustration ---
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: colorScheme.primary.withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primary.withValues(alpha: 0.1),
+                          colorScheme.primary.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    child: const Icon(
-                      Icons.help_outline,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'How can we help you?',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3142),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Browse categories or search for answers',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // --- Search Bar ---
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for help...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // --- Categories Section Header ---
-            Row(
-              children: [
-                Icon(Icons.category_outlined, size: 18, color: Colors.grey.shade600),
-                const SizedBox(width: 8),
-                Text(
-                  'Browse by Category',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // --- Category Cards ---
-            ...viewModel.categories.map((category) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _CategoryCard(category: category),
-              );
-            }),
-
-            const SizedBox(height: 12),
-
-            // --- Contact Support Card ---
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.support_agent,
-                      color: Colors.green,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.help_outline,
+                            color: Colors.white,
+                            size: 36,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         const Text(
-                          'Still need help?',
+                          'How can we help you?',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF2D3142),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         Text(
-                          'Contact our support team',
+                          'Browse categories or search for answers',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade500,
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // --- Search Bar (UPDATED) ---
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward,
                       color: Colors.white,
-                      size: 20,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      // Connect to ViewModel search logic
+                      onChanged: (value) => viewModel.search(value),
+                      decoration: InputDecoration(
+                        hintText: 'Search for help...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.grey.shade400,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ),
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // --- Categories Section Header ---
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.category_outlined,
+                        size: 18,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Browse by Category',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // --- Category Cards ---
+                  if (viewModel.categories.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 48,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "No matching FAQs found.",
+                            style: TextStyle(color: Colors.grey.shade500),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ...viewModel.categories.map((category) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _CategoryCard(category: category),
+                      );
+                    }),
+
+                  const SizedBox(height: 12),
+
+                  // --- Contact Support Card ---
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.support_agent,
+                            color: Colors.green,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Still need help?',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D3142),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Contact our support team',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
     );
   }
@@ -235,6 +274,9 @@ class _CategoryCard extends StatefulWidget {
 }
 
 class _CategoryCardState extends State<_CategoryCard> {
+  // If user is searching, auto-expand categories to show results
+  // We can't easily detect search state here, so we default to collapsed
+  // unless specific logic is added. For now, keep as user-controlled toggle.
   bool _isExpanded = false;
 
   @override
@@ -290,7 +332,7 @@ class _CategoryCardState extends State<_CategoryCard> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '\${widget.category.items.length} questions',
+                            '${widget.category.items.length} questions',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade500,
@@ -339,8 +381,9 @@ class _CategoryCardState extends State<_CategoryCard> {
                 }),
               ],
             ),
-            crossFadeState:
-                _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 200),
           ),
         ],
@@ -394,10 +437,9 @@ class _FaqItemState extends State<_FaqItem> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color:
-                            _isExpanded
-                                ? Theme.of(context).colorScheme.primary
-                                : const Color(0xFF2D3142),
+                        color: _isExpanded
+                            ? Theme.of(context).colorScheme.primary
+                            : const Color(0xFF2D3142),
                       ),
                     ),
                   ),
@@ -436,8 +478,9 @@ class _FaqItemState extends State<_FaqItem> {
               ),
             ),
           ),
-          crossFadeState:
-              _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: _isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
         if (widget.showDivider)

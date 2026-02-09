@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../ViewModel/profile_view_model.dart';
 
 class ProfileView extends StatelessWidget {
@@ -39,7 +38,7 @@ class _ProfileBody extends StatelessWidget {
               Center(
                 child: Column(
                   children: [
-                    // Avatar Image (No Edit Button)
+                    // Avatar Image
                     Container(
                       width: 110,
                       height: 110,
@@ -50,6 +49,13 @@ class _ProfileBody extends StatelessWidget {
                           color: colorScheme.primary.withValues(alpha: 0.1),
                           width: 1,
                         ),
+                        // IMAGE DISPLAY LOGIC HERE
+                        image: viewModel.profileImageUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(viewModel.profileImageUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.06),
@@ -58,13 +64,16 @@ class _ProfileBody extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Center(
-                        child: Icon(
-                          Icons.person,
-                          size: 55,
-                          color: colorScheme.primary,
-                        ),
-                      ),
+                      // Fallback Icon if no image
+                      child: viewModel.profileImageUrl == null
+                          ? Center(
+                              child: Icon(
+                                Icons.person,
+                                size: 55,
+                                color: colorScheme.primary,
+                              ),
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -177,7 +186,7 @@ class _ProfileBody extends StatelessWidget {
                 onTap: () => viewModel.onFeedbackPressed(context),
               ),
 
-              // --- Log Out Card (Without Arrow) ---
+              // --- Log Out Card ---
               _ProfileCard(
                 icon: Icons.logout,
                 title: 'Log Out',
@@ -259,7 +268,7 @@ class _ProfileCard extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
-            color: Color(0xFFF5F6FA), // Light grey icon background
+            color: Color(0xFFF5F6FA),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: iconColor ?? colorScheme.primary, size: 22),

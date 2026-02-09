@@ -10,16 +10,18 @@ import '../View/privacy_security_view.dart';
 import 'base_view_model.dart';
 
 class ProfileViewModel extends BaseViewModel {
-  // --- State Variables (Not Final anymore) ---
+  // --- State Variables ---
   String _userName = 'Loading...';
   String _email = '';
+  String? _profileImageUrl; // To store the image URL
   int _totalPets = 0;
-  int _totalScans = 0; // Placeholder until you have a 'scans' collection
-  int _daysActive = 0; // Placeholder
+  int _totalScans = 0;
+  int _daysActive = 0;
 
   // --- Getters ---
   String get userName => _userName;
   String get email => _email;
+  String? get profileImageUrl => _profileImageUrl;
   int get totalPets => _totalPets;
   int get totalScans => _totalScans;
   int get daysActive => _daysActive;
@@ -43,7 +45,7 @@ class ProfileViewModel extends BaseViewModel {
     // 1. Set Email directly from Auth
     _email = authUser.email ?? 'No Email';
 
-    // Calculate Days Active (Simple approximation based on creation time)
+    // Calculate Days Active
     if (authUser.metadata.creationTime != null) {
       final difference = DateTime.now().difference(
         authUser.metadata.creationTime!,
@@ -53,7 +55,6 @@ class ProfileViewModel extends BaseViewModel {
 
     try {
       // 2. Fetch User Details from Firestore
-      // We query the 'user' collection where 'providerId' matches the Auth UID
       final userSnapshot = await FirebaseFirestore.instance
           .collection('user')
           .where('providerId', isEqualTo: authUser.uid)
@@ -63,16 +64,14 @@ class ProfileViewModel extends BaseViewModel {
       if (userSnapshot.docs.isNotEmpty) {
         final data = userSnapshot.docs.first.data();
         _userName = data['userName'] ?? 'User';
+        _profileImageUrl = data['profileImageUrl']; // Fetch the image URL
 
         // Save the Custom User ID (e.g. U000001) for fetching pets
         final customUserId = userSnapshot.docs.first.id;
 
         // 3. Fetch Total Pets Count
-        // Assuming you have a 'pets' collection where 'ownerId' or 'userId' links to the user
         final petsSnapshot = await FirebaseFirestore.instance
-            .collection(
-              'pets',
-            ) // Change this if your collection is named differently
+            .collection('pets')
             .where('userId', isEqualTo: customUserId)
             .get();
 
@@ -88,17 +87,13 @@ class ProfileViewModel extends BaseViewModel {
 
   // --- Actions ---
 
-  void onEditProfilePressed(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile editing coming soon.')),
-    );
-  }
-
+  // When returning from Account Details, refresh the profile data
+  // to show the new image if it changed.
   void onAccountDetailsPressed(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AccountDetailsView()),
-    );
+    ).then((_) => _fetchUserProfile()); // Refresh when coming back
   }
 
   void onNotificationsPressed(BuildContext context) {
@@ -132,10 +127,7 @@ class ProfileViewModel extends BaseViewModel {
   // --- Logout Logic ---
   Future<void> onLogoutPressed(BuildContext context) async {
     try {
-      // 1. Sign out from Firebase
       await FirebaseAuth.instance.signOut();
-
-      // 2. Navigate back to Login Screen
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }

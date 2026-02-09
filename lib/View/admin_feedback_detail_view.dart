@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../ViewModel/admin_feedback_view_model.dart';
 import '../ViewModel/admin_feedback_detail_view_model.dart';
+import '../models/feedback_model.dart'; // IMPORT THE MODEL
 
 class AdminFeedbackDetailView extends StatelessWidget {
   const AdminFeedbackDetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final item = ModalRoute.of(context)!.settings.arguments as FeedbackItem;
+    // Cast to FeedbackModel (not FeedbackItem)
+    final item = ModalRoute.of(context)!.settings.arguments as FeedbackModel;
 
     return ChangeNotifierProvider(
       create: (_) => AdminFeedbackDetailViewModel()..initialize(item),
@@ -23,9 +24,19 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminFeedbackDetailViewModel>();
+
+    // Safety check in case view model is still initializing
+    if (viewModel.feedback == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final item = viewModel.feedback!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    // Format Date
+    final dateString =
+        "${item.createdAt.day}/${item.createdAt.month}/${item.createdAt.year}";
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
@@ -54,6 +65,12 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () => viewModel.deleteFeedback(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -105,7 +122,7 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        item.date,
+                        dateString,
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.grey.shade500,
                         ),
@@ -144,7 +161,7 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            item.sender,
+                            item.userEmail, // Changed from sender to userEmail
                             style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -152,6 +169,21 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
                         ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Star Rating Display
+                  Row(
+                    children: List.generate(5, (index) {
+                      return Icon(
+                        index < item.rating
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                        color: index < item.rating
+                            ? Colors.amber
+                            : Colors.grey.shade300,
+                        size: 20,
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -214,8 +246,8 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
               ),
             ),
 
-            // Sent Replies Section
-            if (viewModel.replies.isNotEmpty) ...[
+            // --- EXISTING REPLIES (If any) ---
+            if (viewModel.currentReplyMessage != null) ...[
               const SizedBox(height: 20),
               Container(
                 width: double.infinity,
@@ -243,113 +275,66 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Your Replies',
+                          'Reply Sent',
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${viewModel.replies.length}',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                        if (viewModel.currentReplyDate != null)
+                          Text(
+                            viewModel.currentReplyDate!,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade500,
                             ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    ...List.generate(viewModel.replies.length, (index) {
-                      final reply = viewModel.replies[index];
-                      return Container(
-                        margin: EdgeInsets.only(
-                          bottom: index < viewModel.replies.length - 1 ? 12 : 0,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.15),
                         ),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: colorScheme.primary.withValues(alpha: 0.15),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 14,
-                                  backgroundColor: colorScheme.primary,
-                                  child: const Icon(
-                                    Icons.person,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Admin',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Icon(
-                                  Icons.access_time,
-                                  size: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${reply['time']} • ${reply['date']}',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey.shade500,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              reply['message'] ?? '',
-                              style: textTheme.bodyMedium?.copyWith(
-                                height: 1.5,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: colorScheme.primary,
+                                child: const Icon(
+                                  Icons.person,
                                   size: 14,
-                                  color: Colors.green.shade400,
+                                  color: Colors.white,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Sent',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: Colors.green.shade400,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                item.replyBy ?? 'Admin',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            viewModel.currentReplyMessage!,
+                            style: textTheme.bodyMedium?.copyWith(
+                              height: 1.5,
+                              color: Colors.grey.shade800,
                             ),
-                          ],
-                        ),
-                      );
-                    }),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -357,59 +342,66 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: viewModel.isMarkedReviewed
-                        ? null
-                        : () => viewModel.markAsReviewed(context),
-                    icon: Icon(
-                      viewModel.isMarkedReviewed
-                          ? Icons.check_circle
-                          : Icons.check_circle_outline,
-                    ),
-                    label: Text(
-                      viewModel.isMarkedReviewed ? 'Reviewed' : 'Mark Reviewed',
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(
-                        color: viewModel.isMarkedReviewed
+            // --- Action Buttons ---
+            // Only show Reply button if not yet replied
+            if (viewModel.currentReplyMessage == null) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: viewModel.isMarkedReviewed
+                          ? null
+                          : () => viewModel.markAsReviewed(context),
+                      icon: Icon(
+                        viewModel.isMarkedReviewed
+                            ? Icons.check_circle
+                            : Icons.check_circle_outline,
+                      ),
+                      label: Text(
+                        viewModel.isMarkedReviewed
+                            ? 'Reviewed'
+                            : 'Mark Reviewed',
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(
+                          color: viewModel.isMarkedReviewed
+                              ? Colors.green
+                              : colorScheme.primary,
+                        ),
+                        foregroundColor: viewModel.isMarkedReviewed
                             ? Colors.green
                             : colorScheme.primary,
-                      ),
-                      foregroundColor: viewModel.isMarkedReviewed
-                          ? Colors.green
-                          : colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: viewModel.toggleReplyField,
-                    icon: Icon(
-                      viewModel.showReplyField ? Icons.close : Icons.reply,
-                    ),
-                    label: Text(viewModel.showReplyField ? 'Cancel' : 'Reply'),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: viewModel.showReplyField
-                          ? Colors.grey.shade600
-                          : colorScheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: viewModel.toggleReplyField,
+                      icon: Icon(
+                        viewModel.showReplyField ? Icons.close : Icons.reply,
+                      ),
+                      label: Text(
+                        viewModel.showReplyField ? 'Cancel' : 'Reply',
+                      ),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: viewModel.showReplyField
+                            ? Colors.grey.shade600
+                            : colorScheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
 
             // Reply Input Field
             AnimatedSize(
@@ -442,7 +434,7 @@ class _AdminFeedbackDetailBody extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Reply to ${item.sender}',
+                                'Reply to ${item.userEmail}',
                                 style: textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
