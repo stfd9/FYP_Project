@@ -4,9 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
-// Make sure you import your Pet model and ScheduleCreate model if they are in other files
-// import '../Model/pet_model.dart'; 
-// import '../Model/schedule_create_model.dart'; 
 import 'base_view_model.dart';
 
 class AddScheduleViewModel extends BaseViewModel {
@@ -15,15 +12,15 @@ class AddScheduleViewModel extends BaseViewModel {
   // --- Controllers (Renamed to match the new logic) ---
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  
+
   // --- State Variables ---
   DateTime? _startDateTime;
   DateTime? _endDateTime;
   DateTime? _reminderDateTime;
   bool _reminderEnabled = false;
-  
+
   // Placeholder for Pet object (Change 'dynamic' to 'Pet' if you have the model imported)
-  dynamic _selectedPet; 
+  dynamic _selectedPet;
   String? userId; // To store resolved User ID
 
   // --- Getters ---
@@ -60,13 +57,19 @@ class AddScheduleViewModel extends BaseViewModel {
   }
 
   // --- Helper to Format Date for UI ---
-  String formatDateTimeLabel(DateTime? value, {String placeholder = 'Select Date'}) {
+  String formatDateTimeLabel(
+    DateTime? value, {
+    String placeholder = 'Select Date',
+  }) {
     if (value == null) return placeholder;
     return DateFormat('EEE, d MMM yyyy • h:mm a').format(value);
   }
 
   // --- Date Picker Logic ---
-  Future<void> pickDateTime(BuildContext context, {required bool isStart}) async {
+  Future<void> pickDateTime(
+    BuildContext context, {
+    required bool isStart,
+  }) async {
     final now = DateTime.now();
     final initial = isStart ? (_startDateTime ?? now) : (_endDateTime ?? now);
 
@@ -103,7 +106,7 @@ class AddScheduleViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  // --- Main Save Logic (Merged) ---
+  // --- Main Save Logic ---
   void onSaveSchedulePressed(BuildContext context) {
     final formState = formKey.currentState;
     if (formState == null || !formState.validate()) {
@@ -134,12 +137,9 @@ class AddScheduleViewModel extends BaseViewModel {
     }
 
     // 2. Async Save Operation
-    // (Assuming runAsync is a method in your BaseViewModel)
-    // If runAsync is not defined, just remove the wrapper and use 'await' normally.
-    
-    // runAsync(() async {  <-- Uncomment if BaseViewModel has this
-      _performSave(context);
-    // });                  <-- Uncomment if BaseViewModel has this
+    runAsync(() async {
+      await _performSave(context);
+    });
   }
 
   Future<void> _performSave(BuildContext context) async {
@@ -155,28 +155,34 @@ class AddScheduleViewModel extends BaseViewModel {
       return;
     }
 
-    /* // 4. Create Payload (Uncomment this when you have the ScheduleCreate model)
-    final payload = ScheduleCreate(
+    // 4. Create Payload
+    final scheduleId = await _createSchedule(
       scheTitle: titleController.text.trim(),
       scheDescription: descriptionController.text.trim(),
       startDateTime: start,
       endDateTime: end,
       reminderEnabled: _reminderEnabled,
       reminderDateTime: _reminderDateTime,
-      petId: _selectedPet?.id, // Assuming Pet object has 'id'
+      petId: _selectedPet?.id,
       userId: resolvedUserId,
     );
-    // await _repository.createSchedule(payload); // Call your API/DB here
-    */
+
+    if (!context.mounted) return;
 
     // 5. Create Local Event for Calendar (Immediate UI update)
     final timeString = DateFormat('h:mm a').format(start);
     final newEvent = CalendarEvent(
       day: start.day,
-      petName: _selectedPet?.name ?? '', // Assuming Pet object has 'name'
+      petName: _selectedPet?.name ?? '',
       activity: titleController.text.trim(),
       location: descriptionController.text.trim(),
       time: timeString,
+      scheduleId: scheduleId,
+      startDateTime: start,
+      endDateTime: end,
+      reminderEnabled: _reminderEnabled,
+      reminderDateTime: _reminderDateTime,
+      petId: _selectedPet?.id,
     );
 
     if (context.mounted) {
@@ -204,8 +210,38 @@ class AddScheduleViewModel extends BaseViewModel {
     return snapshot.docs.first.id;
   }
 
+  Future<String> _createSchedule({
+    required String scheTitle,
+    required String scheDescription,
+    required DateTime startDateTime,
+    required DateTime endDateTime,
+    required bool reminderEnabled,
+    required DateTime? reminderDateTime,
+    required String? petId,
+    required String userId,
+  }) async {
+    final docRef = FirebaseFirestore.instance.collection('schedules').doc();
+    await docRef.set({
+      'scheduleId': docRef.id,
+      'scheTitle': scheTitle,
+      'scheDescription': scheDescription,
+      'startDateTime': Timestamp.fromDate(startDateTime),
+      'endDateTime': Timestamp.fromDate(endDateTime),
+      'reminderEnabled': reminderEnabled,
+      'reminderDateTime': reminderEnabled && reminderDateTime != null
+          ? Timestamp.fromDate(reminderDateTime)
+          : null,
+      'scheCreatedAt': FieldValue.serverTimestamp(),
+      'petId': petId,
+      'userId': userId,
+    });
+    return docRef.id;
+  }
+
   void _showSnack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

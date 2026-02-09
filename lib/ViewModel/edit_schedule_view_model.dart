@@ -1,140 +1,164 @@
 import 'package:flutter/material.dart';
-import '../calendar_event.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
-class EditScheduleViewModel extends ChangeNotifier {
+import '../calendar_event.dart';
+import '../models/pet_info.dart';
+import 'base_view_model.dart';
+
+class EditScheduleViewModel extends BaseViewModel {
+  EditScheduleViewModel(this.originalEvent) {
+    titleController = TextEditingController(text: originalEvent.activity);
+    descriptionController = TextEditingController(text: originalEvent.location);
+
+    _startDateTime = originalEvent.startDateTime ?? _buildDateTimeFromEvent();
+    _endDateTime = originalEvent.endDateTime ?? _startDateTime;
+    _reminderEnabled = originalEvent.reminderEnabled;
+    _reminderDateTime = originalEvent.reminderDateTime;
+  }
+
   final CalendarEvent originalEvent;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  late TextEditingController petNameController;
-  late TextEditingController activityController;
-  late TextEditingController locationController;
-  String? _selectedPetName;
+  PetInfo? _selectedPet;
+  late final TextEditingController titleController;
+  late final TextEditingController descriptionController;
 
-  DateTime _selectedDate;
-  TimeOfDay _selectedTime;
+  late DateTime _startDateTime;
+  late DateTime _endDateTime;
+  bool _reminderEnabled = false;
+  DateTime? _reminderDateTime;
 
-  EditScheduleViewModel(this.originalEvent)
-    : _selectedDate = DateTime.now(),
-      _selectedTime = TimeOfDay.now() {
-    // Initialize controllers with original event data
-    // Initialize selected pet name from the original event
-    _selectedPetName = originalEvent.petName;
-    activityController = TextEditingController(text: originalEvent.activity);
-    locationController = TextEditingController(text: originalEvent.location);
+  PetInfo? get selectedPet => _selectedPet;
 
-    // Parse the original event's day and time
-    final now = DateTime.now();
-    _selectedDate = DateTime(now.year, now.month, originalEvent.day);
-
-    // Parse time string like "10:00 AM"
-    _selectedTime = _parseTimeString(originalEvent.time);
+  set selectedPet(PetInfo? value) {
+    _selectedPet = value;
+    notifyListeners();
   }
 
-  TimeOfDay _parseTimeString(String timeStr) {
-    try {
-      final parts = timeStr.split(' ');
-      final timeParts = parts[0].split(':');
-      int hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
-      final isPM = parts.length > 1 && parts[1].toUpperCase() == 'PM';
+  String get startLabel =>
+      DateFormat('EEE, d MMM yyyy • h:mm a').format(_startDateTime);
+  String get endLabel =>
+      DateFormat('EEE, d MMM yyyy • h:mm a').format(_endDateTime);
+  String get reminderLabel => _reminderDateTime == null
+      ? 'Select reminder date & time'
+      : DateFormat('EEE, d MMM yyyy • h:mm a').format(_reminderDateTime!);
+  bool get reminderEnabled => _reminderEnabled;
 
-      if (isPM && hour != 12) hour += 12;
-      if (!isPM && hour == 12) hour = 0;
-
-      return TimeOfDay(hour: hour, minute: minute);
-    } catch (_) {
-      return TimeOfDay.now();
-    }
+  void setReminderEnabled(bool value) {
+    if (_reminderEnabled == value) return;
+    _reminderEnabled = value;
+    notifyListeners();
   }
 
-  DateTime get selectedDate => _selectedDate;
-  TimeOfDay get selectedTime => _selectedTime;
-
-  String get formattedDateTime {
-    final day = _selectedDate.day;
-    final suffix = _getDaySuffix(day);
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final month = months[_selectedDate.month - 1];
-
-    final hour = _selectedTime.hourOfPeriod == 0
-        ? 12
-        : _selectedTime.hourOfPeriod;
-    final minute = _selectedTime.minute.toString().padLeft(2, '0');
-    final period = _selectedTime.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$day$suffix $month ${_selectedDate.year} at $hour:$minute $period';
-  }
-
-  String _getDaySuffix(int day) {
-    if (day >= 11 && day <= 13) return 'th';
-    switch (day % 10) {
-      case 1:
-        return 'st';
-      case 2:
-        return 'nd';
-      case 3:
-        return 'rd';
-      default:
-        return 'th';
-    }
-  }
-
-  Future<void> pickDateTime(BuildContext context) async {
-    // Pick Date
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-
-    if (date != null && context.mounted) {
-      // Pick Time
-      final time = await showTimePicker(
-        context: context,
-        initialTime: _selectedTime,
-      );
-
-      if (time != null) {
-        _selectedDate = date;
-        _selectedTime = time;
+  void syncSelectedPet(List<PetInfo> pets) {
+    if (_selectedPet != null) return;
+    for (final pet in pets) {
+      if (pet.name == originalEvent.petName) {
+        _selectedPet = pet;
         notifyListeners();
+        return;
       }
     }
   }
 
+  Future<DateTime?> _pickDateTime(
+    BuildContext context,
+    DateTime initialDateTime,
+  ) async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDateTime,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (selectedDate == null || !context.mounted) return null;
+
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDateTime),
+    );
+
+    if (selectedTime == null || !context.mounted) return null;
+
+    return DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+  }
+
+  Future<void> pickStartDateTime(BuildContext context) async {
+    final picked = await _pickDateTime(context, _startDateTime);
+    if (picked == null) return;
+
+    _startDateTime = picked;
+    if (_endDateTime.isBefore(picked)) {
+      _endDateTime = picked;
+    }
+    if (_reminderDateTime != null && _reminderDateTime!.isAfter(picked)) {
+      _reminderDateTime = null;
+    }
+    notifyListeners();
+  }
+
+  Future<void> pickEndDateTime(BuildContext context) async {
+    final picked = await _pickDateTime(context, _endDateTime);
+    if (picked == null) return;
+
+    _endDateTime = picked;
+    notifyListeners();
+  }
+
+  Future<void> pickReminderDateTime(BuildContext context) async {
+    final initial = _reminderDateTime ?? _startDateTime;
+    final picked = await _pickDateTime(context, initial);
+    if (picked == null) return;
+
+    _reminderDateTime = picked;
+    notifyListeners();
+  }
+
   CalendarEvent get updatedEvent {
-    final hour = _selectedTime.hourOfPeriod == 0
-        ? 12
-        : _selectedTime.hourOfPeriod;
-    final minute = _selectedTime.minute.toString().padLeft(2, '0');
-    final period = _selectedTime.period == DayPeriod.am ? 'AM' : 'PM';
-    final timeString = '$hour:$minute $period';
+    final timeString = DateFormat('h:mm a').format(_startDateTime);
 
     return CalendarEvent(
-      day: _selectedDate.day,
-      petName: _selectedPetName?.trim() ?? '',
-      activity: activityController.text.trim(),
-      location: locationController.text.trim(),
+      day: _startDateTime.day,
+      petName: _selectedPet?.name ?? originalEvent.petName,
+      activity: titleController.text.trim(),
+      location: descriptionController.text.trim(),
       time: timeString,
+      scheduleId: originalEvent.scheduleId,
+      startDateTime: _startDateTime,
+      endDateTime: _endDateTime,
+      reminderEnabled: _reminderEnabled,
+      reminderDateTime: _reminderDateTime,
+      petId: _selectedPet?.id,
     );
   }
 
   void saveChanges(BuildContext context) {
     if (formKey.currentState?.validate() != true) return;
+
+    if (_endDateTime.isBefore(_startDateTime)) {
+      _showSnack(context, 'End time cannot be before start time.');
+      return;
+    }
+
+    if (_reminderEnabled && _reminderDateTime == null) {
+      _showSnack(context, 'Please select a reminder date & time.');
+      return;
+    }
+
+    if (_reminderEnabled &&
+        _reminderDateTime != null &&
+        _reminderDateTime!.isAfter(_startDateTime)) {
+      _showSnack(context, 'Reminder must be before the start time.');
+      return;
+    }
 
     showDialog<bool>(
       context: context,
@@ -187,27 +211,104 @@ class EditScheduleViewModel extends ChangeNotifier {
         ],
       ),
     ).then((confirmed) async {
-      if (confirmed == true && context.mounted) {
-        // Wait a tick for dialog pop animation to unlock navigator
+      if (confirmed != true) return;
+      if (!context.mounted) return;
+
+      runAsync(() async {
+        final scheduleId = originalEvent.scheduleId;
+        if (scheduleId == null || scheduleId.isEmpty) {
+          if (context.mounted) {
+            _showSnack(context, 'Schedule id not found.');
+          }
+          return;
+        }
+
+        final updates = _buildScheduleUpdateMap(
+          scheTitle: titleController.text.trim(),
+          scheDescription: descriptionController.text.trim(),
+          startDateTime: _startDateTime,
+          endDateTime: _endDateTime,
+          reminderEnabled: _reminderEnabled,
+          reminderDateTime: _reminderDateTime,
+          petId: _selectedPet?.id,
+        );
+
+        await FirebaseFirestore.instance
+            .collection('schedules')
+            .doc(scheduleId)
+            .update(updates);
+
+        if (!context.mounted) return;
+
         await Future.delayed(const Duration(milliseconds: 120));
         if (context.mounted) {
           Navigator.pop(context, updatedEvent);
         }
-      }
+      });
     });
+  }
+
+  DateTime _buildDateTimeFromEvent() {
+    final now = DateTime.now();
+    final time = _parseTimeString(originalEvent.time);
+    return DateTime(
+      now.year,
+      now.month,
+      originalEvent.day,
+      time.hour,
+      time.minute,
+    );
+  }
+
+  Map<String, dynamic> _buildScheduleUpdateMap({
+    required String scheTitle,
+    required String scheDescription,
+    required DateTime startDateTime,
+    required DateTime endDateTime,
+    required bool reminderEnabled,
+    required DateTime? reminderDateTime,
+    required String? petId,
+  }) {
+    return {
+      'scheTitle': scheTitle,
+      'scheDescription': scheDescription,
+      'startDateTime': Timestamp.fromDate(startDateTime),
+      'endDateTime': Timestamp.fromDate(endDateTime),
+      'reminderEnabled': reminderEnabled,
+      'reminderDateTime': reminderEnabled && reminderDateTime != null
+          ? Timestamp.fromDate(reminderDateTime)
+          : null,
+      'petId': petId,
+    };
+  }
+
+  TimeOfDay _parseTimeString(String timeStr) {
+    try {
+      final parts = timeStr.split(' ');
+      final timeParts = parts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      final isPM = parts.length > 1 && parts[1].toUpperCase() == 'PM';
+
+      if (isPM && hour != 12) hour += 12;
+      if (!isPM && hour == 12) hour = 0;
+
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (_) {
+      return TimeOfDay.now();
+    }
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   void dispose() {
-    activityController.dispose();
-    locationController.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
     super.dispose();
-  }
-
-  String? get selectedPetName => _selectedPetName;
-
-  set selectedPetName(String? v) {
-    _selectedPetName = v;
-    notifyListeners();
   }
 }
