@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../View/account_details_view.dart';
 import '../View/feedback_view.dart';
@@ -8,27 +10,91 @@ import '../View/privacy_security_view.dart';
 import 'base_view_model.dart';
 
 class ProfileViewModel extends BaseViewModel {
-  final String userName = 'Jimmy';
-  final String email = 'jimmy@gmail.com';
-  final int totalPets = 3;
-  final int totalScans = 24;
-  final int daysActive = 45;
+  // --- State Variables (Not Final anymore) ---
+  String _userName = 'Loading...';
+  String _email = '';
+  int _totalPets = 0;
+  int _totalScans = 0; // Placeholder until you have a 'scans' collection
+  int _daysActive = 0; // Placeholder
 
-  void onEditProfilePressed(BuildContext context) {
-    editProfile(context);
+  // --- Getters ---
+  String get userName => _userName;
+  String get email => _email;
+  int get totalPets => _totalPets;
+  int get totalScans => _totalScans;
+  int get daysActive => _daysActive;
+
+  // --- Constructor ---
+  ProfileViewModel() {
+    _fetchUserProfile();
   }
 
-  void editProfile(BuildContext context) {
+  // --- Fetch Data Logic ---
+  Future<void> _fetchUserProfile() async {
+    final authUser = FirebaseAuth.instance.currentUser;
+
+    if (authUser == null) {
+      _userName = 'Guest';
+      _email = 'No email';
+      notifyListeners();
+      return;
+    }
+
+    // 1. Set Email directly from Auth
+    _email = authUser.email ?? 'No Email';
+
+    // Calculate Days Active (Simple approximation based on creation time)
+    if (authUser.metadata.creationTime != null) {
+      final difference = DateTime.now().difference(
+        authUser.metadata.creationTime!,
+      );
+      _daysActive = difference.inDays;
+    }
+
+    try {
+      // 2. Fetch User Details from Firestore
+      // We query the 'user' collection where 'providerId' matches the Auth UID
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('providerId', isEqualTo: authUser.uid)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isNotEmpty) {
+        final data = userSnapshot.docs.first.data();
+        _userName = data['userName'] ?? 'User';
+
+        // Save the Custom User ID (e.g. U000001) for fetching pets
+        final customUserId = userSnapshot.docs.first.id;
+
+        // 3. Fetch Total Pets Count
+        // Assuming you have a 'pets' collection where 'ownerId' or 'userId' links to the user
+        final petsSnapshot = await FirebaseFirestore.instance
+            .collection(
+              'pets',
+            ) // Change this if your collection is named differently
+            .where('userId', isEqualTo: customUserId)
+            .get();
+
+        _totalPets = petsSnapshot.docs.length;
+      }
+    } catch (e) {
+      print("Error fetching profile: $e");
+      _userName = 'Error loading';
+    }
+
+    notifyListeners();
+  }
+
+  // --- Actions ---
+
+  void onEditProfilePressed(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile editing coming soon.')),
     );
   }
 
   void onAccountDetailsPressed(BuildContext context) {
-    openAccountDetails(context);
-  }
-
-  void openAccountDetails(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AccountDetailsView()),
@@ -36,10 +102,6 @@ class ProfileViewModel extends BaseViewModel {
   }
 
   void onNotificationsPressed(BuildContext context) {
-    openNotifications(context);
-  }
-
-  void openNotifications(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotificationSettingsView()),
@@ -47,10 +109,6 @@ class ProfileViewModel extends BaseViewModel {
   }
 
   void onPrivacySecurityPressed(BuildContext context) {
-    openPrivacySecurity(context);
-  }
-
-  void openPrivacySecurity(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const PrivacySecurityView()),
@@ -58,10 +116,6 @@ class ProfileViewModel extends BaseViewModel {
   }
 
   void onHelpPressed(BuildContext context) {
-    openHelp(context);
-  }
-
-  void openHelp(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const HelpFaqView()),
@@ -69,21 +123,26 @@ class ProfileViewModel extends BaseViewModel {
   }
 
   void onFeedbackPressed(BuildContext context) {
-    openFeedback(context);
-  }
-
-  void openFeedback(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const FeedbackView()),
     );
   }
 
-  void onLogoutPressed(BuildContext context) {
-    logout(context);
-  }
+  // --- Logout Logic ---
+  Future<void> onLogoutPressed(BuildContext context) async {
+    try {
+      // 1. Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
 
-  void logout(BuildContext context) {
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      // 2. Navigate back to Login Screen
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error logging out: $e')));
+    }
   }
 }
