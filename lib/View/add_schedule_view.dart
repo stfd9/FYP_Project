@@ -189,6 +189,81 @@ class _AddScheduleForm extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
+                    // --- Reminder Card ---
+                    _FormCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const _IconBox(
+                                icon: Icons.notifications_active_rounded,
+                                color: Color(0xFFFFBE0B),
+                              ),
+                              const SizedBox(width: 14),
+                              const Text(
+                                'Reminder',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const Spacer(),
+                              Switch(
+                                value: viewModel.reminderEnabled,
+                                onChanged: viewModel.toggleReminder,
+                              ),
+                            ],
+                          ),
+                          if (viewModel.reminderEnabled) ...[
+                            const SizedBox(height: 12),
+                            _DateTimePicker(
+                              label: viewModel.formatDateTimeLabel(
+                                viewModel.reminderDateTime,
+                                placeholder: 'Select Reminder Time',
+                              ),
+                              onTap: () async {
+                                final now = DateTime.now();
+                                final initial = viewModel.reminderDateTime ?? now;
+
+                                final selectedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: initial,
+                                  firstDate: now,
+                                  lastDate: viewModel.startDateTime ??
+                                      now.add(const Duration(days: 365)),
+                                );
+
+                                if (selectedDate == null || !context.mounted) return;
+
+                                final timeInitial = TimeOfDay.fromDateTime(initial);
+                                final selectedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: timeInitial,
+                                );
+
+                                if (selectedTime == null || !context.mounted) return;
+
+                                final result = DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                  selectedTime.hour,
+                                  selectedTime.minute,
+                                );
+
+                                viewModel.setReminderDate(result);
+                              },
+                              colorScheme: colorScheme,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
                     // --- Pet Name Card ---
                     _FormCard(
                       child: Column(

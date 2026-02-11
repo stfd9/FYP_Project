@@ -75,11 +75,10 @@ class CalendarViewModel extends BaseViewModel {
 
       final userId = userSnapshot.docs.first.id;
 
-      // Fetch schedules for this user
+      // Fetch schedules for this user (removed orderBy to avoid index requirement)
       final schedulesSnapshot = await FirebaseFirestore.instance
           .collection('schedules')
           .where('userId', isEqualTo: userId)
-          .orderBy('startDateTime')
           .get();
 
       // Clear existing events and load from Firestore
@@ -138,6 +137,12 @@ class CalendarViewModel extends BaseViewModel {
 
         _events.add(event);
       }
+
+      // Sort events by startDateTime (since we removed orderBy from query)
+      _events.sort((a, b) {
+        if (a.startDateTime == null || b.startDateTime == null) return 0;
+        return a.startDateTime!.compareTo(b.startDateTime!);
+      });
     } catch (e) {
       print('Error fetching schedules: $e');
     }
