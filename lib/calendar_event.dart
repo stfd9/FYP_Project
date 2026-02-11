@@ -12,6 +12,7 @@ class CalendarEvent {
     this.reminderEnabled = false,
     this.reminderDateTime,
     this.petId,
+    this.isCompleted = false,
   });
 
   final int day;
@@ -25,4 +26,5 @@ class CalendarEvent {
   final bool reminderEnabled;
   final DateTime? reminderDateTime;
   final String? petId;
+  final bool isCompleted;
 }

@@ -75,6 +75,7 @@ class _ScheduleDetailBody extends StatelessWidget {
     final event = viewModel.event;
     final activityColor = _getActivityColor(event.activity);
     final activityIcon = _getActivityIcon(event.activity);
+    final isCompleted = event.isCompleted;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -91,7 +92,9 @@ class _ScheduleDetailBody extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [activityColor, activityColor.withValues(alpha: 0.75)],
+                colors: isCompleted
+                    ? [Colors.grey.shade400, Colors.grey.shade500]
+                    : [activityColor, activityColor.withValues(alpha: 0.75)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -102,6 +105,34 @@ class _ScheduleDetailBody extends StatelessWidget {
             ),
             child: Column(
               children: [
+                // Completed Badge
+                if (isCompleted)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.check_circle, color: Colors.white, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'Completed',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Row(
                   children: [
                     GestureDetector(
@@ -460,45 +491,63 @@ class _ScheduleDetailBody extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: GestureDetector(
-                          onTap: () => viewModel.markAsCompleted(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  colorScheme.primary,
-                                  colorScheme.primary.withValues(alpha: 0.8),
+                          onTap: isCompleted
+                              ? null
+                              : () => viewModel.markAsCompleted(context),
+                          child: Opacity(
+                            opacity: isCompleted ? 0.5 : 1.0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isCompleted
+                                      ? [
+                                          Colors.grey.shade400,
+                                          Colors.grey.shade500,
+                                        ]
+                                      : [
+                                          colorScheme.primary,
+                                          colorScheme.primary.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isCompleted
+                                        ? Colors.grey.withValues(alpha: 0.2)
+                                        : colorScheme.primary.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.check_circle_outline_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Mark Completed',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    isCompleted
+                                        ? Icons.check_circle
+                                        : Icons.check_circle_outline_rounded,
                                     color: Colors.white,
+                                    size: 20,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isCompleted
+                                        ? 'Completed'
+                                        : 'Mark Completed',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

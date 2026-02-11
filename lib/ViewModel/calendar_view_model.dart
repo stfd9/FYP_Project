@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 import '../View/add_schedule_view.dart';
 import '../View/schedule_detail_view.dart';
@@ -21,22 +24,8 @@ class CalendarViewModel extends BaseViewModel {
     'December',
   ];
 
-  final List<CalendarEvent> _events = [
-    const CalendarEvent(
-      day: 10,
-      petName: 'Luna',
-      activity: 'Vaccination',
-      location: 'KL Vet',
-      time: '2:00 p.m.',
-    ),
-    const CalendarEvent(
-      day: 23,
-      petName: 'CoCo',
-      activity: 'Grooming',
-      location: 'Furii Style',
-      time: '10:00 a.m.',
-    ),
-  ];
+  final List<CalendarEvent> _events = [];
+  bool _isLoadingSchedules = false;
 
   late int _selectedDay;
   late int _currentMonth;
@@ -53,6 +42,108 @@ class CalendarViewModel extends BaseViewModel {
       _currentMonth = now.month;
       _currentYear = now.year;
     }
+    // Fetch schedules from Firestore on initialization
+    fetchSchedules();
+  }
+
+  // --- Fetch Schedules from Firestore ---
+  Future<void> fetchSchedules() async {
+    _isLoadingSchedules = true;
+    notifyListeners();
+
+    try {
+      // Get current user
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _isLoadingSchedules = false;
+        notifyListeners();
+        return;
+      }
+
+      // Get userId from Firestore
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('providerId', isEqualTo: currentUser.uid)
+          .limit(1)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
+        _isLoadingSchedules = false;
+        notifyListeners();
+        return;
+      }
+
+      final userId = userSnapshot.docs.first.id;
+
+      // Fetch schedules for this user
+      final schedulesSnapshot = await FirebaseFirestore.instance
+          .collection('schedules')
+          .where('userId', isEqualTo: userId)
+          .orderBy('startDateTime')
+          .get();
+
+      // Clear existing events and load from Firestore
+      _events.clear();
+
+      for (final doc in schedulesSnapshot.docs) {
+        final data = doc.data();
+
+        // Parse startDateTime
+        final startTimestamp = data['startDateTime'] as Timestamp?;
+        if (startTimestamp == null) continue;
+        final startDateTime = startTimestamp.toDate();
+
+        // Parse endDateTime
+        final endTimestamp = data['endDateTime'] as Timestamp?;
+        final endDateTime = endTimestamp?.toDate();
+
+        // Parse reminderDateTime
+        final reminderTimestamp = data['reminderDateTime'] as Timestamp?;
+        final reminderDateTime = reminderTimestamp?.toDate();
+
+        // Format time string
+        final timeString = DateFormat('h:mm a').format(startDateTime);
+
+        // Get pet name if petId exists
+        String petName = '';
+        final petId = data['petId'] as String?;
+        if (petId != null && petId.isNotEmpty) {
+          try {
+            final petDoc = await FirebaseFirestore.instance
+                .collection('pets')
+                .doc(petId)
+                .get();
+            if (petDoc.exists) {
+              petName = petDoc.data()?['petName'] ?? '';
+            }
+          } catch (e) {
+            print('Error fetching pet name: $e');
+          }
+        }
+
+        final event = CalendarEvent(
+          day: startDateTime.day,
+          petName: petName,
+          activity: data['scheTitle'] as String? ?? '',
+          location: data['scheDescription'] as String? ?? '',
+          time: timeString,
+          scheduleId: doc.id,
+          startDateTime: startDateTime,
+          endDateTime: endDateTime,
+          reminderEnabled: data['reminderEnabled'] as bool? ?? false,
+          reminderDateTime: reminderDateTime,
+          petId: petId,
+          isCompleted: data['isCompleted'] as bool? ?? false,
+        );
+
+        _events.add(event);
+      }
+    } catch (e) {
+      print('Error fetching schedules: $e');
+    }
+
+    _isLoadingSchedules = false;
+    notifyListeners();
   }
 
   int get selectedDay => _selectedDay;
@@ -61,30 +152,57 @@ class CalendarViewModel extends BaseViewModel {
   String get monthYearLabel =>
       '${_monthNames[_currentMonth - 1]} $_currentYear';
   List<CalendarEvent> get events => List.unmodifiable(_events);
+  bool get isLoadingSchedules => _isLoadingSchedules;
 
-  CalendarEvent? get selectedEvent =>
-      _events.where((event) => event.day == _selectedDay).firstOrNull;
+  CalendarEvent? get selectedEvent {
+    return _events.where((event) {
+      if (event.startDateTime == null) return event.day == _selectedDay;
+      return event.startDateTime!.day == _selectedDay &&
+          event.startDateTime!.month == _currentMonth &&
+          event.startDateTime!.year == _currentYear;
+    }).firstOrNull;
+  }
 
   List<int?> get days => _buildDays();
 
   // Month statistics
   int get totalEventsThisMonth {
-    return _events.length;
+    return _events.where((event) {
+      if (event.startDateTime == null) return false;
+      return event.startDateTime!.month == _currentMonth &&
+          event.startDateTime!.year == _currentYear;
+    }).length;
   }
 
   int get upcomingEvents {
-    final today = DateTime.now().day;
-    return _events.where((event) => event.day >= today).length;
+    final now = DateTime.now();
+    return _events.where((event) {
+      if (event.startDateTime == null) return false;
+      return event.startDateTime!.isAfter(now) ||
+          event.startDateTime!.isAtSameMomentAs(now);
+    }).length;
   }
 
   int get petsWithEvents {
-    return _events.map((event) => event.petName).toSet().length;
+    final currentMonthEvents = _events.where((event) {
+      if (event.startDateTime == null) return false;
+      return event.startDateTime!.month == _currentMonth &&
+          event.startDateTime!.year == _currentYear;
+    });
+    return currentMonthEvents.map((event) => event.petName).toSet().length;
   }
 
   List<CalendarEvent> get upcomingEventsList {
-    final today = DateTime.now().day;
-    final upcoming = _events.where((event) => event.day >= today).toList();
-    upcoming.sort((a, b) => a.day.compareTo(b.day));
+    final now = DateTime.now();
+    final upcoming = _events.where((event) {
+      if (event.startDateTime == null) return false;
+      return event.startDateTime!.isAfter(now) ||
+          event.startDateTime!.isAtSameMomentAs(now);
+    }).toList();
+    upcoming.sort((a, b) {
+      if (a.startDateTime == null || b.startDateTime == null) return 0;
+      return a.startDateTime!.compareTo(b.startDateTime!);
+    });
     return List.unmodifiable(upcoming);
   }
 
@@ -127,8 +245,18 @@ class CalendarViewModel extends BaseViewModel {
     );
 
     if (newEvent == null) return;
-    _events.add(newEvent);
-    _selectedDay = newEvent.day;
+
+    // Refresh schedules from Firestore to include the newly added event
+    await fetchSchedules();
+
+    // Select the day of the new event
+    if (newEvent.startDateTime != null) {
+      _selectedDay = newEvent.startDateTime!.day;
+      _currentMonth = newEvent.startDateTime!.month;
+      _currentYear = newEvent.startDateTime!.year;
+    } else {
+      _selectedDay = newEvent.day;
+    }
     notifyListeners();
   }
 
@@ -150,17 +278,10 @@ class CalendarViewModel extends BaseViewModel {
       MaterialPageRoute(builder: (_) => ScheduleDetailView(event: event)),
     );
 
-    if (result == true) {
-      // Event was deleted or marked completed
-      _events.remove(event);
+    // Refresh schedules from Firestore after editing or deleting
+    if (result == true || result is CalendarEvent) {
+      await fetchSchedules();
       notifyListeners();
-    } else if (result is CalendarEvent) {
-      // Event was edited - replace old event with updated one
-      final index = _events.indexOf(event);
-      if (index != -1) {
-        _events[index] = result;
-        notifyListeners();
-      }
     }
   }
 

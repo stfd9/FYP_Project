@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 // Required for FileImage (though functionality is mocked)
 
 import '../ViewModel/add_pet_view_model.dart';
-import '../models/breed_option.dart';
 
 class AddPetView extends StatelessWidget {
   const AddPetView({super.key});
@@ -364,7 +363,7 @@ class _AddPetBody extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<BreedOption>(
-          initialValue: viewModel.selectedBreed,
+          value: viewModel.selectedBreed,
           decoration: _inputDecoration(
             context,
             icon: Icons.category_outlined,

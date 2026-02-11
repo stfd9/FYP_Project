@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../ViewModel/edit_pet_view_model.dart';
 import '../models/pet_info.dart';
 import '../View/pet_gallery_view.dart';
-import '../models/breed_option.dart';
 
 class EditPetView extends StatelessWidget {
   const EditPetView({super.key, required this.pet});
@@ -324,7 +323,7 @@ class _EditPetBody extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<BreedOption>(
-          initialValue: viewModel.selectedBreed,
+          value: viewModel.selectedBreed,
           decoration: InputDecoration(
             prefixIcon: Icon(
               Icons.info_outline,

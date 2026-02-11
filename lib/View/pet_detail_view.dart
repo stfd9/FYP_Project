@@ -26,8 +26,6 @@ class _PetDetailBody extends StatefulWidget {
 }
 
 class _PetDetailBodyState extends State<_PetDetailBody> {
-  bool _isDescriptionExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<PetDetailViewModel>();
@@ -45,242 +43,224 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
     } else if (pet.name == 'Coco') {
       petImagePath = 'images/assets/poodle.jpeg';
     }
-
-    // Pet description placeholder
-    const String petDescription =
-        'Max is a friendly and lovable Golden Retriever with a heart as golden as his coat. Born on a sunny spring day, Max quickly became the heart of our family with his playful antics and gentle nature.';
+    final String? petPhotoUrl = pet.photoUrl?.trim();
+    final bool hasRemotePhoto = petPhotoUrl != null && petPhotoUrl.isNotEmpty;
+    final List<String> allGalleryImages = [
+      ...pet.galleryImages,
+      ...pet.photoUrls,
+    ];
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Back Button Row ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => viewModel.onBackPressed(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 20,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  // Edit button
-                  GestureDetector(
-                    onTap: () => viewModel.onEditPressed(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.edit_outlined,
-                        size: 20,
-                        color: Colors.black87,
+        child: RefreshIndicator(
+          onRefresh: viewModel.refreshPet,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Back Button Row ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => viewModel.onBackPressed(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          size: 20,
+                          color: Colors.black87,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    // Edit button
+                    GestureDetector(
+                      onTap: () => viewModel.onEditPressed(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          size: 20,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-              // --- Image Card with Heart ---
-              Stack(
-                children: [
-                  Hero(
-                    tag: 'pet_${pet.name}',
-                    child: Container(
-                      width: double.infinity,
-                      height: 320,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8DEF8), // Soft lavender
-                        borderRadius: BorderRadius.circular(32),
-                        image: petImagePath != null
-                            ? DecorationImage(
-                                image: AssetImage(petImagePath),
-                                fit: BoxFit.cover,
+                // --- Image Card with Heart ---
+                Stack(
+                  children: [
+                    Hero(
+                      tag: 'pet_${pet.name}',
+                      child: Container(
+                        width: double.infinity,
+                        height: 320,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8DEF8), // Soft lavender
+                          borderRadius: BorderRadius.circular(32),
+                          image: hasRemotePhoto
+                              ? DecorationImage(
+                                  image: NetworkImage(petPhotoUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : petImagePath != null
+                              ? DecorationImage(
+                                  image: AssetImage(petImagePath),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: !hasRemotePhoto && petImagePath == null
+                            ? Center(
+                                child: Icon(
+                                  isDog ? Icons.pets : Icons.pets_outlined,
+                                  size: 100,
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                ),
                               )
                             : null,
                       ),
-                      child: petImagePath == null
-                          ? Center(
-                              child: Icon(
-                                isDog ? Icons.pets : Icons.pets_outlined,
-                                size: 100,
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.6,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // --- Name and Gender Row ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            pet.name,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${pet.species} • ${pet.breed}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Gender icon
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Icon(
+                        Icons.male,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // --- Stats Card (Age | Weight) ---
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5EFE6), // Warm beige
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                'Age',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
                                 ),
                               ),
-                            )
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // --- Name and Gender Row ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          pet.name,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A),
+                              const SizedBox(height: 6),
+                              Text(
+                                pet.age,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${pet.species} • ${pet.breed}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
+                        VerticalDivider(
+                          color: Colors.brown.shade200,
+                          thickness: 1,
+                          width: 32,
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                'Weight',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                pet.weightKg != null
+                                    ? '${pet.weightKg!.toStringAsFixed(1)} kg'
+                                    : 'Not set',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Gender icon
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Icon(
-                      Icons.male,
-                      color: colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 24),
 
-              // --- Stats Card (Age | Weight) ---
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5EFE6), // Warm beige
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: IntrinsicHeight(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              'Age',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              pet.age,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      VerticalDivider(
-                        color: Colors.brown.shade200,
-                        thickness: 1,
-                        width: 32,
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              'Weight',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            const Text(
-                              '3 Kg 500 Gram',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF1A1A1A),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-              // --- Description ---
-              Text(
-                petDescription,
-                maxLines: _isDescriptionExpanded ? null : 3,
-                overflow: _isDescriptionExpanded
-                    ? TextOverflow.visible
-                    : TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.5,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              GestureDetector(
-                onTap: () => setState(
-                  () => _isDescriptionExpanded = !_isDescriptionExpanded,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    _isDescriptionExpanded ? 'Show less' : 'Read more',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // --- Photo Gallery ---
-              if (pet.galleryImages.isNotEmpty) ...[
+                // --- Photo Gallery ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -295,7 +275,7 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                     GestureDetector(
                       onTap: () => viewModel.onViewGalleryPressed(context),
                       child: Text(
-                        'See all',
+                        allGalleryImages.isEmpty ? 'Add photos' : 'See all',
                         style: TextStyle(
                           fontSize: 13,
                           color: colorScheme.primary,
@@ -306,100 +286,135 @@ class _PetDetailBodyState extends State<_PetDetailBody> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  height: 100,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: pet.galleryImages.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      return Container(
-                        width: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            image: AssetImage(pet.galleryImages[index]),
-                            fit: BoxFit.cover,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
-
-              // --- Health Overview ---
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Health Overview',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      fontSize: 18,
+                if (allGalleryImages.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
                     ),
-                  ),
-                  Text(
-                    'See all',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              _InfoTile(
-                title: 'Next Vaccination',
-                subtitle: '20 March 2026',
-                icon: Icons.medical_services,
-                iconBgColor: const Color(0xFF7165E3),
-                isChecked: false,
-              ),
-              const SizedBox(height: 12),
-              _InfoTile(
-                title: 'Notes',
-                subtitle: 'Allergies, food preferences...',
-                icon: Icons.sticky_note_2,
-                iconBgColor: colorScheme.secondary,
-                isChecked: false,
-              ),
-
-              const SizedBox(height: 40),
-
-              // --- Remove Button ---
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: OutlinedButton(
-                  onPressed: () => viewModel.onConfirmRemovalPressed(context),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.red.shade100),
-                    backgroundColor: Colors.red.shade50,
-                    shape: RoundedRectangleBorder(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F7FB),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.photo_library_outlined,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'No photos yet. Tap Add photos to upload.',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: allGalleryImages.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final imagePath = allGalleryImages[index];
+                        final isNetwork = imagePath.startsWith('http');
+                        return Container(
+                          width: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            image: DecorationImage(
+                              image: isNetwork
+                                  ? NetworkImage(imagePath)
+                                  : AssetImage(imagePath) as ImageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  child: Text(
-                    'Remove Pet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red.shade600,
+                const SizedBox(height: 32),
+
+                // --- Health Overview ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Health Overview',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      'See all',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                _InfoTile(
+                  title: 'Next Vaccination',
+                  subtitle: '20 March 2026',
+                  icon: Icons.medical_services,
+                  iconBgColor: const Color(0xFF7165E3),
+                  isChecked: false,
+                ),
+                const SizedBox(height: 12),
+                _InfoTile(
+                  title: 'Notes',
+                  subtitle: 'Allergies, food preferences...',
+                  icon: Icons.sticky_note_2,
+                  iconBgColor: colorScheme.secondary,
+                  isChecked: false,
+                ),
+
+                const SizedBox(height: 40),
+
+                // --- Remove Button ---
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: OutlinedButton(
+                    onPressed: () => viewModel.onConfirmRemovalPressed(context),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.red.shade100),
+                      backgroundColor: Colors.red.shade50,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      'Remove Pet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-            ],
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),

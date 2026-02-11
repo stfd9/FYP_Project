@@ -238,8 +238,26 @@ class _CalendarCard extends StatelessWidget {
 
   final CalendarViewModel viewModel;
 
-  bool _isEventDay(int day) =>
-      viewModel.events.any((event) => event.day == day);
+  bool _isEventDay(int day) {
+    return viewModel.events.any((event) {
+      if (event.startDateTime == null) return event.day == day;
+      return event.startDateTime!.day == day &&
+          event.startDateTime!.month == viewModel.currentMonth &&
+          event.startDateTime!.year == viewModel.currentYear;
+    });
+  }
+
+  bool _areAllEventsCompleted(int day) {
+    final dayEvents = viewModel.events.where((event) {
+      if (event.startDateTime == null) return event.day == day;
+      return event.startDateTime!.day == day &&
+          event.startDateTime!.month == viewModel.currentMonth &&
+          event.startDateTime!.year == viewModel.currentYear;
+    });
+
+    if (dayEvents.isEmpty) return false;
+    return dayEvents.every((event) => event.isCompleted);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +358,7 @@ class _CalendarCard extends StatelessWidget {
                       return const SizedBox.shrink();
                     }
                     final hasEvent = _isEventDay(day);
+                    final allCompleted = _areAllEventsCompleted(day);
                     final isSelected = day == viewModel.selectedDay;
                     final now = DateTime.now();
                     final isToday =
@@ -354,6 +373,7 @@ class _CalendarCard extends StatelessWidget {
                           ? _PawSelectedDay(
                               day: day,
                               hasEvent: hasEvent,
+                              allCompleted: allCompleted,
                               colorScheme: colorScheme,
                               textTheme: textTheme,
                             )
@@ -389,7 +409,9 @@ class _CalendarCard extends StatelessWidget {
                                         width: 5,
                                         height: 5,
                                         decoration: BoxDecoration(
-                                          color: colorScheme.error,
+                                          color: allCompleted
+                                              ? Colors.grey.shade500
+                                              : colorScheme.error,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -413,12 +435,14 @@ class _CalendarCard extends StatelessWidget {
 class _PawSelectedDay extends StatelessWidget {
   final int day;
   final bool hasEvent;
+  final bool allCompleted;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
   const _PawSelectedDay({
     required this.day,
     required this.hasEvent,
+    required this.allCompleted,
     required this.colorScheme,
     required this.textTheme,
   });
@@ -448,8 +472,8 @@ class _PawSelectedDay extends StatelessWidget {
             child: Container(
               width: 5,
               height: 5,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: allCompleted ? Colors.grey.shade300 : Colors.white,
                 shape: BoxShape.circle,
               ),
             ),
@@ -558,88 +582,112 @@ class _ScheduledEventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isCompleted = event.isCompleted;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+      child: Opacity(
+        opacity: isCompleted ? 0.5 : 1.0,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isCompleted ? Colors.grey.shade200 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              child: Icon(Icons.pets, color: colorScheme.primary, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.petName,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    event.activity,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: Colors.grey.shade500,
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: isCompleted
+                      ? Colors.grey.shade400.withValues(alpha: 0.3)
+                      : colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isCompleted ? Icons.check_circle : Icons.pets,
+                  color: isCompleted
+                      ? Colors.grey.shade600
+                      : colorScheme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.petName,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isCompleted ? Colors.grey.shade600 : null,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        event.location,
-                        style: textTheme.bodySmall?.copyWith(
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      event.activity,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: isCompleted
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade700,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
                           color: Colors.grey.shade500,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        event.time,
-                        style: textTheme.bodySmall?.copyWith(
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            event.location,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
                           color: Colors.grey.shade500,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 4),
+                        Text(
+                          event.time,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
-          ],
+              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            ],
+          ),
         ),
       ),
     );

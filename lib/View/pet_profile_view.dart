@@ -28,101 +28,108 @@ class _PetProfileBody extends StatelessWidget {
         bottom: false,
         child: Stack(
           children: [
-            CustomScrollView(
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'My Pets',
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF2D3142),
-                                        letterSpacing: -0.5,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Manage your furry friends',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
+            RefreshIndicator(
+              onRefresh: viewModel.refreshPets,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'My Pets',
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF2D3142),
+                                          letterSpacing: -0.5,
+                                        ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Manage your furry friends',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ],
                               ),
-                              child: Text(
-                                '${viewModel.pets.length}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  '${viewModel.pets.length}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Grid
-                if (!viewModel.hasPets)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyPetsState(
-                      onAddPet: () => viewModel.openAddPet(context),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                    sliver: SliverGrid(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.75,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
+                            ],
                           ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final pet = viewModel.pets[index];
-                        return _PetGridCard(
-                          pet: pet,
-                          index: index,
-                          onTap: () => viewModel.openPetDetail(context, pet),
-                        );
-                      }, childCount: viewModel.pets.length),
+                          const SizedBox(height: 8),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
                     ),
                   ),
-              ],
+
+                  // Grid
+                  if (!viewModel.hasPets)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyPetsState(
+                        onAddPet: () => viewModel.openAddPet(context),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.75,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final pet = viewModel.pets[index];
+                          return _PetGridCard(
+                            pet: pet,
+                            index: index,
+                            onTap: () => viewModel.openPetDetail(context, pet),
+                          );
+                        }, childCount: viewModel.pets.length),
+                      ),
+                    ),
+                ],
+              ),
             ),
 
             // Floating Add Button
@@ -227,6 +234,8 @@ class _PetGridCard extends StatelessWidget {
     } else if (pet.name == 'Coco') {
       petImagePath = 'images/assets/poodle.jpeg';
     }
+    final String? petPhotoUrl = pet.photoUrl?.trim();
+    final bool hasRemotePhoto = petPhotoUrl != null && petPhotoUrl.isNotEmpty;
 
     return GestureDetector(
       onTap: onTap,
@@ -265,7 +274,12 @@ class _PetGridCard extends StatelessWidget {
                       topRight: Radius.circular(24),
                       bottomRight: Radius.circular(60),
                     ),
-                    image: petImagePath != null
+                    image: hasRemotePhoto
+                        ? DecorationImage(
+                            image: NetworkImage(petPhotoUrl),
+                            fit: BoxFit.cover,
+                          )
+                        : petImagePath != null
                         ? DecorationImage(
                             image: AssetImage(petImagePath),
                             fit: BoxFit.cover,
@@ -274,7 +288,7 @@ class _PetGridCard extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      if (petImagePath == null)
+                      if (!hasRemotePhoto && petImagePath == null)
                         Center(
                           child: Icon(
                             isDog ? Icons.pets : Icons.pets_outlined,

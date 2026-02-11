@@ -269,7 +269,7 @@ class _EditScheduleBody extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<PetInfo?>(
-                            value: viewModel.selectedPet,
+                            initialValue: viewModel.selectedPet,
                             decoration: InputDecoration(
                               hintText: 'Select pet (optional)',
                               hintStyle: TextStyle(color: Colors.grey.shade400),

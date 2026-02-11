@@ -238,26 +238,25 @@ class _AddScheduleForm extends StatelessWidget {
                               }
 
                               return DropdownButtonFormField<dynamic>(
-                                value: viewModel.selectedPet,
+                                initialValue: viewModel.selectedPet,
                                 decoration: _inputDecoration(
-                                  hint: 'Select pet',
+                                  hint: 'Select pet (optional)',
                                   colorScheme: colorScheme,
                                 ),
-                                items: petVm.pets.map((pet) {
-                                  return DropdownMenuItem(
-                                    value: pet,
-                                    child: Text(
-                                      pet.name,
-                                    ), // Access .name property
-                                  );
-                                }).toList(),
+                                items: [
+                                  const DropdownMenuItem(
+                                    value: null,
+                                    child: Text('No Pet'),
+                                  ),
+                                  ...petVm.pets.map((pet) {
+                                    return DropdownMenuItem(
+                                      value: pet,
+                                      child: Text(pet.name),
+                                    );
+                                  }),
+                                ],
                                 onChanged: (value) =>
                                     viewModel.setSelectedPet(value),
-                                validator: (value) {
-                                  if (value == null)
-                                    return 'Please select a pet';
-                                  return null;
-                                },
                               );
                             },
                           ),

@@ -1,84 +1,145 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../models/breed_option.dart';
 import '../models/pet_info.dart';
+import 'base_view_model.dart';
 
-class EditPetViewModel extends ChangeNotifier {
+class EditPetViewModel extends BaseViewModel {
   EditPetViewModel(this._pet) {
     _initializeControllers();
+    _loadBreeds();
   }
 
   final PetInfo _pet;
   final ImagePicker _picker = ImagePicker();
 
   late final TextEditingController nameController;
-  late final TextEditingController speciesController;
-  late final TextEditingController breedController;
-  late final TextEditingController ageController;
-  late final TextEditingController weightController;
   late final TextEditingController colourController;
-  late final TextEditingController descriptionController;
+  late final TextEditingController weightController;
+
+  final List<BreedOption> _breeds = [];
+  BreedOption? _selectedBreed;
 
   File? _profilePhotoFile;
   String? _selectedGalleryUrl;
 
-  String _selectedGender = 'Male';
   bool _hasChanges = false;
-  BreedOption? _selectedBreed;
-  List<BreedOption> _breeds = _dogBreeds;
 
+  String get species => _pet.species;
+  String get gender => _pet.gender ?? 'Unknown';
+  List<BreedOption> get breeds => _breeds;
+  BreedOption? get selectedBreed => _selectedBreed;
   bool get hasChanges => _hasChanges;
   PetInfo get pet => _pet;
-  String get gender => _selectedGender;
-  String get species => speciesController.text;
   File? get profilePhotoFile => _profilePhotoFile;
   String? get selectedGalleryUrl => _selectedGalleryUrl;
-  BreedOption? get selectedBreed => _selectedBreed;
-  List<BreedOption> get breeds => List.unmodifiable(_breeds);
+
+  String get _initialName => _pet.name;
+  String get _initialColour => _pet.colour ?? '';
+  double? get _initialWeightKg => _pet.weightKg;
+  String? get _initialBreedId => _pet.breedId;
 
   void _initializeControllers() {
     nameController = TextEditingController(text: _pet.name);
-    speciesController = TextEditingController(text: _pet.species);
-    breedController = TextEditingController(text: _pet.breed);
-    ageController = TextEditingController(text: _pet.age);
-    weightController = TextEditingController(text: _pet.weight ?? '');
     colourController = TextEditingController(text: _pet.colour ?? '');
-    descriptionController = TextEditingController();
-
-    _selectedGender = _pet.gender ?? _selectedGender;
-    _breeds = _pet.species.toLowerCase() == 'cat' ? _catBreeds : _dogBreeds;
-    _selectedBreed = _breeds.firstWhere(
-      (breed) => breed.name == _pet.breed,
-      orElse: () => _breeds.first,
+    weightController = TextEditingController(
+      text: _pet.weightKg?.toStringAsFixed(1) ?? '',
     );
 
     nameController.addListener(_onFieldChanged);
-    speciesController.addListener(_onFieldChanged);
-    breedController.addListener(_onFieldChanged);
-    ageController.addListener(_onFieldChanged);
-    weightController.addListener(_onFieldChanged);
     colourController.addListener(_onFieldChanged);
-    descriptionController.addListener(_onFieldChanged);
+    weightController.addListener(_onFieldChanged);
+  }
+
+  Future<void> _loadBreeds() async {
+    final snapshot = await FirebaseFirestore.instance.collection('breed').get();
+    _breeds
+      ..clear()
+      ..addAll(
+        snapshot.docs.map((doc) => BreedOption.fromMap(doc.id, doc.data())),
+      );
+    _breeds.sort((a, b) => a.name.compareTo(b.name));
+    BreedOption? selected;
+    if (_pet.breedId != null && _pet.breedId!.isNotEmpty) {
+      for (final breed in _breeds) {
+        if (breed.id == _pet.breedId) {
+          selected = breed;
+          break;
+        }
+      }
+    }
+    if (selected == null && _pet.breed.isNotEmpty) {
+      for (final breed in _breeds) {
+        if (breed.name == _pet.breed) {
+          selected = breed;
+          break;
+        }
+      }
+    }
+    _selectedBreed = selected;
+    notifyListeners();
+  }
+
+  void setSelectedBreed(BreedOption? value) {
+    _selectedBreed = value;
+    _onFieldChanged();
+  }
+
+  Future<void> pickProfilePhotoFromCamera() async {
+    final image = await _picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+    _profilePhotoFile = File(image.path);
+    _selectedGalleryUrl = null;
+    _onFieldChanged();
+  }
+
+  Future<void> pickProfilePhotoFromLocal() async {
+    final image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+    _profilePhotoFile = File(image.path);
+    _selectedGalleryUrl = null;
+    _onFieldChanged();
+  }
+
+  void setProfilePhotoFromGallery(String url) {
+    _selectedGalleryUrl = url;
+    _profilePhotoFile = null;
+    _onFieldChanged();
   }
 
   void _onFieldChanged() {
-    final hasNameChanged = nameController.text != _pet.name;
-    final hasSpeciesChanged = speciesController.text != _pet.species;
-    final hasBreedChanged = breedController.text != _pet.breed;
-    final hasAgeChanged = ageController.text != _pet.age;
-    final hasWeightChanged = weightController.text != (_pet.weight ?? '');
-    final hasColourChanged = colourController.text != (_pet.colour ?? '');
+    final nameChanged = nameController.text.trim() != _initialName;
+    final colourChanged = colourController.text.trim() != _initialColour;
+    final weightValue = double.tryParse(weightController.text.trim());
+    final weightChanged = weightValue != _initialWeightKg;
+    final breedChanged = _selectedBreed?.id != _initialBreedId;
+    final photoChanged =
+        _profilePhotoFile != null ||
+        (_selectedGalleryUrl != null && _selectedGalleryUrl!.isNotEmpty);
 
     final newHasChanges =
-        hasNameChanged ||
-        hasSpeciesChanged ||
-        hasBreedChanged ||
-        hasAgeChanged ||
-        hasWeightChanged ||
-        hasColourChanged;
+        nameChanged ||
+        colourChanged ||
+        weightChanged ||
+        breedChanged ||
+        photoChanged;
 
     if (newHasChanges != _hasChanges) {
       _hasChanges = newHasChanges;
@@ -86,91 +147,124 @@ class EditPetViewModel extends ChangeNotifier {
     }
   }
 
-  void setGender(String gender) {
-    if (_selectedGender == gender) {
+  Future<void> saveChanges(BuildContext context) async {
+    final name = nameController.text.trim();
+    final colour = colourController.text.trim();
+    final weightKg = double.tryParse(weightController.text.trim());
+    if (name.isEmpty || colour.isEmpty || weightKg == null || weightKg <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all required fields.')),
+      );
       return;
     }
-    _selectedGender = gender;
-    _hasChanges = true;
-    notifyListeners();
-  }
 
-  void setSelectedBreed(BreedOption? value) {
-    if (_selectedBreed == value || value == null) {
+    if (_pet.id == null || _pet.id!.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Pet not found.')));
       return;
     }
-    _selectedBreed = value;
-    breedController.text = value.name;
-    _hasChanges = true;
-    notifyListeners();
-  }
 
-  Future<void> pickProfilePhotoFromCamera() async {
-    await _pickProfilePhoto(ImageSource.camera);
-  }
+    setLoading(true);
+    setError(null);
+    try {
+      String? photoUrl = _pet.photoUrl;
+      final authUid = FirebaseAuth.instance.currentUser?.uid;
+      if (authUid == null) {
+        throw Exception('User not authenticated.');
+      }
 
-  Future<void> pickProfilePhotoFromLocal() async {
-    await _pickProfilePhoto(ImageSource.gallery);
-  }
+      if (_profilePhotoFile != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('pets')
+            .child(authUid)
+            .child('${_pet.id}_profile.jpg');
+        await storageRef
+            .putFile(_profilePhotoFile!)
+            .timeout(const Duration(seconds: 60));
+        photoUrl = await storageRef.getDownloadURL().timeout(
+          const Duration(seconds: 10),
+        );
+      } else if (_selectedGalleryUrl != null &&
+          _selectedGalleryUrl!.isNotEmpty) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('pets')
+            .child(authUid)
+            .child('${_pet.id}_profile.jpg');
+        final data = await NetworkAssetBundle(
+          Uri.parse(_selectedGalleryUrl!),
+        ).load(_selectedGalleryUrl!);
+        final bytes = data.buffer.asUint8List();
+        await storageRef.putData(bytes).timeout(const Duration(seconds: 60));
+        photoUrl = await storageRef.getDownloadURL().timeout(
+          const Duration(seconds: 10),
+        );
+      }
 
-  Future<void> _pickProfilePhoto(ImageSource source) async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: source,
-      maxWidth: 1200,
-      maxHeight: 1200,
-      imageQuality: 85,
-    );
-    if (pickedFile == null) {
-      return;
+      await FirebaseFirestore.instance.collection('pet').doc(_pet.id).update({
+        'petName': name,
+        'breedId': _selectedBreed?.id,
+        'colour': colour,
+        'weightKg': weightKg,
+        'photoUrl': photoUrl,
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Pet details updated successfully!'),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } on TimeoutException {
+      setError('Update timed out. Please try again.');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Update timed out. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (error) {
+      setError(error.toString());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Update failed: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setLoading(false);
     }
-    _profilePhotoFile = File(pickedFile.path);
-    _selectedGalleryUrl = null;
-    _hasChanges = true;
-    notifyListeners();
-  }
-
-  void setProfilePhotoFromGallery(String url) {
-    _selectedGalleryUrl = url;
-    _profilePhotoFile = null;
-    _hasChanges = true;
-    notifyListeners();
-  }
-
-  void saveChanges(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Pet details updated successfully!'),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-    Navigator.pop(context);
   }
 
   @override
   void dispose() {
     nameController.dispose();
-    speciesController.dispose();
-    breedController.dispose();
-    ageController.dispose();
-    weightController.dispose();
     colourController.dispose();
-    descriptionController.dispose();
+    weightController.dispose();
     super.dispose();
   }
 }
 
-const List<BreedOption> _dogBreeds = [
-  BreedOption(id: 'dog_shiba', name: 'Shiba Inu'),
-  BreedOption(id: 'dog_golden', name: 'Golden Retriever'),
-  BreedOption(id: 'dog_poodle', name: 'Poodle'),
-  BreedOption(id: 'dog_beagle', name: 'Beagle'),
-];
+class BreedOption {
+  BreedOption({required this.id, required this.name});
 
-const List<BreedOption> _catBreeds = [
-  BreedOption(id: 'cat_bsh', name: 'British Shorthair'),
-  BreedOption(id: 'cat_persian', name: 'Persian'),
-  BreedOption(id: 'cat_siamese', name: 'Siamese'),
-  BreedOption(id: 'cat_maine', name: 'Maine Coon'),
-];
+  final String id;
+  final String name;
+
+  factory BreedOption.fromMap(String id, Map<String, dynamic> data) {
+    return BreedOption(id: id, name: (data['breedName'] as String?) ?? '');
+  }
+}

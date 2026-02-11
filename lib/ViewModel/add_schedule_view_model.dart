@@ -234,6 +234,7 @@ class AddScheduleViewModel extends BaseViewModel {
       'scheCreatedAt': FieldValue.serverTimestamp(),
       'petId': petId,
       'userId': userId,
+      'isCompleted': false,
     });
     return docRef.id;
   }

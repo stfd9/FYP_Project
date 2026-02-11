@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../calendar_event.dart';
 import 'base_view_model.dart';
@@ -93,10 +94,22 @@ class ScheduleDetailViewModel extends BaseViewModel {
 
     if (confirmed == true) {
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 120));
-      if (context.mounted) {
-        Navigator.pop(context, true);
-      }
+
+      // Delete from Firestore
+      runAsync(() async {
+        final scheduleId = event.scheduleId;
+        if (scheduleId != null && scheduleId.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection('schedules')
+              .doc(scheduleId)
+              .delete();
+        }
+
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (context.mounted) {
+          Navigator.pop(context, true);
+        }
+      });
     }
   }
 
@@ -185,11 +198,23 @@ class ScheduleDetailViewModel extends BaseViewModel {
 
     if (confirmed == true) {
       if (!context.mounted) return;
-      await Future.delayed(const Duration(milliseconds: 120));
-      if (context.mounted) {
-        // Return boolean result to align with caller expectations
-        Navigator.pop(context, true);
-      }
+
+      // Mark as completed in Firestore instead of deleting
+      runAsync(() async {
+        final scheduleId = event.scheduleId;
+        if (scheduleId != null && scheduleId.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection('schedules')
+              .doc(scheduleId)
+              .update({'isCompleted': true});
+        }
+
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (context.mounted) {
+          // Return boolean result to align with caller expectations
+          Navigator.pop(context, true);
+        }
+      });
     }
   }
 
