@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../calendar_event.dart';
+import '../services/notification_service.dart';
 import 'base_view_model.dart';
 
 class ScheduleDetailViewModel extends BaseViewModel {
@@ -207,6 +208,9 @@ class ScheduleDetailViewModel extends BaseViewModel {
               .collection('schedules')
               .doc(scheduleId)
               .update({'isCompleted': true});
+
+          // Cancel the notification for this schedule
+          await NotificationService().cancelReminder(scheduleId);
         }
 
         await Future.delayed(const Duration(milliseconds: 120));

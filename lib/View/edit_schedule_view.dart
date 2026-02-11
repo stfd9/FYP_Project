@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../calendar_event.dart';
-import 'add_pet_view.dart';
+import '../models/pet_info.dart';
+import '../models/reminder_duration.dart';
 import '../ViewModel/edit_schedule_view_model.dart';
 import '../ViewModel/pet_profile_view_model.dart';
-import '../models/pet_info.dart';
+import 'add_pet_view.dart';
 
 class EditScheduleView extends StatelessWidget {
   final CalendarEvent event;
@@ -483,49 +484,10 @@ class _EditScheduleBody extends StatelessWidget {
                           ),
                           if (viewModel.reminderEnabled) ...[
                             const SizedBox(height: 12),
-                            GestureDetector(
-                              onTap: () =>
-                                  viewModel.pickReminderDateTime(context),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: Colors.grey.shade200,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.access_time_rounded,
-                                      color: Colors.grey.shade600,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        viewModel.reminderLabel,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              viewModel.reminderLabel ==
-                                                  'Select reminder date & time'
-                                              ? Colors.grey.shade500
-                                              : const Color(0xFF1A1A1A),
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.edit_rounded,
-                                      color: colorScheme.primary,
-                                      size: 18,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            _ReminderDurationPicker(
+                              selectedDuration: viewModel.reminderDuration,
+                              onChanged: viewModel.setReminderDuration,
+                              colorScheme: colorScheme,
                             ),
                           ],
                         ],
@@ -663,6 +625,80 @@ class _IconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(icon, color: color, size: 20),
+    );
+  }
+}
+
+// --- Helper: Reminder Duration Picker ---
+class _ReminderDurationPicker extends StatelessWidget {
+  final ReminderDuration selectedDuration;
+  final ValueChanged<ReminderDuration> onChanged;
+  final ColorScheme colorScheme;
+
+  const _ReminderDurationPicker({
+    required this.selectedDuration,
+    required this.onChanged,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final duration in ReminderDuration.values)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () => onChanged(duration),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: selectedDuration == duration
+                      ? colorScheme.primary.withValues(alpha: 0.1)
+                      : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selectedDuration == duration
+                        ? colorScheme.primary
+                        : Colors.grey.shade200,
+                    width: selectedDuration == duration ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      selectedDuration == duration
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: selectedDuration == duration
+                          ? colorScheme.primary
+                          : Colors.grey.shade400,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      duration.displayName,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: selectedDuration == duration
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: selectedDuration == duration
+                            ? colorScheme.primary
+                            : const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

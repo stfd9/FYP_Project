@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../calendar_event.dart';
+import '../models/reminder_duration.dart';
+import '../services/notification_service.dart';
 import 'base_view_model.dart';
 
 class AddScheduleViewModel extends BaseViewModel {
@@ -18,6 +20,7 @@ class AddScheduleViewModel extends BaseViewModel {
   DateTime? _endDateTime;
   DateTime? _reminderDateTime;
   bool _reminderEnabled = false;
+  ReminderDuration _reminderDuration = ReminderDuration.thirtyMinutes;
 
   // Placeholder for Pet object (Change 'dynamic' to 'Pet' if you have the model imported)
   dynamic _selectedPet;
@@ -28,6 +31,7 @@ class AddScheduleViewModel extends BaseViewModel {
   DateTime? get endDateTime => _endDateTime;
   DateTime? get reminderDateTime => _reminderDateTime;
   bool get reminderEnabled => _reminderEnabled;
+  ReminderDuration get reminderDuration => _reminderDuration;
   dynamic get selectedPet => _selectedPet;
 
   // --- Setters ---
@@ -48,6 +52,19 @@ class AddScheduleViewModel extends BaseViewModel {
 
   void toggleReminder(bool value) {
     _reminderEnabled = value;
+    // Auto-calculate reminder time when enabled
+    if (value && _startDateTime != null) {
+      _reminderDateTime = _reminderDuration.calculateReminderTime(_startDateTime!);
+    }
+    notifyListeners();
+  }
+
+  void setReminderDuration(ReminderDuration duration) {
+    _reminderDuration = duration;
+    // Recalculate reminder time if reminder is enabled and start time is set
+    if (_reminderEnabled && _startDateTime != null) {
+      _reminderDateTime = duration.calculateReminderTime(_startDateTime!);
+    }
     notifyListeners();
   }
 
@@ -100,6 +117,10 @@ class AddScheduleViewModel extends BaseViewModel {
 
     if (isStart) {
       _startDateTime = result;
+      // Auto-update reminder time when start time changes
+      if (_reminderEnabled) {
+        _reminderDateTime = _reminderDuration.calculateReminderTime(result);
+      }
     } else {
       _endDateTime = result;
     }
@@ -125,8 +146,13 @@ class AddScheduleViewModel extends BaseViewModel {
     }
 
     if (_reminderEnabled && _reminderDateTime == null) {
-      _showSnack(context, 'Please select a reminder date & time.');
-      return;
+      // Auto-calculate if not set
+      if (_startDateTime != null) {
+        _reminderDateTime = _reminderDuration.calculateReminderTime(_startDateTime!);
+      } else {
+        _showSnack(context, 'Please select a start time first.');
+        return;
+      }
     }
 
     if (_reminderEnabled &&
@@ -163,6 +189,7 @@ class AddScheduleViewModel extends BaseViewModel {
       endDateTime: end,
       reminderEnabled: _reminderEnabled,
       reminderDateTime: _reminderDateTime,
+      reminderDuration: _reminderDuration,
       petId: _selectedPet?.id,
       userId: resolvedUserId,
     );
@@ -184,6 +211,16 @@ class AddScheduleViewModel extends BaseViewModel {
       reminderDateTime: _reminderDateTime,
       petId: _selectedPet?.id,
     );
+
+    // Schedule notification if reminder is enabled
+    if (_reminderEnabled && _reminderDateTime != null) {
+      await _scheduleNotification(
+        scheduleId: scheduleId,
+        title: titleController.text.trim(),
+        petName: _selectedPet?.name ?? 'Your pet',
+        reminderDateTime: _reminderDateTime!,
+      );
+    }
 
     if (context.mounted) {
       Navigator.pop(context, newEvent);
@@ -217,6 +254,7 @@ class AddScheduleViewModel extends BaseViewModel {
     required DateTime endDateTime,
     required bool reminderEnabled,
     required DateTime? reminderDateTime,
+    required ReminderDuration reminderDuration,
     required String? petId,
     required String userId,
   }) async {
@@ -231,12 +269,31 @@ class AddScheduleViewModel extends BaseViewModel {
       'reminderDateTime': reminderEnabled && reminderDateTime != null
           ? Timestamp.fromDate(reminderDateTime)
           : null,
+      'reminderDuration': reminderEnabled ? reminderDuration.toFirestore() : null,
       'scheCreatedAt': FieldValue.serverTimestamp(),
       'petId': petId,
       'userId': userId,
       'isCompleted': false,
     });
     return docRef.id;
+  }
+
+  Future<void> _scheduleNotification({
+    required String scheduleId,
+    required String title,
+    required String petName,
+    required DateTime reminderDateTime,
+  }) async {
+    try {
+      await NotificationService().scheduleReminder(
+        scheduleId: scheduleId,
+        title: 'Reminder: $title',
+        body: '$petName has "$title" scheduled soon.',
+        scheduledTime: reminderDateTime,
+      );
+    } catch (e) {
+      print('Error scheduling notification: $e');
+    }
   }
 
   void _showSnack(BuildContext context, String message) {

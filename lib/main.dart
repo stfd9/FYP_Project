@@ -20,6 +20,10 @@ import 'View/analysis_record_detail_view.dart';
 import 'View/manage_faq_view.dart';
 import 'View/admin_account_detail_view.dart';
 import 'View/admin_manage_community_tips_view.dart';
+import 'services/notification_service.dart';
+
+// Global navigator key for navigation from notifications
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // --- UPDATE THIS MAIN FUNCTION ---
 void main() async {
@@ -29,7 +33,10 @@ void main() async {
   // 2. Initialize Firebase
   await Firebase.initializeApp();
 
-  // 3. Run the App
+  // 3. Initialize Notification Service
+  await NotificationService().initialize(navigatorKey);
+
+  // 4. Run the App
   runApp(const MyApp());
 }
 
@@ -41,6 +48,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => PetProfileViewModel(),
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'PetCare Auth',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),

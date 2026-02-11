@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/reminder_duration.dart';
 import '../ViewModel/add_schedule_view_model.dart';
 import '../ViewModel/pet_profile_view_model.dart';
 import 'add_pet_view.dart';
@@ -218,43 +219,9 @@ class _AddScheduleForm extends StatelessWidget {
                           ),
                           if (viewModel.reminderEnabled) ...[
                             const SizedBox(height: 12),
-                            _DateTimePicker(
-                              label: viewModel.formatDateTimeLabel(
-                                viewModel.reminderDateTime,
-                                placeholder: 'Select Reminder Time',
-                              ),
-                              onTap: () async {
-                                final now = DateTime.now();
-                                final initial = viewModel.reminderDateTime ?? now;
-
-                                final selectedDate = await showDatePicker(
-                                  context: context,
-                                  initialDate: initial,
-                                  firstDate: now,
-                                  lastDate: viewModel.startDateTime ??
-                                      now.add(const Duration(days: 365)),
-                                );
-
-                                if (selectedDate == null || !context.mounted) return;
-
-                                final timeInitial = TimeOfDay.fromDateTime(initial);
-                                final selectedTime = await showTimePicker(
-                                  context: context,
-                                  initialTime: timeInitial,
-                                );
-
-                                if (selectedTime == null || !context.mounted) return;
-
-                                final result = DateTime(
-                                  selectedDate.year,
-                                  selectedDate.month,
-                                  selectedDate.day,
-                                  selectedTime.hour,
-                                  selectedTime.minute,
-                                );
-
-                                viewModel.setReminderDate(result);
-                              },
+                            _ReminderDurationPicker(
+                              selectedDuration: viewModel.reminderDuration,
+                              onChanged: viewModel.setReminderDuration,
                               colorScheme: colorScheme,
                             ),
                           ],
@@ -634,6 +601,80 @@ class _IconBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(icon, color: color, size: 20),
+    );
+  }
+}
+
+// --- Helper: Reminder Duration Picker ---
+class _ReminderDurationPicker extends StatelessWidget {
+  final ReminderDuration selectedDuration;
+  final ValueChanged<ReminderDuration> onChanged;
+  final ColorScheme colorScheme;
+
+  const _ReminderDurationPicker({
+    required this.selectedDuration,
+    required this.onChanged,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (final duration in ReminderDuration.values)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () => onChanged(duration),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: selectedDuration == duration
+                      ? colorScheme.primary.withValues(alpha: 0.1)
+                      : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selectedDuration == duration
+                        ? colorScheme.primary
+                        : Colors.grey.shade200,
+                    width: selectedDuration == duration ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      selectedDuration == duration
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: selectedDuration == duration
+                          ? colorScheme.primary
+                          : Colors.grey.shade400,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      duration.displayName,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: selectedDuration == duration
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: selectedDuration == duration
+                            ? colorScheme.primary
+                            : const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

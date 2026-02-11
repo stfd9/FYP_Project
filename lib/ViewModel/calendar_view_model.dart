@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../View/add_schedule_view.dart';
 import '../View/schedule_detail_view.dart';
 import '../calendar_event.dart';
+import '../models/reminder_duration.dart';
 import 'base_view_model.dart';
 
 class CalendarViewModel extends BaseViewModel {
@@ -100,6 +101,10 @@ class CalendarViewModel extends BaseViewModel {
         final reminderTimestamp = data['reminderDateTime'] as Timestamp?;
         final reminderDateTime = reminderTimestamp?.toDate();
 
+        // Parse reminderDuration
+        final reminderDurationString = data['reminderDuration'] as String?;
+        final reminderDuration = ReminderDurationExtension.fromString(reminderDurationString);
+
         // Format time string
         final timeString = DateFormat('h:mm a').format(startDateTime);
 
@@ -127,6 +132,7 @@ class CalendarViewModel extends BaseViewModel {
           location: data['scheDescription'] as String? ?? '',
           time: timeString,
           scheduleId: doc.id,
+          reminderDuration: reminderDuration,
           startDateTime: startDateTime,
           endDateTime: endDateTime,
           reminderEnabled: data['reminderEnabled'] as bool? ?? false,

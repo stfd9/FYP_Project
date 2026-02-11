@@ -1,4 +1,6 @@
 // lib/calendar_event.dart
+import 'models/reminder_duration.dart';
+
 class CalendarEvent {
   const CalendarEvent({
     required this.day,
@@ -11,6 +13,7 @@ class CalendarEvent {
     this.endDateTime,
     this.reminderEnabled = false,
     this.reminderDateTime,
+    this.reminderDuration,
     this.petId,
     this.isCompleted = false,
   });
@@ -25,6 +28,7 @@ class CalendarEvent {
   final DateTime? endDateTime;
   final bool reminderEnabled;
   final DateTime? reminderDateTime;
+  final ReminderDuration? reminderDuration;
   final String? petId;
   final bool isCompleted;
 }
