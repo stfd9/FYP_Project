@@ -92,17 +92,24 @@ class ProfileViewModel extends BaseViewModel {
 
   // --- Actions ---
 
+  // Public method to refresh profile data
+  Future<void> refreshProfile() async {
+    await _fetchUserProfile();
+  }
+
   void onEditProfilePressed(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile editing coming soon.')),
     );
   }
 
-  void onAccountDetailsPressed(BuildContext context) {
-    Navigator.push(
+  Future<void> onAccountDetailsPressed(BuildContext context) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AccountDetailsView()),
     );
+    // Refresh profile data when returning from account details
+    await refreshProfile();
   }
 
   void onNotificationsPressed(BuildContext context) {

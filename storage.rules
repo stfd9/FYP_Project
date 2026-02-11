@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 1. Rule for Pets (Keep existing logic)
+    match /pets/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 2. Rule for Profile Images
+    match /profile_images/{allPaths=**} {
+       // This allows any user who is logged into your app to upload a profile picture
+       allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'base_view_model.dart';
 
@@ -92,14 +93,44 @@ class AccountDetailsViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
+      final authUser = FirebaseAuth.instance.currentUser;
+      if (authUser == null) {
+        throw Exception('User not authenticated.');
+      }
+
+      String? newProfileImageUrl = _currentImageUrl;
+
+      // Upload profile image to Firebase Storage if a new image was selected
+      if (_selectedImage != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images')
+            .child('${authUser.uid}_profile.jpg');
+
+        await storageRef
+            .putFile(_selectedImage!)
+            .timeout(const Duration(seconds: 60));
+
+        newProfileImageUrl = await storageRef.getDownloadURL().timeout(
+          const Duration(seconds: 10),
+        );
+      }
+
       // Update Firestore
       await FirebaseFirestore.instance.collection('user').doc(_docId).update({
         'userName': userNameController.text.trim(),
         'fullName': nameController.text.trim(),
         'userEmail': emailController.text.trim(),
+        if (newProfileImageUrl != null) 'profileImageUrl': newProfileImageUrl,
         // Note: We are NOT updating the Firebase Auth email here to avoid re-authentication flows.
         // We are only updating the database record.
       });
+
+      // Update local state with the new image URL
+      if (newProfileImageUrl != null) {
+        _currentImageUrl = newProfileImageUrl;
+      }
+      _selectedImage = null; // Clear selected image after successful upload
 
       _isLoading = false;
       notifyListeners();
