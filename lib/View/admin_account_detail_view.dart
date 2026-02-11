@@ -259,15 +259,23 @@ class _AdminAccountDetailBody extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => viewModel.showLockConfirmation(context),
                     icon: Icon(
-                      viewModel.isAccountLocked ? Icons.lock_open : Icons.block_outlined,
+                      viewModel.isAccountLocked
+                          ? Icons.lock_open
+                          : Icons.block_outlined,
                     ),
-                    label: Text(viewModel.isAccountLocked ? 'Unlock' : 'Suspend'),
+                    label: Text(
+                      viewModel.isAccountLocked ? 'Unlock' : 'Suspend',
+                    ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: BorderSide(
-                        color: viewModel.isAccountLocked ? Colors.green : Colors.orange,
+                        color: viewModel.isAccountLocked
+                            ? Colors.green
+                            : Colors.orange,
                       ),
-                      foregroundColor: viewModel.isAccountLocked ? Colors.green : Colors.orange,
+                      foregroundColor: viewModel.isAccountLocked
+                          ? Colors.green
+                          : Colors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

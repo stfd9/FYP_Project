@@ -165,7 +165,9 @@ class AdminAccountDetailViewModel extends BaseViewModel {
 
       // Log activity to Firebase
       await _logActivity(
-        action: newStatus == 'Suspended' ? 'Account Suspended' : 'Account Unlocked',
+        action: newStatus == 'Suspended'
+            ? 'Account Suspended'
+            : 'Account Unlocked',
         description: 'Account status changed to $newStatus',
       );
 
@@ -243,7 +245,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
     try {
       final userId = _user!.id;
       final userName = _user!.name;
-      
+
       // Log activity before deletion
       await _logActivity(
         action: 'Account Deleted',
@@ -251,10 +253,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
       );
 
       // Delete from Firestore
-      await FirebaseFirestore.instance
-          .collection('user')
-          .doc(userId)
-          .delete();
+      await FirebaseFirestore.instance.collection('user').doc(userId).delete();
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -441,14 +440,14 @@ class AdminAccountDetailViewModel extends BaseViewModel {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: Row(
               children: [
                 const Icon(Icons.history, color: Colors.blue),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text('Activity Log - ${_user!.name}'),
-                ),
+                Expanded(child: Text('Activity Log - ${_user!.name}')),
               ],
             ),
             content: SizedBox(
