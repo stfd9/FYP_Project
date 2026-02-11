@@ -1,8 +1,4 @@
-enum ReminderDuration {
-  thirtyMinutes,
-  oneHour,
-  oneDay,
-}
+enum ReminderDuration { thirtyMinutes, oneHour, oneDay }
 
 extension ReminderDurationExtension on ReminderDuration {
   String get displayName {

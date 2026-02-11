@@ -103,7 +103,9 @@ class CalendarViewModel extends BaseViewModel {
 
         // Parse reminderDuration
         final reminderDurationString = data['reminderDuration'] as String?;
-        final reminderDuration = ReminderDurationExtension.fromString(reminderDurationString);
+        final reminderDuration = ReminderDurationExtension.fromString(
+          reminderDurationString,
+        );
 
         // Format time string
         final timeString = DateFormat('h:mm a').format(startDateTime);

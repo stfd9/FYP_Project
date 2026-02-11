@@ -17,7 +17,8 @@ class EditScheduleViewModel extends BaseViewModel {
     _endDateTime = originalEvent.endDateTime ?? _startDateTime;
     _reminderEnabled = originalEvent.reminderEnabled;
     _reminderDateTime = originalEvent.reminderDateTime;
-    _reminderDuration = originalEvent.reminderDuration ?? ReminderDuration.thirtyMinutes;
+    _reminderDuration =
+        originalEvent.reminderDuration ?? ReminderDuration.thirtyMinutes;
   }
 
   final CalendarEvent originalEvent;
@@ -53,7 +54,9 @@ class EditScheduleViewModel extends BaseViewModel {
     _reminderEnabled = value;
     // Auto-calculate reminder time when enabled
     if (value) {
-      _reminderDateTime = _reminderDuration.calculateReminderTime(_startDateTime);
+      _reminderDateTime = _reminderDuration.calculateReminderTime(
+        _startDateTime,
+      );
     }
     notifyListeners();
   }
@@ -125,10 +128,11 @@ class EditScheduleViewModel extends BaseViewModel {
     final picked = await _pickDateTime(context, _endDateTime);
     if (picked == null) return;
 
-    _endDateTime = picked;    // Auto-update reminder time when start time changes
+    _endDateTime = picked; // Auto-update reminder time when start time changes
     if (_reminderEnabled) {
       _reminderDateTime = _reminderDuration.calculateReminderTime(picked);
-    }    notifyListeners();
+    }
+    notifyListeners();
   }
 
   Future<void> pickReminderDateTime(BuildContext context) async {
@@ -307,7 +311,9 @@ class EditScheduleViewModel extends BaseViewModel {
       'reminderDateTime': reminderEnabled && reminderDateTime != null
           ? Timestamp.fromDate(reminderDateTime)
           : null,
-      'reminderDuration': reminderEnabled ? reminderDuration.toFirestore() : null,
+      'reminderDuration': reminderEnabled
+          ? reminderDuration.toFirestore()
+          : null,
       'petId': petId,
     };
   }

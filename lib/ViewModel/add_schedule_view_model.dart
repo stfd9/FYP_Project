@@ -54,7 +54,9 @@ class AddScheduleViewModel extends BaseViewModel {
     _reminderEnabled = value;
     // Auto-calculate reminder time when enabled
     if (value && _startDateTime != null) {
-      _reminderDateTime = _reminderDuration.calculateReminderTime(_startDateTime!);
+      _reminderDateTime = _reminderDuration.calculateReminderTime(
+        _startDateTime!,
+      );
     }
     notifyListeners();
   }
@@ -148,7 +150,9 @@ class AddScheduleViewModel extends BaseViewModel {
     if (_reminderEnabled && _reminderDateTime == null) {
       // Auto-calculate if not set
       if (_startDateTime != null) {
-        _reminderDateTime = _reminderDuration.calculateReminderTime(_startDateTime!);
+        _reminderDateTime = _reminderDuration.calculateReminderTime(
+          _startDateTime!,
+        );
       } else {
         _showSnack(context, 'Please select a start time first.');
         return;
@@ -269,7 +273,9 @@ class AddScheduleViewModel extends BaseViewModel {
       'reminderDateTime': reminderEnabled && reminderDateTime != null
           ? Timestamp.fromDate(reminderDateTime)
           : null,
-      'reminderDuration': reminderEnabled ? reminderDuration.toFirestore() : null,
+      'reminderDuration': reminderEnabled
+          ? reminderDuration.toFirestore()
+          : null,
       'scheCreatedAt': FieldValue.serverTimestamp(),
       'petId': petId,
       'userId': userId,

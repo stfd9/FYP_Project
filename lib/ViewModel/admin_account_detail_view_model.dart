@@ -159,10 +159,9 @@ class AdminAccountDetailViewModel extends BaseViewModel {
 
     try {
       // Update Firebase
-      await FirebaseFirestore.instance
-          .collection('user')
-          .doc(_user!.id)
-          .update({'accountStatus': newStatus});
+      await FirebaseFirestore.instance.collection('user').doc(_user!.id).update(
+        {'accountStatus': newStatus},
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -181,9 +180,9 @@ class AdminAccountDetailViewModel extends BaseViewModel {
       notifyListeners();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error $action account: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error $action account: $e')));
       }
     }
   }
@@ -255,9 +254,9 @@ class AdminAccountDetailViewModel extends BaseViewModel {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting account: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting account: $e')));
       }
     }
   }
