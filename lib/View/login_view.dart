@@ -1,4 +1,4 @@
-import 'package:flutter/gestures.dart'; // REQUIRED for TapGestureRecognizer
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -176,7 +176,6 @@ class _LoginContentState extends State<_LoginContent> {
                   'The AI scanning tool is for reference only and does not replace professional veterinary advice...',
                   style: TextStyle(color: Colors.grey),
                 ),
-                // Add more dummy text as needed
               ],
             ),
           ),
@@ -195,7 +194,6 @@ class _LoginContentState extends State<_LoginContent> {
               ),
             ),
             onPressed: () {
-              // User agrees via Dialog
               viewModel.toggleTerms(true);
               Navigator.pop(ctx);
             },
@@ -282,11 +280,14 @@ class _LoginContentState extends State<_LoginContent> {
                           ),
                           const SizedBox(height: 24),
 
-                          // Email Input
+                          // --- UPDATED: Email OR Username Input ---
                           TextField(
-                            controller: viewModel.emailController,
+                            controller: viewModel.emailOrUsernameController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: _inputDecoration(context, 'Email'),
+                            decoration: _inputDecoration(
+                              context,
+                              'Username or Email',
+                            ),
                           ),
                           const SizedBox(height: 16),
 
@@ -309,7 +310,7 @@ class _LoginContentState extends State<_LoginContent> {
                             ),
                           ),
 
-                          // --- UPDATED: Terms & Conditions Checkbox ---
+                          // Terms & Conditions Checkbox
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -336,7 +337,7 @@ class _LoginContentState extends State<_LoginContent> {
                                       fontFamily: theme
                                           .textTheme
                                           .bodyMedium
-                                          ?.fontFamily, // Ensure font matches app
+                                          ?.fontFamily,
                                     ),
                                     children: [
                                       TextSpan(
@@ -346,7 +347,6 @@ class _LoginContentState extends State<_LoginContent> {
                                           fontWeight: FontWeight.bold,
                                           decoration: TextDecoration.underline,
                                         ),
-                                        // Open Pop-up when clicked
                                         recognizer: TapGestureRecognizer()
                                           ..onTap = () => _showTermsDialog(
                                             context,
@@ -376,7 +376,6 @@ class _LoginContentState extends State<_LoginContent> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: colorScheme.primary,
                                 foregroundColor: colorScheme.onPrimary,
-                                // Dim button if terms not accepted
                                 disabledBackgroundColor: colorScheme.onSurface
                                     .withValues(alpha: 0.12),
                                 disabledForegroundColor: colorScheme.onSurface

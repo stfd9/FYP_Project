@@ -3,12 +3,13 @@ import 'package:provider/provider.dart';
 import '../ViewModel/reset_password_view_model.dart';
 
 class ResetPasswordView extends StatelessWidget {
-  const ResetPasswordView({super.key});
+  final String email;
+  const ResetPasswordView({super.key, required this.email});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ResetPasswordViewModel(),
+      create: (_) => ResetPasswordViewModel()..initialize(email),
       child: const _ResetPasswordContent(),
     );
   }
@@ -28,16 +29,7 @@ class _ResetPasswordContent extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.white,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
+        automaticallyImplyLeading: false, // Don't allow going back to OTP
       ),
       body: SafeArea(
         child: SingleChildScrollView(

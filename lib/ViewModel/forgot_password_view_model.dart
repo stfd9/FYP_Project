@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../View/enter_otp_view.dart'; // Import the OTP View
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ForgotPasswordViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -7,7 +8,6 @@ class ForgotPasswordViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  // --- Logic to Send Code ---
   Future<void> sendResetLink(BuildContext context) async {
     // 1. Reset Error
     errorMessage = null;
@@ -21,37 +21,63 @@ class ForgotPasswordViewModel extends ChangeNotifier {
       return;
     }
 
-    // Simple Regex for Email Validation
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       errorMessage = 'Please enter a valid email address.';
       notifyListeners();
       return;
     }
 
-    // 3. Simulate API Call (Loading State)
+    // 3. Start Loading
     isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 2)); // Simulate network delay
+    try {
+      // 4. Check if User Exists in Firestore first (Optional but good UX)
+      final userQuery = await FirebaseFirestore.instance
+          .collection('user')
+          .where('userEmail', isEqualTo: email)
+          .limit(1)
+          .get();
 
-    isLoading = false;
-    notifyListeners();
+      if (userQuery.docs.isEmpty) {
+        errorMessage = 'No account found with this email.';
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
 
-    // 4. Navigate to OTP Page
-    if (context.mounted) {
-      // Show a small feedback message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Verification code sent to $email'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      // 5. SEND FIREBASE RESET EMAIL
+      // This sends a reliable email from "noreply@your-project.firebaseapp.com"
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 
-      // Push the Enter OTP View
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const EnterOtpView()),
-      );
+      isLoading = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        // 6. Success Feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset link sent! Check your email.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+
+        // 7. Go back to Login Page (No need for OTP screen)
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      isLoading = false;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found with this email.';
+      } else {
+        errorMessage = e.message ?? 'An error occurred.';
+      }
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      errorMessage = 'Error: $e';
+      notifyListeners();
     }
   }
 

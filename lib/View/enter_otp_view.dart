@@ -3,12 +3,20 @@ import 'package:provider/provider.dart';
 import '../ViewModel/enter_otp_view_model.dart';
 
 class EnterOtpView extends StatelessWidget {
-  const EnterOtpView({super.key});
+  final String email;
+  // REMOVED: final String correctOtp;
+
+  const EnterOtpView({
+    super.key,
+    required this.email,
+    // REMOVED: required this.correctOtp,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => EnterOtpViewModel(),
+      // Only initialize with email
+      create: (_) => EnterOtpViewModel()..initialize(email),
       child: const _EnterOtpContent(),
     );
   }
@@ -69,7 +77,7 @@ class _EnterOtpContent extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'We have sent a 4-digit code to your email. Please enter it below.',
+                'We have sent a 6-digit code to ${viewModel.email}. \n(Check your Console/Debug for now)',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -84,15 +92,15 @@ class _EnterOtpContent extends StatelessWidget {
                 controller: viewModel.otpController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                maxLength: 4,
+                maxLength: 6,
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 8,
                 ),
                 decoration: InputDecoration(
-                  counterText: "", // Hide character counter
-                  hintText: '----',
+                  counterText: "",
+                  hintText: '------',
                   hintStyle: TextStyle(color: Colors.grey.shade300),
                   filled: true,
                   fillColor: Colors.white,
