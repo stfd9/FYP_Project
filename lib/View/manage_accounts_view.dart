@@ -127,7 +127,7 @@ class _ManageAccountsBody extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          '${viewModel.users.length} Active',
+                          '${viewModel.activeUsersCount} Active',
                           style: textTheme.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -158,6 +158,7 @@ class _ManageAccountsBody extends StatelessWidget {
                 ],
               ),
               child: TextField(
+                onChanged: (value) => viewModel.searchUsers(value),
                 decoration: InputDecoration(
                   hintText: 'Search users...',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -242,6 +243,11 @@ class _UserCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Logic to determine status appearance
+    final isSuspended = user.status.toLowerCase() == 'suspended';
+    final statusColor = isSuspended ? Colors.orange : Colors.green;
+    final statusText = isSuspended ? 'Suspended' : 'Active';
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -321,19 +327,21 @@ class _UserCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
+                      // Dynamic Status Dot
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
+                        decoration: BoxDecoration(
+                          color: statusColor,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 4),
+                      // Dynamic Status Text
                       Text(
-                        'Active',
+                        statusText,
                         style: textTheme.labelSmall?.copyWith(
-                          color: Colors.green,
+                          color: statusColor,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -344,10 +352,15 @@ class _UserCard extends StatelessWidget {
                         color: Colors.grey.shade500,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        'Joined ${user.joinDate}',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: Colors.grey.shade500,
+                      // Flexible Date to prevent overflow
+                      Flexible(
+                        child: Text(
+                          'Joined ${user.joinDate}',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: Colors.grey.shade500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],

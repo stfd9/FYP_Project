@@ -1,35 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_view_model.dart';
 
 class AdminDashboardViewModel extends BaseViewModel {
-  // -- Manage Accounts --
+  int _userCount = 0;
+  int _scanCount = 0;
+  bool _isLoadingStats = true;
+
+  int get userCount => _userCount;
+  int get scanCount => _scanCount;
+  bool get isLoadingStats => _isLoadingStats;
+
+  // Constructor: Fetch stats immediately when initialized
+  AdminDashboardViewModel() {
+    _fetchStats();
+  }
+
+  Future<void> _fetchStats() async {
+    _isLoadingStats = true;
+    notifyListeners();
+
+    try {
+      // 1. Count Users
+      // Using .count() is cheaper and faster than fetching all documents
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .count()
+          .get();
+
+      _userCount = userSnapshot.count ?? 0;
+
+      // 2. Count Scans (assuming 'analysis_records' is the collection name)
+      // Change 'analysis_records' to your actual scan collection name if different
+      final scanSnapshot = await FirebaseFirestore.instance
+          .collection('analysis_records')
+          .count()
+          .get();
+
+      _scanCount = scanSnapshot.count ?? 0;
+    } catch (e) {
+      print("Error fetching stats: $e");
+    }
+
+    _isLoadingStats = false;
+    notifyListeners();
+  }
+
+  // -- Navigation Methods --
   void onManageAccountsPressed(BuildContext context) {
-    Navigator.pushNamed(context, '/manage_accounts');
+    Navigator.pushNamed(context, '/manage_accounts').then((_) => _fetchStats());
   }
 
-  // -- Analysis Records --
   void onAnalysisRecordsPressed(BuildContext context) {
-    Navigator.pushNamed(context, '/analysis_records');
+    Navigator.pushNamed(
+      context,
+      '/analysis_records',
+    ).then((_) => _fetchStats());
   }
 
-  // -- User Feedback --
   void onUserFeedbackPressed(BuildContext context) {
     Navigator.pushNamed(context, '/admin_feedback_list');
   }
 
-  // -- Manage FAQ --
   void onManageFaqPressed(BuildContext context) {
     Navigator.pushNamed(context, '/manage_faq');
   }
 
-  // -- Manage Community Tips --
   void onManageCommunityTipsPressed(BuildContext context) {
     Navigator.pushNamed(context, '/manage_community_tips');
   }
 
-  // -- Logout --
   void onLogoutPressed(BuildContext context) {
-    // Navigate back to login and remove all previous routes
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // REQUIRED
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../View/home_view.dart';
 import '../View/register_view.dart';
 import '../View/admin_login_view.dart';
 import '../View/forgot_password_view.dart';
+import '../Services/activity_service.dart'; // <--- Import ActivityService
 import 'base_view_model.dart';
 
 class LoginViewModel extends ChangeNotifier {
@@ -72,15 +73,29 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text,
-      );
+      // 1. Attempt Authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text,
+          );
+
+      // 2. Check Suspension Status
+      bool isAllowed = await _checkUserStatus(userCredential.user!);
 
       _isLoading = false;
       notifyListeners();
 
-      if (context.mounted) {
+      if (isAllowed && context.mounted) {
+        // --- LOG ACTIVITY ---
+        final user = userCredential.user!;
+        await ActivityService.log(
+          action: 'User Login',
+          description: '${user.email ?? "User"} logged in via Email',
+          actorName: user.displayName ?? 'User',
+          type: 'INFO',
+        );
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeView()),
@@ -177,16 +192,29 @@ class LoginViewModel extends ChangeNotifier {
 
       // --- SAVE TO FIRESTORE & NAVIGATE ---
       if (userCredential != null && userCredential.user != null) {
-        // Pass the provider name so the DB saves "google" or "facebook" correctly
+        // 1. Create user doc if it doesn't exist
         await _saveSocialUserToFirestore(
           userCredential.user!,
           providerName.toLowerCase(),
         );
 
+        // 2. Check Suspension Status
+        bool isAllowed = await _checkUserStatus(userCredential.user!);
+
         _isLoading = false;
         notifyListeners();
 
-        if (context.mounted) {
+        if (isAllowed && context.mounted) {
+          // --- LOG ACTIVITY ---
+          final user = userCredential.user!;
+          await ActivityService.log(
+            action: 'User Login',
+            description:
+                '${user.displayName ?? "User"} logged in via $providerName',
+            actorName: user.displayName ?? 'User',
+            type: 'INFO',
+          );
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeView()),
@@ -202,6 +230,48 @@ class LoginViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       setMessage('An error occurred: $e', MessageType.error);
+    }
+  }
+
+  // --- Helper: Check User Status (Active vs Suspended) ---
+  Future<bool> _checkUserStatus(User user) async {
+    try {
+      // Query by providerId because your doc ID is custom (U00001), not the Auth UID
+      final QuerySnapshot result = await FirebaseFirestore.instance
+          .collection('user')
+          .where('providerId', isEqualTo: user.uid)
+          .limit(1)
+          .get();
+
+      if (result.docs.isNotEmpty) {
+        final data = result.docs.first.data() as Map<String, dynamic>;
+        final status = data['accountStatus'] as String? ?? 'Active';
+
+        if (status == 'Suspended') {
+          // Force Sign Out
+          await FirebaseAuth.instance.signOut();
+
+          // Clear any Google/Facebook cache if needed
+          final GoogleSignIn googleSignIn = GoogleSignIn();
+          if (await googleSignIn.isSignedIn()) {
+            await googleSignIn.signOut();
+          }
+
+          setMessage(
+            'Your account has been suspended. Please contact support.',
+            MessageType.error,
+          );
+          return false; // Deny access
+        }
+      }
+      return true; // Allow access
+    } catch (e) {
+      print("Error checking status: $e");
+      // Fallback: If DB check fails, we generally allow access or block safe.
+      // Blocking safe prevents suspended users from sneaking in during outages.
+      setMessage('Unable to verify account status.', MessageType.error);
+      await FirebaseAuth.instance.signOut();
+      return false;
     }
   }
 

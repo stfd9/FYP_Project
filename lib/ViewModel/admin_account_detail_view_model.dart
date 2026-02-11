@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_view_model.dart';
 import '../models/user_account.dart';
+import '../Services/activity_service.dart'; // <--- Import ActivityService
 
 class AdminAccountDetailViewModel extends BaseViewModel {
   UserAccount? _user;
@@ -14,6 +15,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
 
   void initialize(UserAccount user) {
     _user = user;
+    // Check if status matches 'Suspended' (case insensitive safety)
     _isAccountLocked = user.status.toLowerCase() == 'suspended';
     _accountStatus = user.status;
     notifyListeners();
@@ -23,6 +25,102 @@ class AdminAccountDetailViewModel extends BaseViewModel {
     Navigator.pop(context);
   }
 
+  // --- SUSPEND / UNLOCK ACCOUNT ---
+  Future<void> toggleAccountLock(BuildContext context) async {
+    if (_user == null) return;
+
+    // 1. Determine the new status
+    final newStatus = _isAccountLocked ? 'Active' : 'Suspended';
+    final actionName = _isAccountLocked
+        ? 'Account Unlocked'
+        : 'Account Suspended';
+
+    // 2. Optimistic Update
+    _isAccountLocked = !_isAccountLocked;
+    _accountStatus = newStatus;
+    _user = _user!.copyWith(status: newStatus);
+    notifyListeners();
+
+    try {
+      // 3. Update Firestore
+      await FirebaseFirestore.instance.collection('user').doc(_user!.id).update(
+        {'accountStatus': newStatus},
+      );
+
+      // 4. Log the activity using Service
+      await ActivityService.log(
+        action: actionName,
+        description: 'Admin changed status of ${_user!.name} to $newStatus',
+        actorName: 'Admin',
+        type: newStatus == 'Suspended' ? 'WARNING' : 'INFO',
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Account $newStatus successfully'),
+            backgroundColor: newStatus == 'Suspended'
+                ? Colors.orange
+                : Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // 5. Revert changes if error occurs
+      _isAccountLocked = !_isAccountLocked;
+      _accountStatus = _isAccountLocked ? 'Suspended' : 'Active';
+      _user = _user!.copyWith(status: _accountStatus);
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+      }
+    }
+  }
+
+  // --- DELETE ACCOUNT ---
+  Future<void> deleteAccount(BuildContext context) async {
+    if (_user == null) return;
+
+    try {
+      final userId = _user!.id;
+      final userName = _user!.name;
+
+      // Log activity before deletion using Service
+      await ActivityService.log(
+        action: 'Account Deleted',
+        description: 'User account deleted: $userName (ID: $userId)',
+        actorName: 'Admin',
+        type: 'CRITICAL',
+      );
+
+      // Delete from Firestore
+      await FirebaseFirestore.instance.collection('user').doc(userId).delete();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Go back to the Manage Accounts list
+        Navigator.pop(context); // Close dialog
+        Navigator.pop(context); // Close page
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting account: $e')));
+      }
+    }
+  }
+
+  // --- DIALOGS ---
   void showOptionsMenu(BuildContext context) {
     if (_user == null) return;
 
@@ -50,7 +148,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
               title: const Text('Send Email'),
               onTap: () {
                 Navigator.pop(ctx);
-                // TODO: Implement email action
+                // Email logic here
               },
             ),
             ListTile(
@@ -82,7 +180,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
           ],
         ),
         content: Text(
-          'Are you sure you want to suspend ${_user!.name}\'s account? They will not be able to access the app.',
+          'Are you sure you want to suspend ${_user!.name}\'s account? They will not be able to login.',
         ),
         actions: [
           TextButton(
@@ -105,9 +203,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
     );
   }
 
-  void showDeleteDialog(BuildContext context) {
-    if (_user == null) return;
-
+  void showDeleteConfirmation(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -119,8 +215,8 @@ class AdminAccountDetailViewModel extends BaseViewModel {
             Text('Delete Account'),
           ],
         ),
-        content: Text(
-          'Are you sure you want to permanently delete ${_user!.name}\'s account? This action cannot be undone.',
+        content: const Text(
+          'Are you sure you want to permanently delete this user? This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -130,69 +226,17 @@ class AdminAccountDetailViewModel extends BaseViewModel {
               style: TextStyle(color: Colors.grey.shade600),
             ),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               deleteAccount(context);
             },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
-  }
-
-  // --- SUSPEND / UNLOCK ACCOUNT WITH FIREBASE ---
-  Future<void> toggleAccountLock(BuildContext context) async {
-    if (_user == null) return;
-
-    // Determine new status
-    final newStatus = _isAccountLocked ? 'Active' : 'Suspended';
-    final action = _isAccountLocked ? 'Unlocking' : 'Suspending';
-
-    // Optimistic Update: Update UI immediately so it feels fast
-    _isAccountLocked = !_isAccountLocked;
-    _accountStatus = newStatus;
-    _user = _user!.copyWith(status: newStatus);
-    notifyListeners();
-
-    try {
-      // Update Firebase
-      await FirebaseFirestore.instance.collection('user').doc(_user!.id).update(
-        {'accountStatus': newStatus},
-      );
-
-      // Log activity to Firebase
-      await _logActivity(
-        action: newStatus == 'Suspended'
-            ? 'Account Suspended'
-            : 'Account Unlocked',
-        description: 'Account status changed to $newStatus',
-      );
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Account $newStatus successfully'),
-            backgroundColor: _isAccountLocked ? Colors.orange : Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      // If error, revert the UI changes
-      _isAccountLocked = !_isAccountLocked;
-      _accountStatus = _isAccountLocked ? 'Suspended' : 'Active';
-      _user = _user!.copyWith(status: _accountStatus);
-      notifyListeners();
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error $action account: $e')));
-      }
-    }
   }
 
   void showLockConfirmation(BuildContext context) {
@@ -238,197 +282,14 @@ class AdminAccountDetailViewModel extends BaseViewModel {
     );
   }
 
-  // --- DELETE ACCOUNT WITH FIREBASE ---
-  Future<void> deleteAccount(BuildContext context) async {
-    if (_user == null) return;
-
-    try {
-      final userId = _user!.id;
-      final userName = _user!.name;
-
-      // Log activity before deletion
-      await _logActivity(
-        action: 'Account Deleted',
-        description: 'User account deleted: $userName (ID: $userId)',
-      );
-
-      // Delete from Firestore
-      await FirebaseFirestore.instance.collection('user').doc(userId).delete();
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account deleted successfully'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        // Go back to the Manage Accounts list
-        Navigator.pop(context); // Close dialog
-        Navigator.pop(context); // Close page
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error deleting account: $e')));
-      }
-    }
-  }
-
-  void showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.delete_outline, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Delete Account'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to permanently delete this user? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              deleteAccount(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void sendNotification(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final TextEditingController messageController = TextEditingController();
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.notifications_active, color: Colors.blue),
-              SizedBox(width: 8),
-              Text('Send Notification'),
-            ],
-          ),
-          content: TextField(
-            controller: messageController,
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Enter notification message...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (messageController.text.trim().isNotEmpty) {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Notification sent successfully'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Send'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void resetPassword(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.lock_reset, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Reset Password'),
-          ],
-        ),
-        content: const Text('Send a password reset link to the user\'s email?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Password reset link sent successfully'),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Send Link'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- ACTIVITY LOG ---
-  Future<void> _logActivity({
-    required String action,
-    required String description,
-  }) async {
-    if (_user == null) return;
-
-    try {
-      await FirebaseFirestore.instance.collection('admin_activity_logs').add({
-        'userId': _user!.id,
-        'userName': _user!.name,
-        'userEmail': _user!.email,
-        'action': action,
-        'description': description,
-        'timestamp': FieldValue.serverTimestamp(),
-        'adminId': 'admin', // TODO: Get actual admin ID from auth
-      });
-    } catch (e) {
-      // Silently fail - don't block main operation
-      debugPrint('Error logging activity: $e');
-    }
-  }
-
+  // This one still queries the specific user activity, separate from the main system log
   Future<void> viewActivityLog(BuildContext context) async {
     if (_user == null) return;
 
     try {
+      // You might want to update this query to also pull from 'system_activity_logs'
+      // if that's where you want to keep ALL records now.
+      // For now, I'm keeping your existing logic here for specific user logs.
       final logs = await FirebaseFirestore.instance
           .collection('admin_activity_logs')
           .where('userId', isEqualTo: _user!.id)

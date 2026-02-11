@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../ViewModel/admin_dashboard_view_model.dart';
 
 class AdminDashboardView extends StatelessWidget {
@@ -26,7 +27,7 @@ class _DashboardContent extends StatelessWidget {
     final bottomPadding = MediaQuery.of(context).padding.bottom + 24;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD), // App Theme Background
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -51,7 +52,6 @@ class _DashboardContent extends StatelessWidget {
           ],
         ),
         actions: [
-          // Logout Button
           Container(
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
@@ -97,7 +97,8 @@ class _DashboardContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const _DashboardStatsRow(),
+            // Pass the view model here
+            _DashboardStatsRow(viewModel: viewModel),
 
             const SizedBox(height: 32),
 
@@ -117,14 +118,14 @@ class _DashboardContent extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 1.1,
+              childAspectRatio: 1.0,
               children: [
                 _AdminActionCard(
                   title: 'Accounts',
                   subtitle: 'Users & Admins',
                   icon: Icons.people_alt_rounded,
                   iconColor: Colors.white,
-                  iconBgColor: colorScheme.primary, // Cobalt
+                  iconBgColor: colorScheme.primary,
                   onTap: () => viewModel.onManageAccountsPressed(context),
                 ),
                 _AdminActionCard(
@@ -132,7 +133,7 @@ class _DashboardContent extends StatelessWidget {
                   subtitle: 'AI Analysis Logs',
                   icon: Icons.analytics_rounded,
                   iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF29B6F6), // Light Blue
+                  iconBgColor: const Color(0xFF29B6F6),
                   onTap: () => viewModel.onAnalysisRecordsPressed(context),
                 ),
                 _AdminActionCard(
@@ -140,7 +141,7 @@ class _DashboardContent extends StatelessWidget {
                   subtitle: 'User Reports',
                   icon: Icons.reviews_rounded,
                   iconColor: Colors.white,
-                  iconBgColor: const Color(0xFFFFB74D), // Orange
+                  iconBgColor: const Color(0xFFFFB74D),
                   onTap: () => viewModel.onUserFeedbackPressed(context),
                 ),
                 _AdminActionCard(
@@ -148,7 +149,7 @@ class _DashboardContent extends StatelessWidget {
                   subtitle: 'Help Content',
                   icon: Icons.live_help_rounded,
                   iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF66BB6A), // Green
+                  iconBgColor: const Color(0xFF66BB6A),
                   onTap: () => viewModel.onManageFaqPressed(context),
                 ),
                 _AdminActionCard(
@@ -156,7 +157,7 @@ class _DashboardContent extends StatelessWidget {
                   subtitle: 'Manage Tips',
                   icon: Icons.local_library_rounded,
                   iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF9C27B0), // Purple
+                  iconBgColor: const Color(0xFF9C27B0),
                   onTap: () => viewModel.onManageCommunityTipsPressed(context),
                 ),
               ],
@@ -255,7 +256,7 @@ class _AdminWelcomeBanner extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'System status is normal. There are 5 pending user reports to review.',
+            'System status is normal. There are pending actions to review.',
             style: TextStyle(
               fontSize: 14,
               color: Colors.white.withValues(alpha: 0.9),
@@ -268,36 +269,41 @@ class _AdminWelcomeBanner extends StatelessWidget {
   }
 }
 
-// --- WIDGET: Stats Row ---
+// --- WIDGET: Stats Row (UPDATED) ---
 class _DashboardStatsRow extends StatelessWidget {
-  const _DashboardStatsRow();
+  final AdminDashboardViewModel viewModel;
+
+  const _DashboardStatsRow({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _StatCard(
             label: 'Users',
-            value: '1.2k',
+            // Display '...' while loading, otherwise the actual number
+            value: viewModel.isLoadingStats ? '...' : '${viewModel.userCount}',
             icon: Icons.group_rounded,
-            color: Color(0xFF6C63FF),
+            color: const Color(0xFF6C63FF),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             label: 'Scans',
-            value: '856',
+            // Display '...' while loading, otherwise the actual number
+            value: viewModel.isLoadingStats ? '...' : '${viewModel.scanCount}',
             icon: Icons.center_focus_strong_rounded,
-            color: Color(0xFF29B6F6),
+            color: const Color(0xFF29B6F6),
           ),
         ),
-        SizedBox(width: 12),
-        Expanded(
+        const SizedBox(width: 12),
+        // Placeholder for Issues (0 for now)
+        const Expanded(
           child: _StatCard(
             label: 'Issues',
-            value: '5',
+            value: '0',
             icon: Icons.warning_rounded,
             color: Color(0xFFFF7043),
           ),
@@ -460,7 +466,7 @@ class _AdminActionCard extends StatelessWidget {
   }
 }
 
-// --- WIDGET: Recent Activity List ---
+// --- WIDGET: Recent Activity List (with Stream) ---
 class _RecentActivityList extends StatelessWidget {
   const _RecentActivityList();
 
@@ -478,30 +484,79 @@ class _RecentActivityList extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          _ActivityItem(
-            text: 'New user "Alex" registered',
-            time: '2m ago',
-            color: const Color(0xFF6C63FF),
-            isFirst: true,
-          ),
-          Divider(height: 1, color: Colors.grey.shade100),
-          _ActivityItem(
-            text: 'Skin analysis #402 flagged',
-            time: '1h ago',
-            color: const Color(0xFF29B6F6),
-          ),
-          Divider(height: 1, color: Colors.grey.shade100),
-          const _ActivityItem(
-            text: 'Feedback received: "Crash bug"',
-            time: '3h ago',
-            color: Color(0xFFFF7043),
-            isLast: true,
-          ),
-        ],
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('system_activity_logs')
+            .orderBy('timestamp', descending: true)
+            .limit(10)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: Text('Error loading logs')),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: Text('No recent activity')),
+            );
+          }
+
+          final logs = snapshot.data!.docs;
+
+          return Column(
+            children: List.generate(logs.length, (index) {
+              final log = logs[index].data() as Map<String, dynamic>;
+              final isLast = index == logs.length - 1;
+              final isFirst = index == 0;
+
+              final timestamp = log['timestamp'] as Timestamp?;
+              final timeStr = _formatTimestamp(timestamp);
+
+              Color dotColor = const Color(0xFF6C63FF);
+              final type = log['type']?.toString() ?? 'INFO';
+              if (type == 'WARNING') dotColor = const Color(0xFFFF7043);
+              if (type == 'CRITICAL') dotColor = Colors.red;
+
+              return Column(
+                children: [
+                  _ActivityItem(
+                    text: log['description'] ?? 'Unknown activity',
+                    time: timeStr,
+                    color: dotColor,
+                    isFirst: isFirst,
+                    isLast: isLast,
+                  ),
+                  if (!isLast) Divider(height: 1, color: Colors.grey.shade100),
+                ],
+              );
+            }),
+          );
+        },
       ),
     );
+  }
+
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final now = DateTime.now();
+    final date = timestamp.toDate();
+    final diff = now.difference(date);
+
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 }
 

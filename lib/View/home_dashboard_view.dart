@@ -35,354 +35,222 @@ class _HomeDashboardContent extends StatelessWidget {
       color: const Color(0xFFF5F7FA),
       child: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // --- Gradient Header with Overlapping Card ---
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Gradient curved background
-                  Container(
-                    height: 180,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.primary,
-                          colorScheme.primary.withValues(alpha: 0.85),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
-                      ),
-                    ),
-                    child: Stack(
+        child: dashboardViewModel.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // --- Gradient Header with Overlapping Card ---
+                    Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        // Decorative circles
-                        Positioned(
-                          top: -30,
-                          right: -30,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.1),
+                        // Gradient curved background
+                        Container(
+                          height: 180,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.primary.withValues(alpha: 0.85),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(32),
+                              bottomRight: Radius.circular(32),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          left: -40,
-                          child: Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.08),
-                            ),
-                          ),
-                        ),
-                        // Header content
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 60),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Stack(
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(3),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 22,
-                                      backgroundColor: Colors.white.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: Colors.white,
-                                        size: 24,
-                                      ),
-                                    ),
+                              // Decorative circles
+                              Positioned(
+                                top: -30,
+                                right: -30,
+                                child: Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.1),
                                   ),
-                                  const SizedBox(width: 14),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Welcome back,',
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.85,
-                                          ),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      const Text(
-                                        'PetOwner 👋',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: IconButton(
-                                  onPressed: () => dashboardViewModel
-                                      .openNotifications(context),
-                                  icon: Stack(
-                                    children: [
-                                      const Icon(
-                                        Icons.notifications_outlined,
-                                        color: Colors.white,
-                                        size: 26,
-                                      ),
-                                      Positioned(
-                                        right: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 10,
-                                          height: 10,
+                              ),
+                              Positioned(
+                                bottom: 20,
+                                left: -40,
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                  ),
+                                ),
+                              ),
+                              // Header content
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  16,
+                                  20,
+                                  60,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(3),
                                           decoration: BoxDecoration(
-                                            color: Colors.redAccent,
                                             shape: BoxShape.circle,
                                             border: Border.all(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: CircleAvatar(
+                                            radius: 22,
+                                            backgroundColor: Colors.white
+                                                .withValues(alpha: 0.2),
+                                            child: const Icon(
+                                              Icons.person,
                                               color: Colors.white,
-                                              width: 1.5,
+                                              size: 24,
                                             ),
                                           ),
                                         ),
+                                        const SizedBox(width: 14),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Welcome back,',
+                                              style: textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.85,
+                                                        ),
+                                                    fontSize: 13,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            const Text(
+                                              'PetOwner 👋',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                    ],
-                                  ),
+                                      child: IconButton(
+                                        onPressed: () => dashboardViewModel
+                                            .openNotifications(context),
+                                        icon: Stack(
+                                          children: [
+                                            const Icon(
+                                              Icons.notifications_outlined,
+                                              color: Colors.white,
+                                              size: 26,
+                                            ),
+                                            Positioned(
+                                              right: 0,
+                                              top: 0,
+                                              child: Container(
+                                                width: 10,
+                                                height: 10,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.redAccent,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  // Quick actions card
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: -55,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 20,
-                        horizontal: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _QuickActionButton(
-                            icon: Icons.center_focus_strong,
-                            label: 'Scan',
-                            gradient: const [
-                              Color(0xFF667EEA),
-                              Color(0xFF764BA2),
-                            ],
-                            onTap: () => homeViewModel?.goToScanTab(),
-                          ),
-                          _QuickActionButton(
-                            icon: Icons.pets,
-                            label: 'Add Pet',
-                            gradient: const [
-                              Color(0xFF11998E),
-                              Color(0xFF38EF7D),
-                            ],
-                            onTap: () => dashboardViewModel.addPet(context),
-                          ),
-                          _QuickActionButton(
-                            icon: Icons.calendar_month,
-                            label: 'Calendar',
-                            gradient: const [
-                              Color(0xFFFF8008),
-                              Color(0xFFFFC837),
-                            ],
-                            onTap: () => homeViewModel?.goToCalendarTab(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 70),
-
-              // --- Main Content ---
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- Upcoming Card ---
-                    _SectionHeader(title: 'Upcoming', icon: Icons.event_note),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            colorScheme.primary.withValues(alpha: 0.08),
-                            Colors.white,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 54,
-                            height: 54,
+                        // Quick actions card
+                        Positioned(
+                          left: 20,
+                          right: 20,
+                          bottom: -55,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 20,
+                              horizontal: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
                                   color: colorScheme.primary.withValues(
                                     alpha: 0.15,
                                   ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
-                            ),
-                            child: Icon(
-                              Icons.calendar_today_rounded,
-                              color: colorScheme.primary,
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    "Today's Focus",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: colorScheme.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  dashboardViewModel.upcomingItem,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2D3142),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // --- Your Pets ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _SectionHeader(title: 'Your Pets', icon: Icons.pets),
-                        GestureDetector(
-                          onTap: () => dashboardViewModel.openPetsList(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                Text(
-                                  'View all',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
-                                  ),
+                                _QuickActionButton(
+                                  icon: Icons.center_focus_strong,
+                                  label: 'Scan',
+                                  gradient: const [
+                                    Color(0xFF667EEA),
+                                    Color(0xFF764BA2),
+                                  ],
+                                  onTap: () => homeViewModel?.goToScanTab(),
                                 ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  size: 12,
-                                  color: colorScheme.primary,
+                                _QuickActionButton(
+                                  icon: Icons.pets,
+                                  label: 'Add Pet',
+                                  gradient: const [
+                                    Color(0xFF11998E),
+                                    Color(0xFF38EF7D),
+                                  ],
+                                  onTap: () =>
+                                      dashboardViewModel.addPet(context),
+                                ),
+                                _QuickActionButton(
+                                  icon: Icons.calendar_month,
+                                  label: 'Calendar',
+                                  gradient: const [
+                                    Color(0xFFFF8008),
+                                    Color(0xFFFFC837),
+                                  ],
+                                  onTap: () => homeViewModel?.goToCalendarTab(),
                                 ),
                               ],
                             ),
@@ -390,156 +258,268 @@ class _HomeDashboardContent extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    if (dashboardViewModel.pets.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.pets,
-                              size: 40,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No pets added yet',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
+
+                    const SizedBox(height: 70),
+
+                    // --- Main Content ---
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // --- Upcoming Card ---
+                          _SectionHeader(
+                            title: 'Upcoming',
+                            icon: Icons.event_note,
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colorScheme.primary.withValues(alpha: 0.08),
+                                  Colors.white,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.15,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () =>
-                                  dashboardViewModel.addPet(context),
-                              child: const Text('Add your first pet'),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 54,
+                                  height: 54,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(
+                                    Icons.calendar_today_rounded,
+                                    color: colorScheme.primary,
+                                    size: 26,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primary.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "Today's Focus",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        dashboardViewModel.upcomingItem,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF2D3142),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 16,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 28),
+
+                          // --- Your Pets ---
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _SectionHeader(
+                                title: 'Your Pets',
+                                icon: Icons.pets,
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    dashboardViewModel.openPetsList(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        'View all',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        size: 12,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          if (dashboardViewModel.pets.isEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.pets,
+                                    size: 40,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No pets added yet',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () =>
+                                        dashboardViewModel.addPet(context),
+                                    child: const Text('Add your first pet'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            SizedBox(
+                              height: 185,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: dashboardViewModel.pets.length,
+                                itemBuilder: (context, index) {
+                                  final pet = dashboardViewModel.pets[index];
+                                  final colors = _getPetCardColors(index);
+                                  return _PetHomeCard(pet: pet, colors: colors);
+                                },
+                              ),
+                            ),
+
+                          const SizedBox(height: 28),
+
+                          // --- Community Tips (DYNAMIC) ---
+                          _SectionHeader(
+                            title: 'Community Tips',
+                            icon: Icons.local_library_outlined,
+                          ),
+                          const SizedBox(height: 12),
+
+                          if (dashboardViewModel.randomTips.isEmpty)
+                            const Center(child: Text("No tips found."))
+                          else ...[
+                            SizedBox(
+                              height: 180,
+                              child: PageView.builder(
+                                controller:
+                                    dashboardViewModel.tipPageController,
+                                itemCount: dashboardViewModel.randomTips.length,
+                                itemBuilder: (context, index) {
+                                  final tip =
+                                      dashboardViewModel.randomTips[index];
+                                  // Passing the model object to the Refactored Widget
+                                  return _CommunityTipCard(tip: tip);
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Center(
+                              child: SmoothPageIndicator(
+                                controller:
+                                    dashboardViewModel.tipPageController,
+                                count: dashboardViewModel.randomTips.length,
+                                effect: ExpandingDotsEffect(
+                                  dotHeight: 8,
+                                  dotWidth: 8,
+                                  activeDotColor: colorScheme.primary,
+                                  dotColor: Colors.grey.shade300,
+                                  expansionFactor: 3,
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        height: 185,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: dashboardViewModel.pets.length,
-                          itemBuilder: (context, index) {
-                            final pet = dashboardViewModel.pets[index];
-                            final colors = _getPetCardColors(index);
-                            return _PetHomeCard(pet: pet, colors: colors);
-                          },
-                        ),
-                      ),
-
-                    const SizedBox(height: 28),
-
-                    // --- Community Tips ---
-                    _SectionHeader(
-                      title: 'Community Tips',
-                      icon: Icons.local_library_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 180,
-                      child: PageView(
-                        controller: dashboardViewModel.tipPageController,
-                        children: [
-                          _CommunityTipCard(
-                            icon: Icons.water_drop_outlined,
-                            iconColor: const Color(0xFF45B7D1),
-                            category: 'Hydration',
-                            title: 'Keep Your Pet Hydrated',
-                            description:
-                                'Ensure fresh water is always available. Dogs need 1 ounce per pound of body weight daily.',
-                            gradient: const [
-                              Color(0xFFE0F7FA),
-                              Color(0xFFFFFFFF),
-                            ],
-                          ),
-                          _CommunityTipCard(
-                            icon: Icons.fitness_center_outlined,
-                            iconColor: const Color(0xFF4ECDC4),
-                            category: 'Exercise',
-                            title: 'Daily Exercise Routine',
-                            description:
-                                'Regular exercise prevents obesity and behavioral issues. Aim for 30-60 minutes daily.',
-                            gradient: const [
-                              Color(0xFFE0F2F1),
-                              Color(0xFFFFFFFF),
-                            ],
-                          ),
-                          _CommunityTipCard(
-                            icon: Icons.medical_services_outlined,
-                            iconColor: const Color(0xFFFF6B6B),
-                            category: 'Health Check',
-                            title: 'Regular Vet Visits',
-                            description:
-                                'Schedule check-ups every 6-12 months. Early detection saves lives and reduces costs.',
-                            gradient: const [
-                              Color(0xFFFFEBEE),
-                              Color(0xFFFFFFFF),
-                            ],
-                          ),
-                          _CommunityTipCard(
-                            icon: Icons.clean_hands_outlined,
-                            iconColor: const Color(0xFFFFBE0B),
-                            category: 'Grooming',
-                            title: 'Dental Care Matters',
-                            description:
-                                'Brush your pet\'s teeth 2-3 times weekly. Poor dental health affects overall well-being.',
-                            gradient: const [
-                              Color(0xFFFFF9C4),
-                              Color(0xFFFFFFFF),
-                            ],
-                          ),
-                          _CommunityTipCard(
-                            icon: Icons.restaurant_outlined,
-                            iconColor: const Color(0xFF667EEA),
-                            category: 'Nutrition',
-                            title: 'Quality Food Matters',
-                            description:
-                                'Choose age-appropriate, high-quality food. Avoid human foods like chocolate and grapes.',
-                            gradient: const [
-                              Color(0xFFEDE7F6),
-                              Color(0xFFFFFFFF),
-                            ],
-                          ),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: SmoothPageIndicator(
-                        controller: dashboardViewModel.tipPageController,
-                        count: 5,
-                        effect: ExpandingDotsEffect(
-                          dotHeight: 8,
-                          dotWidth: 8,
-                          activeDotColor: colorScheme.primary,
-                          dotColor: Colors.grey.shade300,
-                          expansionFactor: 3,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -721,7 +701,7 @@ class _PetHomeCard extends StatelessWidget {
                     ],
                   ),
                   child: Text(
-                    '2Y',
+                    pet.age,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -804,26 +784,54 @@ class _PetHomeCard extends StatelessWidget {
   }
 }
 
-// --- Community Tip Card Widget ---
+// --- REFACTORED Community Tip Card Widget ---
 class _CommunityTipCard extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String category;
-  final String title;
-  final String description;
-  final List<Color> gradient;
+  final CommunityTip tip; // Accepts the Model from ViewModel
 
-  const _CommunityTipCard({
-    required this.icon,
-    required this.iconColor,
-    required this.category,
-    required this.title,
-    required this.description,
-    required this.gradient,
-  });
+  const _CommunityTipCard({required this.tip});
+
+  // Helper Logic moved inside widget to auto-style based on category string
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'hydration':
+        return const Color(0xFF45B7D1);
+      case 'exercise':
+        return const Color(0xFF4ECDC4);
+      case 'health check':
+        return const Color(0xFFFF6B6B);
+      case 'grooming':
+        return const Color(0xFFFFBE0B);
+      case 'nutrition':
+        return const Color(0xFF667EEA);
+      default:
+        return const Color(0xFF9C27B0);
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'hydration':
+        return Icons.water_drop_outlined;
+      case 'exercise':
+        return Icons.fitness_center_outlined;
+      case 'health check':
+        return Icons.medical_services_outlined;
+      case 'grooming':
+        return Icons.clean_hands_outlined;
+      case 'nutrition':
+        return Icons.restaurant_outlined;
+      default:
+        return Icons.lightbulb_outline;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic styles based on data
+    final iconColor = _getCategoryColor(tip.category);
+    final icon = _getCategoryIcon(tip.category);
+    final gradient = [iconColor.withValues(alpha: 0.1), Colors.white];
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
       padding: const EdgeInsets.all(16),
@@ -876,7 +884,7 @@ class _CommunityTipCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    category,
+                    tip.category,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -890,7 +898,7 @@ class _CommunityTipCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            title,
+            tip.title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -902,7 +910,7 @@ class _CommunityTipCard extends StatelessWidget {
           const SizedBox(height: 6),
           Flexible(
             child: Text(
-              description,
+              tip.description,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade700,

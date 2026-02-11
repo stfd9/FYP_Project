@@ -50,7 +50,8 @@ class ManageAccountsViewModel extends BaseViewModel {
           name: (data['userName'] ?? 'User').toString(),
           email: (data['userEmail'] ?? '').toString(),
           joinDate: _formatJoinDate(data['dateCreated']),
-          status: (data['accountStatus'] ?? 'Active').toString(),
+          status: (data['accountStatus'] ?? 'Active')
+              .toString(), // Ensure this matches DB field
           phone: data['userPhone']?.toString(),
           petsCount: data['petsCount'] is int ? data['petsCount'] as int : 0,
         );
@@ -127,17 +128,17 @@ class ManageAccountsViewModel extends BaseViewModel {
     Navigator.pop(context);
   }
 
-  // --- CRITICAL UPDATE: Refresh on Return ---
+  // --- CRITICAL FIX: Refresh List on Return ---
   Future<void> onUserCardTapped(BuildContext context, UserAccount user) async {
-    // 1. Wait for the detail page to be popped (closed)
+    // 1. Wait until the Detail Page is closed (popped)
     await Navigator.pushNamed(
       context,
       '/admin/account-detail',
       arguments: user,
     );
 
-    // 2. Fetch fresh data from Firebase immediately
-    // This ensures the list updates if the status changed to 'Suspended'
+    // 2. RE-FETCH DATA IMMEDIATELY
+    // This will pull the new 'Suspended' status from Firebase and update the UI
     fetchUsers();
   }
 
