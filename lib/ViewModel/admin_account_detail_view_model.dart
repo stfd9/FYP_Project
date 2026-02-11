@@ -58,7 +58,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
               title: const Text('View Activity Log'),
               onTap: () {
                 Navigator.pop(ctx);
-                // TODO: Implement activity log
+                viewActivityLog(context);
               },
             ),
           ],
@@ -163,6 +163,12 @@ class AdminAccountDetailViewModel extends BaseViewModel {
         {'accountStatus': newStatus},
       );
 
+      // Log activity to Firebase
+      await _logActivity(
+        action: newStatus == 'Suspended' ? 'Account Suspended' : 'Account Unlocked',
+        description: 'Account status changed to $newStatus',
+      );
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -235,10 +241,19 @@ class AdminAccountDetailViewModel extends BaseViewModel {
     if (_user == null) return;
 
     try {
+      final userId = _user!.id;
+      final userName = _user!.name;
+      
+      // Log activity before deletion
+      await _logActivity(
+        action: 'Account Deleted',
+        description: 'User account deleted: $userName (ID: $userId)',
+      );
+
       // Delete from Firestore
       await FirebaseFirestore.instance
           .collection('user')
-          .doc(_user!.id)
+          .doc(userId)
           .delete();
 
       if (context.mounted) {
@@ -386,5 +401,124 @@ class AdminAccountDetailViewModel extends BaseViewModel {
         ],
       ),
     );
+  }
+
+  // --- ACTIVITY LOG ---
+  Future<void> _logActivity({
+    required String action,
+    required String description,
+  }) async {
+    if (_user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('admin_activity_logs').add({
+        'userId': _user!.id,
+        'userName': _user!.name,
+        'userEmail': _user!.email,
+        'action': action,
+        'description': description,
+        'timestamp': FieldValue.serverTimestamp(),
+        'adminId': 'admin', // TODO: Get actual admin ID from auth
+      });
+    } catch (e) {
+      // Silently fail - don't block main operation
+      debugPrint('Error logging activity: $e');
+    }
+  }
+
+  Future<void> viewActivityLog(BuildContext context) async {
+    if (_user == null) return;
+
+    try {
+      final logs = await FirebaseFirestore.instance
+          .collection('admin_activity_logs')
+          .where('userId', isEqualTo: _user!.id)
+          .orderBy('timestamp', descending: true)
+          .limit(50)
+          .get();
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                const Icon(Icons.history, color: Colors.blue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Activity Log - ${_user!.name}'),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 400,
+              child: logs.docs.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No activity recorded yet',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: logs.docs.length,
+                      separatorBuilder: (_, __) => const Divider(),
+                      itemBuilder: (ctx, index) {
+                        final log = logs.docs[index].data();
+                        final timestamp = log['timestamp'] as Timestamp?;
+                        final date = timestamp?.toDate();
+                        final dateStr = date != null
+                            ? '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}'
+                            : 'N/A';
+
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.info_outline, size: 20),
+                          ),
+                          title: Text(
+                            log['action'] ?? 'Unknown Action',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(log['description'] ?? ''),
+                              const SizedBox(height: 4),
+                              Text(
+                                dateStr,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading activity log: $e')),
+        );
+      }
+    }
   }
 }

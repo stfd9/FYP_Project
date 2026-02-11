@@ -257,13 +257,17 @@ class _AdminAccountDetailBody extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => viewModel.showSuspendDialog(context),
-                    icon: const Icon(Icons.block_outlined),
-                    label: const Text('Suspend'),
+                    onPressed: () => viewModel.showLockConfirmation(context),
+                    icon: Icon(
+                      viewModel.isAccountLocked ? Icons.lock_open : Icons.block_outlined,
+                    ),
+                    label: Text(viewModel.isAccountLocked ? 'Unlock' : 'Suspend'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: Colors.orange),
-                      foregroundColor: Colors.orange,
+                      side: BorderSide(
+                        color: viewModel.isAccountLocked ? Colors.green : Colors.orange,
+                      ),
+                      foregroundColor: viewModel.isAccountLocked ? Colors.green : Colors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -273,7 +277,7 @@ class _AdminAccountDetailBody extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () => viewModel.showDeleteDialog(context),
+                    onPressed: () => viewModel.showDeleteConfirmation(context),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Delete'),
                     style: FilledButton.styleFrom(
