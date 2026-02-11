@@ -1,27 +1,34 @@
-import 'dart:io'; // Required for File
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Required for Storage
-import 'package:image_picker/image_picker.dart'; // Required for Picker
+import 'package:image_picker/image_picker.dart';
 import 'base_view_model.dart';
 
 class AccountDetailsViewModel extends BaseViewModel {
   // --- Controllers ---
   final TextEditingController userNameController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController nameController =
+      TextEditingController(); // For Full Name
   final TextEditingController emailController = TextEditingController();
+
+  final ImagePicker _picker = ImagePicker();
+
+  File? _selectedImage;
+  String? _currentImageUrl;
 
   // --- State Variables ---
   bool _isLoading = false;
-  String? _docId;
-  String? _currentImageUrl; // URL currently in Firestore
-  File? _selectedImage; // Image picked from Gallery (Waiting to upload)
+  String? _docId; // To store the Firestore Document ID (e.g., U00001)
 
+  @override
   bool get isLoading => _isLoading;
-  String? get currentImageUrl => _currentImageUrl;
-  File? get selectedImage => _selectedImage;
 
+  File? get selectedImage => _selectedImage;
+  String? get currentImageUrl => _currentImageUrl;
+
+  // --- Constructor ---
   AccountDetailsViewModel() {
     _loadUserData();
   }
@@ -39,6 +46,7 @@ class AccountDetailsViewModel extends BaseViewModel {
     }
 
     try {
+      // Find the user document in Firestore based on Auth UID
       final querySnapshot = await FirebaseFirestore.instance
           .collection('user')
           .where('providerId', isEqualTo: user.uid)
@@ -49,12 +57,15 @@ class AccountDetailsViewModel extends BaseViewModel {
         final doc = querySnapshot.docs.first;
         final data = doc.data();
 
-        _docId = doc.id;
+        _docId = doc.id; // Save ID for updating later
+
+        // Populate Controllers
         userNameController.text = data['userName'] ?? '';
-        nameController.text = data['fullName'] ?? '';
+        nameController.text =
+            data['fullName'] ?? ''; // Assuming 'fullName' key exists
         emailController.text = data['userEmail'] ?? '';
-        // Load the existing image URL if it exists
-        _currentImageUrl = data['profileImageUrl'];
+        _currentImageUrl = (data['profileImageUrl'] ?? data['photoUrl'])
+            ?.toString();
       }
     } catch (e) {
       print("Error loading account details: $e");
@@ -64,22 +75,7 @@ class AccountDetailsViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  // --- 2. Pick Image Logic ---
-  Future<void> pickImage(BuildContext context) async {
-    final picker = ImagePicker();
-    // Show dialog to choose Camera or Gallery (Optional, defaulting to Gallery here)
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50, // Compress image to save storage/data
-    );
-
-    if (pickedFile != null) {
-      _selectedImage = File(pickedFile.path);
-      notifyListeners(); // Update UI to show the local preview
-    }
-  }
-
-  // --- 3. Save Changes (Upload + Update) ---
+  // --- 2. Save Changes ---
   void onSaveChangesPressed(BuildContext context) {
     if (_docId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,6 +83,7 @@ class AccountDetailsViewModel extends BaseViewModel {
       );
       return;
     }
+
     _updateUserProfile(context);
   }
 
@@ -95,29 +92,13 @@ class AccountDetailsViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      String? newImageUrl = _currentImageUrl;
-
-      // A. Upload Image to Firebase Storage (if a new one was picked)
-      if (_selectedImage != null) {
-        // 1. Define the path: profile_images/U00001.jpg
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('profile_images')
-            .child('$_docId.jpg');
-
-        // 2. Upload file
-        await storageRef.putFile(_selectedImage!);
-
-        // 3. Get the Download URL
-        newImageUrl = await storageRef.getDownloadURL();
-      }
-
-      // B. Update Firestore
+      // Update Firestore
       await FirebaseFirestore.instance.collection('user').doc(_docId).update({
         'userName': userNameController.text.trim(),
         'fullName': nameController.text.trim(),
         'userEmail': emailController.text.trim(),
-        'profileImageUrl': newImageUrl, // Save the URL
+        // Note: We are NOT updating the Firebase Auth email here to avoid re-authentication flows.
+        // We are only updating the database record.
       });
 
       _isLoading = false;
@@ -136,6 +117,28 @@ class AccountDetailsViewModel extends BaseViewModel {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
+      }
+    }
+  }
+
+  Future<void> pickImage(BuildContext context) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      if (pickedFile == null) {
+        return;
+      }
+      _selectedImage = File(pickedFile.path);
+      notifyListeners();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
       }
     }
   }

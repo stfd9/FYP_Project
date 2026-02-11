@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../ViewModel/admin_account_detail_view_model.dart';
-import '../ViewModel/manage_accounts_view_model.dart';
+import '../models/user_account.dart';
 
 class AdminAccountDetailView extends StatelessWidget {
   const AdminAccountDetailView({super.key});

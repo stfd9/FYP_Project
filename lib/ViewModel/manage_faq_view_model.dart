@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'base_view_model.dart';
 
-// 1. Data Model for the FAQ content
+// 1. Data Model for FAQ
 class AdminFaqItem {
   final String id;
   final String question;
   final String answer;
-  final String categoryTitle; // Links to the category definition
+  final String categoryTitle;
 
   AdminFaqItem({
     required this.id,
@@ -14,9 +15,18 @@ class AdminFaqItem {
     required this.answer,
     required this.categoryTitle,
   });
+
+  factory AdminFaqItem.fromMap(Map<String, dynamic> data, String docId) {
+    return AdminFaqItem(
+      id: docId,
+      question: data['question'] ?? '',
+      answer: data['answer'] ?? '',
+      categoryTitle: data['category'] ?? 'General Questions',
+    );
+  }
 }
 
-// 2. Data Model for the Visual Category (Icon, Color, etc.)
+// 2. Visual Style Definition
 class FaqCategoryDef {
   final String title;
   final IconData icon;
@@ -32,7 +42,7 @@ class FaqCategoryDef {
 }
 
 class ManageFAQViewModel extends BaseViewModel {
-  // --- A. DEFINITIONS: Visual Style for Categories ---
+  // --- Visual Definitions ---
   final List<FaqCategoryDef> _categoryDefinitions = [
     FaqCategoryDef(
       title: 'Breed Identifier',
@@ -64,7 +74,6 @@ class ManageFAQViewModel extends BaseViewModel {
       color: Colors.teal,
       bgColor: const Color(0xFFE0F2F1),
     ),
-    // --- NEW CATEGORY REQUESTED ---
     FaqCategoryDef(
       title: 'General Questions',
       icon: Icons.help_outline,
@@ -73,77 +82,129 @@ class ManageFAQViewModel extends BaseViewModel {
     ),
   ];
 
-  // --- B. DATA: The Actual FAQs ---
-  final List<AdminFaqItem> _faqs = [
-    AdminFaqItem(
-      id: '1',
-      question: 'How do I scan my pet?',
-      answer:
-          'Go to the Scan tab, choose "Skin" or "Breed", and take a clear photo.',
-      categoryTitle: 'Breed Identifier',
-    ),
-    AdminFaqItem(
-      id: '2',
-      question: 'Is the diagnosis 100% accurate?',
-      answer:
-          'No, this is an AI aid. Please consult a vet for a medical diagnosis.',
-      categoryTitle: 'Skin Disease Identifier',
-    ),
-    AdminFaqItem(
-      id: '3',
-      question: 'How do I contact support?',
-      answer: 'You can email us at support@pawscope.com.',
-      categoryTitle: 'General Questions',
-    ),
-  ];
+  // --- Data State ---
+  List<AdminFaqItem> _faqs = [];
+  bool _isLoading = true;
 
-  // Getters
-  List<FaqCategoryDef> get categoryDefinitions =>
-      List.unmodifiable(_categoryDefinitions);
-  List<AdminFaqItem> get faqs => List.unmodifiable(_faqs);
+  List<FaqCategoryDef> get categoryDefinitions => _categoryDefinitions;
+  List<AdminFaqItem> get faqs => _faqs;
+  @override
+  bool get isLoading => _isLoading;
 
-  // Helper to get FAQs for a specific category
+  ManageFAQViewModel() {
+    fetchFAQs();
+  }
+
+  // --- 1. FETCH FAQs ---
+  Future<void> fetchFAQs() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('faq')
+          .orderBy(
+            'id',
+          ) // Optional: Order by ID to keep FA000001, FA000002... sorted
+          .get();
+
+      _faqs = snapshot.docs
+          .map((doc) => AdminFaqItem.fromMap(doc.data(), doc.id))
+          .toList();
+    } catch (e) {
+      print("Error fetching FAQs: $e");
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   List<AdminFaqItem> getFaqsByCategory(String categoryTitle) {
     return _faqs.where((faq) => faq.categoryTitle == categoryTitle).toList();
   }
 
-  // --- CRUD OPERATIONS ---
+  // --- 2. ADD FAQ (With Custom ID "FA000001") ---
+  Future<void> addFAQ(String question, String answer, String category) async {
+    final firestore = FirebaseFirestore.instance;
+    // We use a separate collection to keep track of the count
+    final counterRef = firestore.collection('counters').doc('faqCounter');
 
-  void addFAQ(String question, String answer, String categoryTitle) {
-    final newFAQ = AdminFaqItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      question: question,
-      answer: answer,
-      categoryTitle: categoryTitle,
-    );
-    _faqs.add(newFAQ);
-    notifyListeners();
-  }
+    try {
+      await firestore.runTransaction((transaction) async {
+        // A. Read the current count
+        DocumentSnapshot counterSnapshot = await transaction.get(counterRef);
 
-  void editFAQ(
-    String id,
-    String newQuestion,
-    String newAnswer,
-    String newCategoryTitle,
-  ) {
-    final index = _faqs.indexWhere((f) => f.id == id);
-    if (index != -1) {
-      _faqs[index] = AdminFaqItem(
-        id: id,
-        question: newQuestion,
-        answer: newAnswer,
-        categoryTitle: newCategoryTitle,
-      );
-      notifyListeners();
+        int currentCount = 0;
+        if (counterSnapshot.exists) {
+          // Safely read the 'count' field
+          final data = counterSnapshot.data() as Map<String, dynamic>;
+          currentCount = data['count'] ?? 0;
+        }
+
+        // B. Calculate new ID
+        int newCount = currentCount + 1;
+        // Format: "FA" + 6 digits (padded with zeros) -> "FA000001"
+        String customId = 'FA${newCount.toString().padLeft(6, '0')}';
+
+        // C. Reference for the new FAQ document
+        final faqRef = firestore.collection('faq').doc(customId);
+
+        // D. Write operations (Must happen last in a transaction)
+        // Update the counter
+        transaction.set(counterRef, {'count': newCount});
+
+        // Create the FAQ
+        transaction.set(faqRef, {
+          'id': customId, // Optional: Store ID inside the doc too
+          'question': question,
+          'answer': answer,
+          'category': category,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+
+      // Refresh UI logic
+      fetchFAQs();
+    } catch (e) {
+      print("Error adding FAQ: $e");
     }
   }
 
-  void deleteFAQ(BuildContext context, String id) {
-    _faqs.removeWhere((f) => f.id == id);
-    notifyListeners();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('FAQ deleted successfully')));
+  // --- 3. EDIT FAQ ---
+  Future<void> editFAQ(
+    String id,
+    String question,
+    String answer,
+    String category,
+  ) async {
+    try {
+      // Logic is the same, we just reference the existing ID
+      await FirebaseFirestore.instance.collection('faq').doc(id).update({
+        'question': question,
+        'answer': answer,
+        'category': category,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      fetchFAQs();
+    } catch (e) {
+      print("Error editing FAQ: $e");
+    }
+  }
+
+  // --- 4. DELETE FAQ ---
+  Future<void> deleteFAQ(String id) async {
+    try {
+      await FirebaseFirestore.instance.collection('faq').doc(id).delete();
+
+      _faqs.removeWhere((f) => f.id == id);
+      notifyListeners();
+    } catch (e) {
+      print("Error deleting FAQ: $e");
+    }
+  }
+
+  void onBackPressed(BuildContext context) {
+    Navigator.pop(context);
   }
 }
-  

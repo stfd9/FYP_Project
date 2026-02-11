@@ -204,7 +204,7 @@ class _AdminLoginContentState extends State<_AdminLoginContent> {
               _buildLabel('Admin ID / Email'),
               const SizedBox(height: 8),
               TextField(
-                controller: viewModel.emailController,
+                controller: viewModel.adminIdController,
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(fontWeight: FontWeight.w500),
                 decoration: _inputDecoration(

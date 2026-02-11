@@ -726,7 +726,7 @@ class _AdminFaqItemTile extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              viewModel.deleteFAQ(context, faq.id);
+              viewModel.deleteFAQ(faq.id);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
