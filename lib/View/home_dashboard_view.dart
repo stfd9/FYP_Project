@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+// Ensure these imports point to your actual files
 import '../ViewModel/home_dashboard_view_model.dart';
 import '../ViewModel/home_view_model.dart';
 
@@ -40,223 +41,12 @@ class _HomeDashboardContent extends StatelessWidget {
             : SingleChildScrollView(
                 child: Column(
                   children: [
-                    // --- Gradient Header with Overlapping Card ---
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Gradient curved background
-                        Container(
-                          height: 180,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.primary,
-                                colorScheme.primary.withValues(alpha: 0.85),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(32),
-                              bottomRight: Radius.circular(32),
-                            ),
-                          ),
-                          child: Stack(
-                            children: [
-                              // Decorative circles
-                              Positioned(
-                                top: -30,
-                                right: -30,
-                                child: Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 20,
-                                left: -40,
-                                child: Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white.withValues(alpha: 0.08),
-                                  ),
-                                ),
-                              ),
-                              // Header content
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  16,
-                                  20,
-                                  60,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(3),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.5,
-                                              ),
-                                              width: 2,
-                                            ),
-                                          ),
-                                          child: CircleAvatar(
-                                            radius: 22,
-                                            backgroundColor: Colors.white
-                                                .withValues(alpha: 0.2),
-                                            child: const Icon(
-                                              Icons.person,
-                                              color: Colors.white,
-                                              size: 24,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 14),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Welcome back,',
-                                              style: textTheme.bodySmall
-                                                  ?.copyWith(
-                                                    color: Colors.white
-                                                        .withValues(
-                                                          alpha: 0.85,
-                                                        ),
-                                                    fontSize: 13,
-                                                  ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            const Text(
-                                              'PetOwner 👋',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: IconButton(
-                                        onPressed: () => dashboardViewModel
-                                            .openNotifications(context),
-                                        icon: Stack(
-                                          children: [
-                                            const Icon(
-                                              Icons.notifications_outlined,
-                                              color: Colors.white,
-                                              size: 26,
-                                            ),
-                                            Positioned(
-                                              right: 0,
-                                              top: 0,
-                                              child: Container(
-                                                width: 10,
-                                                height: 10,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.redAccent,
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 1.5,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Quick actions card
-                        Positioned(
-                          left: 20,
-                          right: 20,
-                          bottom: -55,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 20,
-                              horizontal: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.15,
-                                  ),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _QuickActionButton(
-                                  icon: Icons.center_focus_strong,
-                                  label: 'Scan',
-                                  gradient: const [
-                                    Color(0xFF667EEA),
-                                    Color(0xFF764BA2),
-                                  ],
-                                  onTap: () => homeViewModel?.goToScanTab(),
-                                ),
-                                _QuickActionButton(
-                                  icon: Icons.pets,
-                                  label: 'Add Pet',
-                                  gradient: const [
-                                    Color(0xFF11998E),
-                                    Color(0xFF38EF7D),
-                                  ],
-                                  onTap: () =>
-                                      dashboardViewModel.addPet(context),
-                                ),
-                                _QuickActionButton(
-                                  icon: Icons.calendar_month,
-                                  label: 'Calendar',
-                                  gradient: const [
-                                    Color(0xFFFF8008),
-                                    Color(0xFFFFC837),
-                                  ],
-                                  onTap: () => homeViewModel?.goToCalendarTab(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    // --- Gradient Header ---
+                    _buildHeader(
+                      context,
+                      colorScheme,
+                      textTheme,
+                      dashboardViewModel,
                     ),
 
                     const SizedBox(height: 70),
@@ -268,117 +58,24 @@ class _HomeDashboardContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // --- Upcoming Card ---
-                          _SectionHeader(
+                          const _SectionHeader(
                             title: 'Upcoming',
                             icon: Icons.event_note,
                           ),
                           const SizedBox(height: 12),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  colorScheme.primary.withValues(alpha: 0.08),
-                                  Colors.white,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.15,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 54,
-                                  height: 54,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: colorScheme.primary.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.calendar_today_rounded,
-                                    color: colorScheme.primary,
-                                    size: 26,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primary.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          "Today's Focus",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: colorScheme.primary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        dashboardViewModel.upcomingItem,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2D3142),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 16,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _buildUpcomingCard(
+                            context,
+                            colorScheme,
+                            dashboardViewModel,
                           ),
 
                           const SizedBox(height: 28),
 
-                          // --- Your Pets ---
+                          // --- Your Pets (DYNAMIC) ---
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _SectionHeader(
+                              const _SectionHeader(
                                 title: 'Your Pets',
                                 icon: Icons.pets,
                               ),
@@ -419,44 +116,9 @@ class _HomeDashboardContent extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 14),
+
                           if (dashboardViewModel.pets.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 10,
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.pets,
-                                    size: 40,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No pets added yet',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextButton(
-                                    onPressed: () =>
-                                        dashboardViewModel.addPet(context),
-                                    child: const Text('Add your first pet'),
-                                  ),
-                                ],
-                              ),
-                            )
+                            _buildEmptyPetsState(context, dashboardViewModel)
                           else
                             SizedBox(
                               height: 185,
@@ -474,7 +136,7 @@ class _HomeDashboardContent extends StatelessWidget {
                           const SizedBox(height: 28),
 
                           // --- Community Tips (DYNAMIC) ---
-                          _SectionHeader(
+                          const _SectionHeader(
                             title: 'Community Tips',
                             icon: Icons.local_library_outlined,
                           ),
@@ -492,7 +154,6 @@ class _HomeDashboardContent extends StatelessWidget {
                                 itemBuilder: (context, index) {
                                   final tip =
                                       dashboardViewModel.randomTips[index];
-                                  // Passing the model object to the Refactored Widget
                                   return _CommunityTipCard(tip: tip);
                                 },
                               ),
@@ -520,6 +181,322 @@ class _HomeDashboardContent extends StatelessWidget {
                   ],
                 ),
               ),
+      ),
+    );
+  }
+
+  // --- Helper Widgets ---
+
+  Widget _buildHeader(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    HomeDashboardViewModel vm,
+  ) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: 180,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.primary,
+                colorScheme.primary.withValues(alpha: 0.85),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: -40,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 60),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 22,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Welcome back,',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'PetOwner 👋',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: () => vm.openNotifications(context),
+                        icon: Stack(
+                          children: [
+                            const Icon(
+                              Icons.notifications_outlined,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 20,
+          right: 20,
+          bottom: -55,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _QuickActionButton(
+                  icon: Icons.center_focus_strong,
+                  label: 'Scan',
+                  gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+                  onTap: () => homeViewModel?.goToScanTab(),
+                ),
+                _QuickActionButton(
+                  icon: Icons.pets,
+                  label: 'Add Pet',
+                  gradient: const [Color(0xFF11998E), Color(0xFF38EF7D)],
+                  onTap: () => vm.addPet(context),
+                ),
+                _QuickActionButton(
+                  icon: Icons.calendar_month,
+                  label: 'Calendar',
+                  gradient: const [Color(0xFFFF8008), Color(0xFFFFC837)],
+                  onTap: () => homeViewModel?.goToCalendarTab(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUpcomingCard(
+    BuildContext context,
+    ColorScheme colorScheme,
+    HomeDashboardViewModel vm,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary.withValues(alpha: 0.08), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.calendar_today_rounded,
+              color: colorScheme.primary,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    "Today's Focus",
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  vm.upcomingItem,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyPetsState(BuildContext context, HomeDashboardViewModel vm) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.pets, size: 40, color: Colors.grey.shade300),
+          const SizedBox(height: 12),
+          Text(
+            'No pets added yet',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => vm.addPet(context),
+            child: const Text('Add your first pet'),
+          ),
+        ],
       ),
     );
   }
@@ -784,7 +761,7 @@ class _PetHomeCard extends StatelessWidget {
   }
 }
 
-// --- REFACTORED Community Tip Card Widget ---
+// --- Community Tip Card Widget ---
 class _CommunityTipCard extends StatelessWidget {
   final CommunityTip tip; // Accepts the Model from ViewModel
 
