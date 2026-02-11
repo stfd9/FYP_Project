@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../ViewModel/manage_accounts_view_model.dart';
+import '../models/user_account.dart';
 
 class ManageAccountsView extends StatelessWidget {
   const ManageAccountsView({super.key});
@@ -226,7 +227,7 @@ class _ManageAccountsBody extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
-  final dynamic user;
+  final UserAccount user;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 

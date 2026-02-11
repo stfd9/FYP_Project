@@ -5,6 +5,11 @@ class PetInfo {
     required this.species,
     required this.breed,
     required this.age,
+    this.gender,
+    this.colour,
+    this.weight,
+    this.dateOfBirth,
+    this.photoUrl,
     this.galleryImages = const [],
   });
 
@@ -13,5 +18,10 @@ class PetInfo {
   final String species;
   final String breed;
   final String age;
+  final String? gender;
+  final String? colour;
+  final String? weight;
+  final String? dateOfBirth;
+  final String? photoUrl;
   final List<String> galleryImages;
 }

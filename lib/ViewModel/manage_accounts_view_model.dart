@@ -1,48 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'base_view_model.dart';
+import '../models/user_account.dart';
 
 class ManageAccountsViewModel extends BaseViewModel {
-  // Dummy Data for users
-  final List<UserAccount> _users = [
-    UserAccount(
-      id: '1',
-      name: 'Ahmad Faiz bin Abdullah',
-      email: 'ahmad.faiz@gmail.com',
-      joinDate: '2024-12-01',
-    ),
-    UserAccount(
-      id: '2',
-      name: 'Nurul Aisyah binti Razak',
-      email: 'nurul.aisyah@yahoo.com',
-      joinDate: '2025-01-15',
-    ),
-    UserAccount(
-      id: '3',
-      name: 'Tan Wei Ming',
-      email: 'weiming.tan@hotmail.com',
-      joinDate: '2025-01-20',
-    ),
-  ];
+  // Master list (All data from DB)
+  List<UserAccount> _allUsers = [];
 
-  List<UserAccount> get users => List.unmodifiable(_users);
+  // Filtered list (What is shown in the list below)
+  List<UserAccount> _filteredUsers = [];
 
-  void onBackPressed(BuildContext context) {
-    Navigator.pop(context);
+  bool _isLoading = true;
+
+  // --- Getters for UI ---
+  List<UserAccount> get users => _filteredUsers;
+  @override
+  bool get isLoading => _isLoading;
+
+  // Stats Getters
+  int get totalUsersCount => _allUsers.length;
+
+  int get activeUsersCount {
+    return _allUsers.where((user) {
+      return user.status == 'Active';
+    }).length;
   }
 
-  void onUserCardTapped(BuildContext context, UserAccount user) {
-    Navigator.pushNamed(context, '/admin/account-detail', arguments: user);
+  ManageAccountsViewModel() {
+    fetchUsers();
   }
 
-  // Show confirmation dialog before deleting
+  // --- Fetch Users ---
+  Future<void> fetchUsers() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .orderBy('dateCreated', descending: true)
+          .get();
+
+      // Store raw data
+      _allUsers = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return UserAccount(
+          id: doc.id,
+          name: (data['userName'] ?? 'User').toString(),
+          email: (data['userEmail'] ?? '').toString(),
+          joinDate: _formatJoinDate(data['dateCreated']),
+          status: (data['accountStatus'] ?? 'Active').toString(),
+          phone: data['userPhone']?.toString(),
+          petsCount: data['petsCount'] is int ? data['petsCount'] as int : 0,
+        );
+      }).toList();
+
+      // Initialize filtered list with everything
+      _filteredUsers = List.from(_allUsers);
+    } catch (e) {
+      print("Error fetching users: $e");
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // --- Search Logic ---
+  void searchUsers(String query) {
+    if (query.isEmpty) {
+      _filteredUsers = List.from(_allUsers);
+    } else {
+      final lowerQuery = query.toLowerCase();
+      _filteredUsers = _allUsers.where((user) {
+        final name = user.name.toLowerCase();
+        final email = user.email.toLowerCase();
+        return name.contains(lowerQuery) || email.contains(lowerQuery);
+      }).toList();
+    }
+    notifyListeners();
+  }
+
+  // --- Delete Logic ---
   void confirmDeleteUser(BuildContext context, UserAccount user) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Account'),
-        content: Text(
-          'Are you sure you want to permanently delete ${user.name}?',
-        ),
+        content: Text('Are you sure you want to delete ${user.name}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -50,7 +95,7 @@ class ManageAccountsViewModel extends BaseViewModel {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(ctx); // Close dialog
+              Navigator.pop(ctx);
               _deleteUser(context, user);
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -60,32 +105,49 @@ class ManageAccountsViewModel extends BaseViewModel {
     );
   }
 
-  // Actual delete logic
-  void _deleteUser(BuildContext context, UserAccount user) {
-    _users.remove(user);
-    notifyListeners();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('${user.name} has been removed.')));
+  Future<void> _deleteUser(BuildContext context, UserAccount user) async {
+    try {
+      await FirebaseFirestore.instance.collection('user').doc(user.id).delete();
+
+      _allUsers.removeWhere((u) => u.id == user.id);
+      _filteredUsers.removeWhere((u) => u.id == user.id);
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User deleted successfully')),
+        );
+      }
+    } catch (e) {
+      print("Error deleting: $e");
+    }
   }
-}
 
-class UserAccount {
-  final String id;
-  final String name;
-  final String email;
-  final String joinDate;
-  final String phone;
-  final String status;
-  final int petsCount;
+  void onBackPressed(BuildContext context) {
+    Navigator.pop(context);
+  }
 
-  UserAccount({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.joinDate,
-    this.phone = '',
-    this.status = 'Active',
-    this.petsCount = 0,
-  });
+  // --- CRITICAL UPDATE: Refresh on Return ---
+  Future<void> onUserCardTapped(BuildContext context, UserAccount user) async {
+    // 1. Wait for the detail page to be popped (closed)
+    await Navigator.pushNamed(
+      context,
+      '/admin/account-detail',
+      arguments: user,
+    );
+
+    // 2. Fetch fresh data from Firebase immediately
+    // This ensures the list updates if the status changed to 'Suspended'
+    fetchUsers();
+  }
+
+  String _formatJoinDate(dynamic value) {
+    if (value is Timestamp) {
+      return DateFormat('dd MMM yyyy').format(value.toDate());
+    }
+    if (value is DateTime) {
+      return DateFormat('dd MMM yyyy').format(value);
+    }
+    return 'Unknown';
+  }
 }

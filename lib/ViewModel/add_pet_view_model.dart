@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'dart:io'; // Required for File
-// In a real app, you would import: import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../models/breed_option.dart';
 import '../models/pet_info.dart';
 import 'base_view_model.dart';
 
@@ -9,51 +12,113 @@ class AddPetViewModel extends BaseViewModel {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController breedController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
+  final TextEditingController colourController = TextEditingController();
+  final TextEditingController weightController = TextEditingController();
+  final TextEditingController dateOfBirthController = TextEditingController();
 
   final List<String> speciesOptions = const ['Dog', 'Cat'];
-  String _species = 'Dog';
+  final List<String> genderOptions = const ['Male', 'Female'];
 
-  // --- NEW STATE: Holds the selected image file ---
+  final ImagePicker _picker = ImagePicker();
+
+  String _species = 'Dog';
+  String _gender = 'Male';
+
   File? _selectedImage;
-  File? get selectedImage => _selectedImage;
+  final List<File> _galleryImages = [];
+
+  bool _isBreedsLoading = false;
+  BreedOption? _selectedBreed;
+  List<BreedOption> _breeds = _dogBreeds;
 
   String get species => _species;
+  String get gender => _gender;
+  File? get selectedImage => _selectedImage;
+  List<File> get galleryImages => List.unmodifiable(_galleryImages);
+  bool get isBreedsLoading => _isBreedsLoading;
+  BreedOption? get selectedBreed => _selectedBreed;
+  List<BreedOption> get filteredBreeds => List.unmodifiable(_breeds);
 
   void selectSpecies(String value) {
     if (_species == value) {
       return;
     }
     _species = value;
+    _breeds = _species == 'Dog' ? _dogBreeds : _catBreeds;
+    _selectedBreed = null;
     notifyListeners();
   }
 
-  // --- NEW METHOD: Handles image selection ---
-  Future<void> pickImage(BuildContext context) async {
-    // NOTE: You must have the 'image_picker' package installed.
-    // final picker = ImagePicker();
-    // final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    // For demonstration, we will use a mocked selection flow:
-
-    // MOCK START: Simulate successful image selection
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Image picker opened (Mocked).')),
-    );
-
-    // Assuming the user picked an image.
-    // In a real app, replace the following line with the actual image path.
-    // For now, we set a temporary file path to show the UI change (this will throw
-    // an error unless a file exists at this exact path, but demonstrates the flow):
-    // _selectedImage = File('/data/user/0/com.example.yourapp/cache/mock_image.jpg');
-
-    // Since we can't create a real file path here, we'll just toggle a temporary state
-    // For actual implementation, replace this with the image_picker logic.
-
-    // MOCK END
-
-    // For UI demonstration, let's just use notifyListeners() to show the tap registers,
-    // although without a real file, the image will be blank.
+  void selectGender(String value) {
+    if (_gender == value) {
+      return;
+    }
+    _gender = value;
     notifyListeners();
+  }
+
+  void selectBreed(BreedOption? value) {
+    if (_selectedBreed == value) {
+      return;
+    }
+    _selectedBreed = value;
+    notifyListeners();
+  }
+
+  Future<void> pickImage(BuildContext context) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      if (pickedFile == null) {
+        return;
+      }
+      _selectedImage = File(pickedFile.path);
+      notifyListeners();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+    }
+  }
+
+  Future<void> pickGalleryImages(BuildContext context) async {
+    try {
+      final List<XFile> files = await _picker.pickMultiImage(
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+      if (files.isEmpty) {
+        return;
+      }
+      _galleryImages
+        ..clear()
+        ..addAll(files.map((file) => File(file.path)));
+      notifyListeners();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to pick gallery images: $e')),
+      );
+    }
+  }
+
+  Future<void> pickDateOfBirth(BuildContext context) async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year - 1),
+      firstDate: DateTime(now.year - 30),
+      lastDate: now,
+    );
+    if (date == null) {
+      return;
+    }
+    dateOfBirthController.text =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   void savePet(BuildContext context) {
@@ -62,14 +127,16 @@ class AddPetViewModel extends BaseViewModel {
       return;
     }
 
-    // Include the image path if available. You need to update PetInfo model
-    // to accept File/String path if needed.
     final pet = PetInfo(
       name: nameController.text.trim(),
       species: _species,
-      breed: breedController.text.trim(),
+      breed: _selectedBreed?.name ?? breedController.text.trim(),
       age: ageController.text.trim(),
-      // imagePath: _selectedImage?.path, // Uncomment if PetInfo supports this
+      gender: _gender,
+      colour: colourController.text.trim(),
+      weight: weightController.text.trim(),
+      dateOfBirth: dateOfBirthController.text.trim(),
+      galleryImages: _galleryImages.map((file) => file.path).toList(),
     );
 
     Navigator.pop(context, pet);
@@ -80,6 +147,23 @@ class AddPetViewModel extends BaseViewModel {
     nameController.dispose();
     breedController.dispose();
     ageController.dispose();
+    colourController.dispose();
+    weightController.dispose();
+    dateOfBirthController.dispose();
     super.dispose();
   }
 }
+
+const List<BreedOption> _dogBreeds = [
+  BreedOption(id: 'dog_shiba', name: 'Shiba Inu'),
+  BreedOption(id: 'dog_golden', name: 'Golden Retriever'),
+  BreedOption(id: 'dog_poodle', name: 'Poodle'),
+  BreedOption(id: 'dog_beagle', name: 'Beagle'),
+];
+
+const List<BreedOption> _catBreeds = [
+  BreedOption(id: 'cat_bsh', name: 'British Shorthair'),
+  BreedOption(id: 'cat_persian', name: 'Persian'),
+  BreedOption(id: 'cat_siamese', name: 'Siamese'),
+  BreedOption(id: 'cat_maine', name: 'Maine Coon'),
+];

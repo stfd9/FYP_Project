@@ -8,20 +8,27 @@ import '../ViewModel/pet_gallery_view_model.dart';
 
 class PetGalleryView extends StatelessWidget {
   final PetInfo pet;
+  final bool selectionMode;
 
-  const PetGalleryView({super.key, required this.pet});
+  const PetGalleryView({
+    super.key,
+    required this.pet,
+    this.selectionMode = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => PetGalleryViewModel()..initialize(pet),
-      child: const _PetGalleryBody(),
+      child: _PetGalleryBody(selectionMode: selectionMode),
     );
   }
 }
 
 class _PetGalleryBody extends StatelessWidget {
-  const _PetGalleryBody();
+  const _PetGalleryBody({required this.selectionMode});
+
+  final bool selectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +114,10 @@ class _PetGalleryBody extends StatelessWidget {
 
                   return GestureDetector(
                     onTap: () {
+                      if (selectionMode) {
+                        Navigator.pop(context, imagePath);
+                        return;
+                      }
                       viewModel.onImageTapped(index);
                       Navigator.push(
                         context,

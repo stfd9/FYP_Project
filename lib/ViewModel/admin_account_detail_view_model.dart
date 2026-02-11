@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'base_view_model.dart';
-import 'manage_accounts_view_model.dart';
+import '../models/user_account.dart';
 
 class AdminAccountDetailViewModel extends BaseViewModel {
   UserAccount? _user;
@@ -219,15 +219,7 @@ class AdminAccountDetailViewModel extends BaseViewModel {
             onPressed: () {
               _isAccountLocked = !_isAccountLocked;
               _accountStatus = _isAccountLocked ? 'Suspended' : 'Active';
-              _user = UserAccount(
-                id: _user!.id,
-                name: _user!.name,
-                email: _user!.email,
-                phone: _user!.phone,
-                joinDate: _user!.joinDate,
-                status: _accountStatus,
-                petsCount: _user!.petsCount,
-              );
+              _user = _user!.copyWith(status: _accountStatus);
               notifyListeners();
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
