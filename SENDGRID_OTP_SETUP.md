@@ -79,23 +79,35 @@ Complete!
 
 ### **Step 4: Configure Your App**
 
-Open **`lib/services/otp_service.dart`** and update these constants:
+⚠️ **IMPORTANT: Never commit API keys to Git!**
+
+1. Open **`lib/config/api_keys.dart`** (this file is git-ignored for security)
+2. Update the API key and sender email:
 
 ```dart
-// Line 11-12: Replace with your SendGrid API key
-static const String _sendGridApiKey = 'SG.xxxxxxxxxxxxxxxxxxxx';
+class ApiKeys {
+  // Replace with your actual SendGrid API key
+  static const String sendGridApiKey = 'SG.xxxxxxxxxxxxxxxxxxxx';
 
-// Line 15-16: Replace with your verified sender email
-static const String _senderEmail = 'noreply@yourdomain.com';
-static const String _senderName = 'PawScope';
+  // Replace with your verified sender email
+  static const String senderEmail = 'noreply@yourdomain.com';
+  static const String senderName = 'PawScope';
+}
 ```
 
 **Example:**
 ```dart
-static const String _sendGridApiKey = 'SG.abc123xyz456...';
-static const String _senderEmail = 'support@mypawscope.com';
-static const String _senderName = 'PawScope Team';
+class ApiKeys {
+  static const String sendGridApiKey = 'SG.abc123xyz456...';
+  static const String senderEmail = 'support@mypawscope.com';
+  static const String senderName = 'PawScope Team';
+}
 ```
+
+**For New Team Members:**
+- Copy `lib/config/api_keys.example.dart` to `lib/config/api_keys.dart`
+- Fill in the actual values
+- The file is automatically git-ignored to prevent accidental commits
 
 ---
 
