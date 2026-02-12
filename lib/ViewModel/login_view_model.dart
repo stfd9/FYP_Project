@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart'; // REQUIRED
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../View/home_view.dart';
 import '../View/register_view.dart';
 import '../View/admin_login_view.dart';
 import '../View/forgot_password_view.dart';
-import '../Services/activity_service.dart';
 import 'base_view_model.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  // Renamed controller for clarity, but kept logic compatible
   final TextEditingController emailOrUsernameController =
       TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -54,18 +52,13 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Email/Username + Password Login ---
+  // --- Email/Password Login ---
   Future<void> onLoginPressed(BuildContext context) async {
     setMessage(null, null);
 
-    final input = emailOrUsernameController.text.trim();
-    final password = passwordController.text;
-
-    if (input.isEmpty || password.isEmpty) {
-      setMessage(
-        'Please enter username/email and password.',
-        MessageType.error,
-      );
+    if (emailOrUsernameController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      setMessage('Please provide both email and password.', MessageType.error);
       return;
     }
 
@@ -81,39 +74,42 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      String finalEmail = input;
+      final input = emailOrUsernameController.text.trim();
+      String emailToUse = input;
 
-      // 1. Check if input is NOT an email (assume it's a username)
-      if (!input.contains('@')) {
-        final emailFromUsername = await _getEmailFromUsername(input);
-        if (emailFromUsername == null) {
+      // Check if input is an email or username
+      final isEmail = RegExp(
+        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+      ).hasMatch(input);
+
+      if (!isEmail) {
+        // It's a username, look up the email in Firestore
+        final userQuery = await FirebaseFirestore.instance
+            .collection('user')
+            .where('userName', isEqualTo: input)
+            .limit(1)
+            .get();
+
+        if (userQuery.docs.isEmpty) {
           _isLoading = false;
-          setMessage('Username not found.', MessageType.error);
+          setMessage('No user found with that username.', MessageType.error);
           return;
         }
-        finalEmail = emailFromUsername;
+
+        // Get the email from Firestore
+        emailToUse = userQuery.docs.first.data()['userEmail'] as String;
       }
 
-      // 2. Attempt Authentication with Email
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: finalEmail, password: password);
-
-      // 3. Check Suspension Status
-      bool isAllowed = await _checkUserStatus(userCredential.user!);
+      // Now authenticate with Firebase using the email
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailToUse,
+        password: passwordController.text,
+      );
 
       _isLoading = false;
       notifyListeners();
 
-      if (isAllowed && context.mounted) {
-        // --- LOG ACTIVITY ---
-        final user = userCredential.user!;
-        await ActivityService.log(
-          action: 'User Login',
-          description: '${user.email ?? "User"} logged in via Email/Username',
-          actorName: user.displayName ?? 'User',
-          type: 'INFO',
-        );
-
+      if (context.mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeView()),
@@ -122,16 +118,14 @@ class LoginViewModel extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       _isLoading = false;
       String errorMsg = 'Login failed. Please try again.';
-      if (e.code == 'user-not-found')
-        errorMsg = 'No user found for that account.';
-      else if (e.code == 'wrong-password')
+      if (e.code == 'user-not-found') {
+        errorMsg = 'No user found for that email.';
+      } else if (e.code == 'wrong-password')
         errorMsg = 'Wrong password provided.';
       else if (e.code == 'invalid-credential')
-        errorMsg = 'Invalid credentials.';
+        errorMsg = 'Invalid email or password.';
       else if (e.code == 'user-disabled')
         errorMsg = 'This user account has been disabled.';
-      else if (e.code == 'too-many-requests')
-        errorMsg = 'Too many attempts. Try again later.';
 
       setMessage(errorMsg, MessageType.error);
     } catch (e) {
@@ -140,30 +134,12 @@ class LoginViewModel extends ChangeNotifier {
     }
   }
 
-  // --- Helper: Get Email from Username ---
-  Future<String?> _getEmailFromUsername(String username) async {
-    try {
-      // Assuming you have a 'userName' field in your 'user' collection
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('user')
-          .where('userName', isEqualTo: username)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.data()['userEmail'] as String?;
-      }
-    } catch (e) {
-      print('Error finding username: $e');
-    }
-    return null;
-  }
-
-  // --- SOCIAL SIGN-IN LOGIC (Unchanged logic, just keeping structure) ---
+  // --- SOCIAL SIGN-IN LOGIC (Google & Facebook) ---
   Future<void> onProviderPressed(
     BuildContext context,
     String providerName,
   ) async {
+    // Terms Check for Social Login
     if (!_isTermsAccepted) {
       setMessage('Please accept the Terms & Conditions.', MessageType.error);
       return;
@@ -176,13 +152,14 @@ class LoginViewModel extends ChangeNotifier {
       UserCredential? userCredential;
 
       if (providerName == 'Google') {
+        // --- GOOGLE LOGIN ---
         final GoogleSignIn googleSignIn = GoogleSignIn();
         final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
         if (googleUser == null) {
           _isLoading = false;
           notifyListeners();
-          return;
+          return; // User cancelled
         }
 
         final GoogleSignInAuthentication googleAuth =
@@ -196,6 +173,7 @@ class LoginViewModel extends ChangeNotifier {
           credential,
         );
       } else if (providerName == 'Facebook') {
+        // --- FACEBOOK LOGIN ---
         final LoginResult result = await FacebookAuth.instance.login();
 
         if (result.status == LoginStatus.success) {
@@ -210,7 +188,7 @@ class LoginViewModel extends ChangeNotifier {
         } else if (result.status == LoginStatus.cancelled) {
           _isLoading = false;
           notifyListeners();
-          return;
+          return; // User cancelled
         } else {
           throw FirebaseAuthException(
             code: 'facebook-login-failed',
@@ -226,27 +204,18 @@ class LoginViewModel extends ChangeNotifier {
         return;
       }
 
-      if (userCredential != null && userCredential.user != null) {
+      // --- SAVE TO FIRESTORE & NAVIGATE ---
+      if (userCredential.user != null) {
+        // Pass the provider name so the DB saves "google" or "facebook" correctly
         await _saveSocialUserToFirestore(
           userCredential.user!,
           providerName.toLowerCase(),
         );
 
-        bool isAllowed = await _checkUserStatus(userCredential.user!);
-
         _isLoading = false;
         notifyListeners();
 
-        if (isAllowed && context.mounted) {
-          final user = userCredential.user!;
-          await ActivityService.log(
-            action: 'User Login',
-            description:
-                '${user.displayName ?? "User"} logged in via $providerName',
-            actorName: user.displayName ?? 'User',
-            type: 'INFO',
-          );
-
+        if (context.mounted) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomeView()),
@@ -265,42 +234,6 @@ class LoginViewModel extends ChangeNotifier {
     }
   }
 
-  // --- Helper: Check User Status ---
-  Future<bool> _checkUserStatus(User user) async {
-    try {
-      final QuerySnapshot result = await FirebaseFirestore.instance
-          .collection('user')
-          .where('providerId', isEqualTo: user.uid)
-          .limit(1)
-          .get();
-
-      if (result.docs.isNotEmpty) {
-        final data = result.docs.first.data() as Map<String, dynamic>;
-        final status = data['accountStatus'] as String? ?? 'Active';
-
-        if (status == 'Suspended') {
-          await FirebaseAuth.instance.signOut();
-          final GoogleSignIn googleSignIn = GoogleSignIn();
-          if (await googleSignIn.isSignedIn()) {
-            await googleSignIn.signOut();
-          }
-
-          setMessage(
-            'Your account has been suspended. Please contact support.',
-            MessageType.error,
-          );
-          return false;
-        }
-      }
-      return true;
-    } catch (e) {
-      print("Error checking status: $e");
-      setMessage('Unable to verify account status.', MessageType.error);
-      await FirebaseAuth.instance.signOut();
-      return false;
-    }
-  }
-
   // --- Helper: Save Social User to Firestore ---
   Future<void> _saveSocialUserToFirestore(
     User user,
@@ -308,6 +241,7 @@ class LoginViewModel extends ChangeNotifier {
   ) async {
     final firestore = FirebaseFirestore.instance;
 
+    // Check if user already exists
     final QuerySnapshot result = await firestore
         .collection('user')
         .where('providerId', isEqualTo: user.uid)
@@ -315,9 +249,10 @@ class LoginViewModel extends ChangeNotifier {
         .get();
 
     if (result.docs.isNotEmpty) {
-      return;
+      return; // User exists, do nothing
     }
 
+    // Generate Custom ID (U00000X)
     final counterRef = firestore.collection('counters').doc('userCounter');
 
     await firestore.runTransaction((transaction) async {
@@ -336,7 +271,7 @@ class LoginViewModel extends ChangeNotifier {
         'userName': user.displayName ?? '$providerName User',
         'userEmail': user.email ?? '',
         'password_hash': '${providerName.toUpperCase()}_AUTH',
-        'authProvider': providerName,
+        'authProvider': providerName, // Saves 'google' or 'facebook'
         'providerId': user.uid,
         'userRole': 'User',
         'accountStatus': 'Active',

@@ -462,8 +462,9 @@ class _ManageCommunityTipsContent extends StatelessWidget {
                                   );
                                 }).toList(),
                                 onChanged: (newValue) {
-                                  if (newValue != null)
+                                  if (newValue != null) {
                                     setState(() => selectedCategory = newValue);
+                                  }
                                 },
                               ),
                             ),

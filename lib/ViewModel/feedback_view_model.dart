@@ -21,6 +21,7 @@ class FeedbackViewModel extends BaseViewModel {
 
   String get selectedCategory => _selectedCategory;
   int get rating => _rating;
+  @override
   bool get isLoading => _isLoading;
 
   void selectCategory(String value) {

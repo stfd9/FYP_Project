@@ -8,6 +8,13 @@
 	<string>This app needs photo library access to select images of your pet for analysis.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app may need microphone access for camera functionality.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

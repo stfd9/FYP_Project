@@ -4,20 +4,26 @@ import '../View/reset_password_view.dart';
 
 class EnterOtpViewModel extends ChangeNotifier {
   final TextEditingController otpController = TextEditingController();
+  final OtpService _otpService = OtpService();
+
   bool isLoading = false;
   String? errorMessage;
+  String? successMessage;
 
   late String _email;
+  String _userName = '';
 
   // Getter for the View to access private _email
   String get email => _email;
 
-  void initialize(String email) {
+  void initialize(String email, {String userName = ''}) {
     _email = email;
+    _userName = userName;
   }
 
   Future<void> verifyOtp(BuildContext context) async {
     errorMessage = null;
+    successMessage = null;
     notifyListeners();
 
     if (otpController.text.length < 6) {
@@ -29,44 +35,104 @@ class EnterOtpViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    // --- FIX 1: Use the Service Instance ---
-    // We use the shared instance that already knows the generated code
-    bool isValid = OtpService.auth.verifyOTP(otp: otpController.text.trim());
+    try {
+      // Use the new OtpService API
+      final result = await _otpService.verifyOTP(
+        _email,
+        otpController.text.trim(),
+      );
 
-    isLoading = false;
-    notifyListeners();
+      isLoading = false;
 
-    if (isValid) {
-      if (context.mounted) {
-        // Success: Go to Reset Password
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => ResetPasswordView(email: _email)),
-        );
+      switch (result) {
+        case 'success':
+          successMessage = 'Code verified!';
+          notifyListeners();
+
+          if (context.mounted) {
+            // Success: Go to Reset Password
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ResetPasswordView(email: _email),
+              ),
+            );
+          }
+          break;
+
+        case 'expired':
+          errorMessage = 'This code has expired. Please request a new one.';
+          break;
+
+        case 'invalid':
+          errorMessage = 'Invalid code. Please check and try again.';
+          otpController.clear();
+          break;
+
+        case 'too_many_attempts':
+          errorMessage = 'Too many failed attempts. Please request a new code.';
+          otpController.clear();
+          break;
+
+        case 'not_found':
+          errorMessage =
+              'No verification code found. Please request a new one.';
+          break;
+
+        default:
+          errorMessage = 'Verification failed. Please try again.';
       }
-    } else {
-      errorMessage = 'Invalid OTP code. Please try again.';
+
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      errorMessage = 'An error occurred: $e';
       notifyListeners();
     }
   }
 
   Future<void> resendCode(BuildContext context) async {
-    // --- FIX 2: Re-configure and Send without arguments ---
-    OtpService.configure(email: _email);
+    errorMessage = null;
+    successMessage = null;
+    notifyListeners();
 
-    // sendOTP() typically returns Future<bool>, so we await it
-    bool sent = await OtpService.auth.sendOTP();
+    isLoading = true;
+    notifyListeners();
 
-    if (context.mounted) {
-      if (sent) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('New code sent to your email.')),
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to resend code.')));
+    try {
+      // Use the new OtpService resend API
+      final success = await _otpService.resendOTP(_email, _userName);
+
+      isLoading = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        if (success) {
+          successMessage = 'New code sent to your email';
+          notifyListeners();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('New code sent to your email.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          errorMessage = 'Failed to resend code. Please try again.';
+          notifyListeners();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to resend code.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      isLoading = false;
+      errorMessage = 'An error occurred: $e';
+      notifyListeners();
     }
   }
 

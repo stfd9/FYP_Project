@@ -229,8 +229,9 @@ class _FeedbackBody extends StatelessWidget {
                                     )
                                     .toList(),
                                 onChanged: (value) {
-                                  if (value != null)
+                                  if (value != null) {
                                     viewModel.selectCategory(value);
+                                  }
                                 },
                               ),
                             ),

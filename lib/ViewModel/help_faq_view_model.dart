@@ -37,14 +37,15 @@ class _CategoryStyle {
 class HelpFaqViewModel extends BaseViewModel {
   // Master list (Contains ALL data)
   List<FaqCategory> _allCategories = [];
-  
+
   // Filtered list (Displayed in UI)
   List<FaqCategory> _filteredCategories = [];
-  
+
   bool _isLoading = true;
 
   // UI reads from this list
   List<FaqCategory> get categories => _filteredCategories;
+  @override
   bool get isLoading => _isLoading;
 
   // --- Visual Configuration ---
@@ -105,7 +106,8 @@ class HelpFaqViewModel extends BaseViewModel {
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        final categoryTitle = data['category'] as String? ?? 'General Questions';
+        final categoryTitle =
+            data['category'] as String? ?? 'General Questions';
         final question = data['question'] as String? ?? '';
         final answer = data['answer'] as String? ?? '';
 
@@ -113,10 +115,9 @@ class HelpFaqViewModel extends BaseViewModel {
           groupedItems[categoryTitle] = [];
         }
 
-        groupedItems[categoryTitle]!.add(FaqItem(
-          question: question,
-          answer: answer,
-        ));
+        groupedItems[categoryTitle]!.add(
+          FaqItem(question: question, answer: answer),
+        );
       }
 
       _allCategories = groupedItems.entries.map((entry) {
@@ -146,7 +147,6 @@ class HelpFaqViewModel extends BaseViewModel {
 
       // Initially, filtered list is the same as the master list
       _filteredCategories = List.from(_allCategories);
-
     } catch (e) {
       print("Error fetching FAQs: $e");
     }
@@ -162,29 +162,33 @@ class HelpFaqViewModel extends BaseViewModel {
       _filteredCategories = List.from(_allCategories);
     } else {
       final lowerQuery = query.toLowerCase();
-      
+
       // Filter logic:
       // 1. Go through each category.
       // 2. Filter the items INSIDE that category.
       // 3. If a category has matching items, keep it. If empty, remove it.
-      
-      _filteredCategories = _allCategories.map((category) {
-        final matchingItems = category.items.where((item) {
-          return item.question.toLowerCase().contains(lowerQuery) ||
-                 item.answer.toLowerCase().contains(lowerQuery);
-        }).toList();
 
-        if (matchingItems.isEmpty) return null; // Drop category if no matches
+      _filteredCategories = _allCategories
+          .map((category) {
+            final matchingItems = category.items.where((item) {
+              return item.question.toLowerCase().contains(lowerQuery) ||
+                  item.answer.toLowerCase().contains(lowerQuery);
+            }).toList();
 
-        // Return a copy of the category with ONLY matching items
-        return FaqCategory(
-          title: category.title,
-          icon: category.icon,
-          color: category.color,
-          bgColor: category.bgColor,
-          items: matchingItems,
-        );
-      }).whereType<FaqCategory>().toList(); // Filter out the nulls
+            if (matchingItems.isEmpty)
+              return null; // Drop category if no matches
+
+            // Return a copy of the category with ONLY matching items
+            return FaqCategory(
+              title: category.title,
+              icon: category.icon,
+              color: category.color,
+              bgColor: category.bgColor,
+              items: matchingItems,
+            );
+          })
+          .whereType<FaqCategory>()
+          .toList(); // Filter out the nulls
     }
     notifyListeners();
   }

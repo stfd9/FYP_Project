@@ -9,6 +9,7 @@ class AdminFeedbackViewModel extends BaseViewModel {
   bool _isLoading = true;
 
   List<FeedbackModel> get feedbackList => _feedbackList;
+  @override
   bool get isLoading => _isLoading;
 
   AdminFeedbackViewModel() {

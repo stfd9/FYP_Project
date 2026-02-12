@@ -21,6 +21,7 @@ class HomeDashboardViewModel extends BaseViewModel {
   List<PetHomeInfo> get pets => List.unmodifiable(_pets);
   List<CommunityTip> get randomTips => List.unmodifiable(_randomTips);
   String get upcomingItem => _upcomingItem;
+  @override
   bool get isLoading => _isLoading;
 
   HomeDashboardViewModel() {

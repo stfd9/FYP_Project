@@ -323,7 +323,7 @@ class _EditPetBody extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<BreedOption>(
-          value: viewModel.selectedBreed,
+          initialValue: viewModel.selectedBreed,
           decoration: InputDecoration(
             prefixIcon: Icon(
               Icons.info_outline,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Ensure you have this package: flutter pub add intl
+import '../services/otp_service.dart';
+import '../View/otp_verification_view.dart';
 import 'base_view_model.dart';
 
 class RegisterViewModel extends BaseViewModel {
@@ -23,7 +25,9 @@ class RegisterViewModel extends BaseViewModel {
 
   bool get obscurePassword => _obscurePassword;
   bool get obscureConfirmPassword => _obscureConfirmPassword;
+  @override
   bool get isLoading => _isLoading;
+  @override
   String? get errorMessage => _errorMessage;
 
   // --- Visibility Toggles ---
@@ -70,6 +74,45 @@ class RegisterViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
+      // Send OTP to user's email
+      final otpService = OtpService();
+      final otpSent = await otpService.sendOTP(
+        emailController.text.trim(),
+        nameController.text.trim(),
+      );
+
+      _isLoading = false;
+      notifyListeners();
+
+      if (otpSent != null) {
+        // Navigate to OTP verification screen
+        if (context.mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationView(
+                email: emailController.text.trim(),
+                userName: nameController.text.trim(),
+                onVerificationSuccess: (context) =>
+                    _completeRegistration(context),
+              ),
+            ),
+          );
+        }
+      } else {
+        _errorMessage = 'Failed to send verification code. Please try again.';
+        notifyListeners();
+      }
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+    }
+  }
+
+  // Complete registration after OTP verification
+  Future<void> _completeRegistration(BuildContext context) async {
+    try {
       // 1. Create Auth User
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
@@ -82,16 +125,38 @@ class RegisterViewModel extends BaseViewModel {
         await _saveUserToFirestore(userCredential.user!.uid);
 
         if (context.mounted) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to login
           Navigator.pushReplacementNamed(context, '/login');
         }
       }
     } on FirebaseAuthException catch (e) {
-      _errorMessage = _handleAuthError(e);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_handleAuthError(e)),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.pop(context); // Go back to register screen
+      }
     } catch (e) {
-      _errorMessage = 'An unexpected error occurred: $e';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.pop(context); // Go back to register screen
+      }
     }
   }
 
