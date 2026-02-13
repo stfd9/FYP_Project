@@ -7,6 +7,6 @@ class ApiKeys {
 
   // SendGrid Sender Email
   // Configure at: https://app.sendgrid.com/settings/sender_auth
-  static const String senderEmail = 'your-email@example.com';
-  static const String senderName = 'Your App Name';
+  static const String senderEmail = 'pawscope1@outlook.com';
+  static const String senderName = 'PawScope Support';
 }
