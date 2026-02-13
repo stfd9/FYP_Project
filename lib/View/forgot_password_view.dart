@@ -159,7 +159,7 @@ class _ForgotPasswordContent extends StatelessWidget {
                   ),
                   onPressed: viewModel.isLoading
                       ? null
-                      : () => viewModel.sendResetLink(context),
+                      : () => viewModel.sendOTP(context),
                   child: viewModel.isLoading
                       ? const SizedBox(
                           width: 24,

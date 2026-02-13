@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/otp_service.dart';
+import '../View/forgot_password_otp_view.dart';
 
 class ForgotPasswordViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
+  final OtpService _otpService = OtpService();
 
   bool isLoading = false;
   String? errorMessage;
 
-  Future<void> sendResetLink(BuildContext context) async {
+  Future<void> sendOTP(BuildContext context) async {
     // 1. Reset Error
     errorMessage = null;
     notifyListeners();
@@ -32,7 +35,7 @@ class ForgotPasswordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 4. Check if User Exists in Firestore first (Optional but good UX)
+      // 4. Check if User Exists in Firestore
       final userQuery = await FirebaseFirestore.instance
           .collection('user')
           .where('userEmail', isEqualTo: email)
@@ -46,25 +49,32 @@ class ForgotPasswordViewModel extends ChangeNotifier {
         return;
       }
 
-      // 5. SEND FIREBASE RESET EMAIL
-      // This sends a reliable email from "noreply@your-project.firebaseapp.com"
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      final userData = userQuery.docs.first.data();
+      final userName = userData['userName'] ?? 'User';
+
+      // 5. Send OTP via Email
+      final otp = await _otpService.sendOTP(email, userName);
 
       isLoading = false;
       notifyListeners();
 
+      if (otp == null) {
+        errorMessage = 'Failed to send verification code. Please try again.';
+        notifyListeners();
+        return;
+      }
+
       if (context.mounted) {
-        // 6. Success Feedback
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset link sent! Check your email.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
+        // 6. Navigate to OTP Verification Screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ForgotPasswordOtpView(
+              email: email,
+              userName: userName,
+            ),
           ),
         );
-
-        // 7. Go back to Login Page (No need for OTP screen)
-        Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
       isLoading = false;

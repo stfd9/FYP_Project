@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ResetPasswordViewModel extends ChangeNotifier {
   final TextEditingController newPasswordController = TextEditingController();
@@ -54,7 +55,7 @@ class ResetPasswordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Find User ID by Email in Firestore
+      // 1. Find User in Firestore to verify they exist
       final querySnapshot = await FirebaseFirestore.instance
           .collection('user')
           .where('userEmail', isEqualTo: _email)
@@ -69,45 +70,69 @@ class ResetPasswordViewModel extends ChangeNotifier {
       }
 
       final docId = querySnapshot.docs.first.id;
+      final newPassword = newPasswordController.text;
 
-      // 2. Update Firestore 'password_hash' (Optional/Reference)
-      // Note: This does NOT update Firebase Auth login credentials directly
-      // if using signInWithEmailAndPassword without a backend Admin SDK.
-      // Ideally, use: await FirebaseAuth.instance.currentUser?.updatePassword(newPass);
-      // But user is logged out here.
-
-      await FirebaseFirestore.instance.collection('user').doc(docId).update({
-        'password_hash':
-            'UPDATED_VIA_OTP', // You can store hash if handling custom auth
-        'lastPasswordReset': FieldValue.serverTimestamp(),
+      // 2. Store the new password temporarily (for manual update via reset link)
+      // In production, you should hash this and use Cloud Functions
+      await FirebaseFirestore.instance
+          .collection('pending_password_resets')
+          .doc(docId)
+          .set({
+        'email': _email,
+        'requestedPassword': newPassword, // Store securely/hash in production!
+        'createdAt': FieldValue.serverTimestamp(),
+        'expiresAt': DateTime.now().add(const Duration(hours: 1)),
+        'used': false,
+        'verifiedViaOTP': true,
       });
 
-      // 3. For Real Firebase Auth Password Update (Workaround for Client SDK):
-      // Since we cannot update another user's password from client SDK without old password,
-      // we usually send a real reset email here as a fallback, OR use a Cloud Function.
-      // For this demo, we assume the Firestore update is the goal or we are simulating.
-
-      // OPTIONAL: If you want to actually trigger a Firebase Auth reset email as "backup":
-      // await FirebaseAuth.instance.sendPasswordResetEmail(email: _email);
+      // 3. Send Firebase Auth password reset email
+      // User will click this link to complete the password reset
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: _email);
 
       isLoading = false;
       notifyListeners();
 
       if (context.mounted) {
-        // 4. Navigate back to Login
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Password updated successfully! Please login with new password.',
+        // Show success message with instructions
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            icon: const Icon(
+              Icons.check_circle_outline,
+              color: Colors.green,
+              size: 64,
             ),
-            backgroundColor: Colors.green,
+            title: const Text(
+              'Almost Done!',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Text(
+              'We\'ve sent a password reset link to $_email.\n\n'
+              'Please check your email and click the link to complete '
+              'your password reset.\n\n'
+              'After clicking the link, you can sign in with your new password.',
+              textAlign: TextAlign.center,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // Navigate back to login screen
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                child: const Text(
+                  'Back to Login',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
         );
       }
     } catch (e) {
       isLoading = false;
-      errorMessage = 'Failed to reset password: $e';
+      errorMessage = 'Failed to initiate password reset: $e';
       notifyListeners();
     }
   }
